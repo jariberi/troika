@@ -1,1 +1,1 @@
-# Troika: Frontend de sistema de facturación (codename: Trineo)
+# Frontend de sistema de facturación (codename: Trineo)
