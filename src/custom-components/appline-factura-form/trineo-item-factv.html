@@ -1,0 +1,123 @@
+<dom-module id="trineo-item-factv">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+            paper-input#cantidad{
+                width: var(--cantidad-width);
+            }
+            paper-input#descripcion{
+                width: var(--descripcion-width);
+            }
+            paper-input#precio-unitario{
+                width: var(--precio-unitario-width);
+            }
+            paper-dropdown-menu {
+                width: var(--alic-iva-width);
+            }
+            span#total{
+                width: var(--total-width);
+                padding-top: 28px;
+                text-align: right;
+            }
+
+            span#total::before{
+                content: "$  ";
+                font-weight: bold; 
+            }
+        </style>
+        <div class="layout horizontal justified">
+        <paper-input required allowed-pattern="[0-9\.]" id="cantidad" value="{{cantidad}}" error-message="Ing. cantidad"></paper-input>
+        <paper-input required id="descripcion" value="{{descripcion}}" error-message="Ingrese la descripcion"></paper-input>
+        <paper-input required allowed-pattern="[0-9\.]" id="precio-unitario" value="{{precioUnitario}}" error-message="Ingrese el precio unitario"></paper-input>
+        <paper-dropdown-menu required="[[discriminaIva]]" disabled="[[!discriminaIva]]" id="alic-iva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
+            <paper-listbox attr-for-selected="value" selected="{{alicIva}}" class="dropdown-content">
+              <paper-item value="IVA00">Exento</paper-item>
+              <paper-item value="IV105">10.5%</paper-item>
+              <paper-item value="IVA21">21%</paper-item>
+              <paper-item value="IVA27">27%</paper-item>
+            </paper-listbox>
+          </paper-dropdown-menu>
+        <span id="total">{{total}}</span>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-item-factv',
+
+            properties: {
+                discriminaIva: {
+                    type: Boolean,
+                    reflectToAttribute: true,
+                },
+                cantidad: Number,
+                descripcion: String,
+                precioUnitario: Number,
+                neto: {
+                    type: Number,
+                    readOnly: true,
+                    computed: "calcularNeto(cantidad, precioUnitario)"
+                },
+                alicIva: {
+                    type: String,
+                    observer: "_alicIvaChanged"
+                },
+                alicIvaN: {
+                    type: Number,
+                    value: 0
+                },
+                valorIva: {
+                    type: Number,
+                    computed: "calcularIva(neto, alicIvaN)"
+                },
+                total: {
+                    type: Number,
+                    computed: "calcularTotal(neto, valorIva)"
+                }
+
+            },
+
+            observers: [
+                "_handleItemChanged(valorIva, neto)"
+            ],
+
+            //Observers
+            _alicIvaChanged: function (val) {
+                switch(val) {
+                    case "IVA21":
+                        this.alicIvaN = 21;
+                        break;
+                    case "IV105":
+                        this.alicIvaN = 10.5;
+                        break;
+                    case "IVA27":
+                        this.alicIvaN = 27
+                        break;
+                    case "IVA00":
+                        this.alicIvaN = 0
+                        break;
+                    default:
+                        this.alicIvaN = 0
+                }
+            },
+
+            _handleItemChanged: function(valorIva, neto) {
+                this.fire('item-changed');
+            },
+
+
+            calcularNeto: function(cantidad, precioUnitario) {
+                return (cantidad * precioUnitario).toFixed(2);
+            },
+
+            calcularIva: function(neto, alicIvaN) {
+                return (neto * alicIvaN / 100).toFixed(2);
+            },
+            calcularTotal: function(neto, valorIva) {
+                return (Number(neto) + Number(valorIva)).toFixed(2)
+            }
+
+        });
+    </script>
+</dom-module>

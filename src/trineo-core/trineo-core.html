@@ -1,0 +1,115 @@
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+
+<link rel="import" href="../custom-components/appline-auth-panel/appline-login-form.html">
+<link rel="import" href="../custom-components/appline-auth-panel/appline-auth-panel.html">
+<link rel="import" href="../custom-components/appline-wait/appline-wait.html">
+
+<link rel="import" href="../behaviors/ajax-behavior.html">
+<link rel="import" href="../behaviors/dates-behavior.html">
+<link rel="import" href="../behaviors/utils-behavior.html">
+
+<link rel="import" href="../shared-styles.html">
+
+<script src="../../bower_components/moment/min/moment.min.js"></script>
+
+
+
+
+<dom-module id="trineo-core">
+  <template>
+    <style include="shared-styles">
+      
+      :host {
+        display: block;
+      }
+
+    </style>
+
+    <appline-wait id="wait"></appline-wait>
+
+    <appline-auth-panel id="auth" logged-in="{{userLoggedIn}}" user-backend="{{userBackend}}"></appline-auth-panel>
+
+    <iron-pages selected="[[page]]" attr-for-selected="name">
+      <appline-login-form name="login" user-backend="{{userBackend}}" login-url="[[apiUrl]]/utils/login/" create-url="[[apiUrl]]/utils/create-user/" id="loginForm"></appline-login-form>
+      <trineo-app user-backend="{{userBackend}}" name="app"></trineo-app>
+    </iron-pages>
+    
+  </template>
+
+  <script>
+    Polymer({
+      is: 'trineo-core',
+
+      properties: {
+        page: String,
+        userBackend: Object,
+        userLoggedIn: {
+          type: Boolean,
+          observer: "_userLoggedInChanged"
+        }
+      },
+
+      ready: function() {
+        //Cuando termina de cargar este componente, carga el otro (app) mientras el usuario se loguea
+        var resolvedPageUrl = this.resolveUrl('../trineo-app/trineo-app.html');
+        this.importHref(resolvedPageUrl, null, null, true);
+      },
+
+      behaviors: [AjaxBehavior],
+
+      listeners: {
+        "open-wait": "_lanzarWaitDialog",
+        "close-wait": "_cerrarWaitDialog",
+        "logout": "_logout",
+        "comprobante-no-aprobado": "_mostrarError"
+      },
+
+      _userLoggedInChanged: function(val) {
+        if (val==true) {
+          this.page="app"
+        }
+        else {
+          this.page="login"
+        }
+      },
+
+      _logout: function() {
+        this.set('userBackend', undefined)
+      },
+
+      
+      _lanzarWaitDialog: function(e) {
+        this.$.wait.mensaje=e.detail.mensaje
+        this.$.wait.open()
+      },
+
+      _cerrarWaitDialog: function(e) {
+        this.$.wait.close()
+      },
+
+      _mostrarError: function(e) {
+        var err = e.detail.data.err
+        var obs = e.detail.data.obs
+        var d = document.createElement("paper-dialog")
+        Polymer.dom(d).setAttribute('id','error-comprobante-dialog')
+        Polymer.dom(d).setAttribute('modal',true)
+        Polymer.dom(this.root).appendChild(d)
+        Polymer.dom(d).innerHTML+="<h1>Comprobante Rechazado</h1>"
+        if (err) {
+          Polymer.dom(d).innerHTML+="<ul></ul>"
+          var ul = Polymer.dom(d).querySelector("ul")
+          for (i=0;i<err.length;i++) {
+            Polymer.dom(ul).innerHTML="<li>"+err[i].code + " - " + err[i].msg + "</li>"
+          }
+        }
+        Polymer.dom(d).innerHTML+='<div class="buttons"><paper-button raised dialog-dismiss autofocus>Aceptar</paper-button></div>'
+        d.open()
+      }
+      
+    });
+  </script>
+</dom-module>

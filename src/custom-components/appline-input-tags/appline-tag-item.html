@@ -1,0 +1,65 @@
+<dom-module id="appline-tag-item">
+
+  <style>
+      :host {
+        display: flex;
+        font-family: 'Roboto', 'Noto', sans-serif;
+        border: 1px solid #03A9F4;
+        border-radius: 4px;
+      }
+
+      paper-icon-button {
+        --paper-icon-button: {
+          height: 20px;
+          width: 20px;
+          padding: 2px;
+        }
+      }
+
+      .default-icon{
+        color: #4285f4;
+        width: 15px;
+        height: 15px;
+        padding: 0;
+      }
+      .default-tag{
+        display: inline-block;
+        border: 1px solid #03A9F4;
+        font-size: 13px;
+        color: #616161;
+        border-radius: 4px;
+      }
+  </style>
+
+  <template>
+      <span>[[value]]</span>
+      <paper-icon-button icon="icons:close" on-tap="_removeTag"></paper-icon-button>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'appline-tag-item',
+    properties: {
+      styletag: {
+        type: String,
+        value: 'default-tag'
+      },
+      styleicon: {
+        type: String,
+        value: 'default-icon'
+      },
+      value: String,
+      index: Number,
+      tags: {
+        type: Array,
+        notify: true
+      }
+    },
+
+    _removeTag: function() {
+      this.fire("tag-removed", this.index)
+    }
+  });
+</script>

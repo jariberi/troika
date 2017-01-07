@@ -1,0 +1,70 @@
+<link rel="import" href="../../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../../bower_components/neon-animation/neon-animation-runner-behavior.html">
+<link rel="import" href="../../../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../../../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<dom-module id="appline-wait">
+  <template>
+    <style include="paper-dialog-shared-styles iron-flex iron-flex-alignment">
+    :host {
+        box-shadow: none;
+        padding: 30px;
+    }
+    paper-spinner {
+        --paper-spinner-stroke-width: 10px;
+        height: 90px;
+        width: 90px;
+    }
+    </style>
+    <div class="layout vertical">
+        <paper-spinner active class="self-center"></paper-spinner>
+        <dom-if if="[[mensaje]]"><h2>[[mensaje]]</h2></dom-if>
+    </div>
+    
+  </template>
+
+
+<script>
+  Polymer({
+
+    is: 'appline-wait',
+
+    properties: {
+        modal: {
+            type: Boolean,
+            value: true,
+        },
+        mensaje: String
+    },
+
+    behaviors: [
+      Polymer.PaperDialogBehavior,
+      Polymer.NeonAnimationRunnerBehavior
+    ],
+
+    listeners: {
+      'neon-animation-finish': '_onNeonAnimationFinish'
+    },
+
+    _renderOpened: function() {
+      this.cancelAnimation();
+      this.playAnimation('entry');
+    },
+
+    _renderClosed: function() {
+      this.cancelAnimation();
+      this.playAnimation('exit');
+    },
+
+    _onNeonAnimationFinish: function() {
+      if (this.opened) {
+        this._finishRenderOpened();
+      } else {
+        this._finishRenderClosed();
+      }
+    }
+
+  });
+</script>
+</dom-module>

@@ -1,0 +1,136 @@
+<!--<link rel="import" href="../../../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../../../bower_components/paper-badge/paper-badge.html">-->
+<link rel="import" href="appline-tag-item.html">
+
+<dom-module id="appline-input-tags">
+	<style include="iron-flex iron-flex-alignment">
+		appline-tag-item {
+			margin-right: 5px;
+		}
+		
+		paper-badge {
+			display: inline-block;
+			position: inherit;
+		}
+		
+		.tagscounter {
+			display: inline-block;
+		}
+	</style>
+
+	<template>
+		<paper-input-container id="input-tags" always-float-label="[[floatLabel]]">
+			<template is="dom-if" if="{{label}}">
+				<label>[[label]]</label>
+			</template>
+			<div class="layout horizontal">
+			<template is="dom-repeat" items="{{tags}}">
+				<appline-tag-item styletag="{{styletag}}" tags="{{tags}}" styleicon="{{styleicon}}" value="[[_pad_with_zeroes(item.punto_venta)]]" index="{{index}}"></appline-tag-item>
+			</template>
+			<input is="iron-input" allowed-pattern="[[allowedPattern]]" maxlength$="[[maxlength]]" on-keydown="_keyDown">
+		</div>
+		</paper-input-container>
+
+		<template is="dom-if" if="{{showtagcounter}}">
+			<div class="tagscounter">
+				<paper-badge class$="{{stylecounter}}" label="{{_tagsLength(tags)}}"></paper-badge>[[showtagcounter]]
+			</div>
+		</template>
+
+	</template>
+</dom-module>
+
+<script>
+	Polymer({
+	  is: 'appline-input-tags',
+	  properties: {
+			maxTags: {
+				type: Number,
+				reflectToAttribute: true
+			},
+			allowedPattern: String,
+			padWithZeroes: {
+				type: Number,
+				value: 0,
+			},
+			maxlength: Number,
+	  	index: Number,
+	    label: String,
+	    showtagcounter: String,
+	    stylecounter: String,
+	    styleicon: String,
+	    styletag: String,
+	    tags: {
+	      type: Array,
+	      notify: true,
+	      value: [],
+	    },
+			AttrForTags: String,
+			floatLabel: {
+				type: Boolean,
+				computed: "_floatLabelCompute(tags)"
+			}
+	  },
+
+		listeners: {
+			"tag-removed": "_handleTagRemoved"
+		},
+
+		_handleTagRemoved: function(e,index) {
+			var itemv = this.tags[index]
+			this.fire("item-removed", {item:itemv.punto_venta})
+		},
+
+		_floatLabelCompute: function(tags) {
+			if (tags.length > 0) {
+				return true
+			}
+			return false
+		},
+
+		_pad_with_zeroes: function (number) {
+            var my_string = '' + number;
+            while (my_string.length < this.padWithZeroes) {
+                my_string = '0' + my_string;
+            }
+            return my_string;
+        },       
+
+	  _addTag: function(tag) {
+	    if (typeof(this.tags) == 'undefined') {
+	      this.tags = [];
+	    }
+	    
+			this.push('tags',{punto_venta: tag, empresa:'', url:''});
+	    this.tags = this.tags.slice();
+	  },
+	  _tagsLength: function(tags) {
+	    return tags.length;
+	  },
+	  _getInputValue: function(inputvalue) {
+	    return inputvalue.trim();
+	  },
+
+	  _keyDown: function(event) {
+	    var keyVal = event.which;
+	    if (keyVal === 13) {
+	      var tag = parseInt(this._getInputValue(event.target.value));
+				if ((tag !== '') && !(this.tags.find(function(x) {return x.punto_venta === tag}))) {
+					if(this.tags.length>=this.maxTags) {
+						alert("No puede asociar mas puntos de venta")
+						event.target.value = '';
+					}
+					else {
+						this._addTag(tag);
+						this.fire('item-add',{item:tag})
+	        	event.target.value = '';
+					}
+	      } 
+				else {
+					alert("El punto de venta ya existe");
+					event.target.value = '';
+				}
+	    }
+	  }
+	});
+</script>

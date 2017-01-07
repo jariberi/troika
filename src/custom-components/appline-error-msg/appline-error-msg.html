@@ -1,0 +1,25 @@
+
+<dom-module id="appline-error-msg">
+    <template>
+        <style>
+            :host {
+                display: block;
+                color: #dd2c00;
+            }
+        </style>
+        [[message]]
+    </template>
+    <script>
+        Polymer({
+            is: 'appline-error-msg',
+
+            properties: {
+                message: {
+                    type: String,
+                    reflectToAttribute: true,
+                    observer: "_onMessageChanged"
+                }
+            }
+        });
+    </script>
+</dom-module>

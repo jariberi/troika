@@ -1,0 +1,107 @@
+<dom-module id="trineo-servicio-dates">
+    <template>
+        <style include="iron-flex iron-flex-alignment">
+        :host {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            vaadin-date-picker {
+            width: 100% !important;
+            margin-right: 0 !important;
+            max-width: 768px !important; 
+            }
+
+            
+        }
+        
+        </style>
+        <div class="layout horizontal justified wrap">
+            <vaadin-date-picker hidden="[[hidden]]" required="[[required]]" id="fechaDesdeDatePicker" value={{fechaDesde}} label="Inicio del servicio"></vaadin-date-picker>
+            <vaadin-date-picker hidden="[[hidden]]" required="[[required]]" id="fechaHastaDatePicker" value={{fechaHasta}} label="Fin del servicio"></vaadin-date-picker>
+            <vaadin-date-picker hidden="[[hidden]]" required="[[required]]" id="fechaVencDatePicker" min="[[fechaC]]" value={{fechaVencimiento}} label="Fecha vencimiento pago" error-message="Ingrese una posterior al comprobante"></vaadin-date-picker>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-servicio-dates',
+
+            behaviors: [Polymer.IronValidatableBehavior, Polymer.IronFormElementBehavior, DatesBehavior],
+            
+            //CALLBACK METHODS
+            ready: function () {
+                this.$.fechaDesdeDatePicker.i18n = this.get_i18n() //From DatesBehavior
+                this.$.fechaHastaDatePicker.i18n = this.get_i18n() //From DatesBehavior
+                this.$.fechaVencDatePicker.i18n = this.get_i18n() //From DatesBehavior
+            },
+
+            properties: {
+                fechaDesde: {
+                    type: String,
+                    reflectToAttribute: true,
+                    notify: true
+                },
+                fechaHasta: {
+                    type: String,
+                    reflectToAttribute: true,
+                    notify: true
+                },
+                fechaVencimiento: {
+                    type: String,
+                    reflectToAttribute: true,
+                    notify: true
+                },
+
+                fechaC: String,
+                required: {
+                    type: Boolean,
+                    reflectToAttribute: true,
+                },
+                hidden: Boolean,
+            },
+
+            _vencVal: function() {
+                if(this.$.fechaVencDatePicker.validate()) {
+                    return true
+                }
+                return false
+            },
+
+            _vencIntervalo: function() {
+                if (this.$.fechaDesdeDatePicker.validate()) {
+                    if (this.$.fechaHastaDatePicker.validate()) {
+                        var fd = moment(this.fechaDesde)
+                        var fh = moment(this.fechaHasta)
+                        if (fd <= fh || !this.$.fechaDesdeDatePicker.required) {
+                            return true;
+                        } else {
+                            this.$.fechaHastaDatePicker.errorMessage="La fecha no puede ser anterior"
+                            Polymer.dom(this.$.fechaHastaDatePicker).setAttribute("invalid", true);
+                            return false
+                        }
+                    } else {
+                        this.$.fechaHastaDatePicker.errorMessage="Ingrese una fecha válida";
+                        Polymer.dom(this.$.fechaHastaDatePicker).setAttribute("invalid", true);
+                        return false
+                    }
+                }
+                else {
+                    this.$.fechaDesdeDatePicker.errorMessage="Ingrese una fecha válida";
+                    Polymer.dom(this.$.fechaDesdeDatePicker).setAttribute("invalid", true);
+                    if (!this.$.fechaHastaDatePicker.validate()) {
+                        this.$.fechaHastaDatePicker.errorMessage="Ingrese una fecha válida";
+                        Polymer.dom(this.$.fechaHastaDatePicker).setAttribute("invalid", true);    
+                    }
+                    
+                    return false
+                }
+            },
+
+            _getValidity: function() {
+                var ve = this._vencVal()
+                var vi = this._vencIntervalo()
+                return ve && vi
+            }
+        });
+    </script>
+</dom-module>

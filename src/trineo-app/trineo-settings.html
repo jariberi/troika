@@ -1,0 +1,208 @@
+<link rel="import" href="../custom-components/appline-ptovta-input/appline-ptovta-input.html">
+
+
+<dom-module id="trineo-settings">
+  <template>
+    <style include="iron-flex iron-flex-alignment">
+      :host {
+        display: block;
+      }
+
+      paper-card {
+        width: 100%;
+      }
+
+      @media (max-width: 768px) {
+            vaadin-date-picker, paper-input, paper-dropdown-menu, appline-ptovta-input, appline-idfiscal-input {
+            width: 100% !important;
+            max-width: 768px !important; 
+            }
+
+            appline-ptovta-input {
+              min-width: 0 !important
+            }
+
+            
+        }
+
+      paper-input, paper-dropdown-menu, vaadin-date-picker {
+        min-width: 270px;
+      }
+
+      appline-ptovta-input {
+        min-width: 500px;
+      }
+
+      div.spacer {
+        border-bottom: lightgray solid 1px;
+        margin-bottom: 20px;
+        margin-top: 20px;
+      }
+    </style>
+
+    <iron-ajax id="updateSettingsAjax" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" id="iaUpdateSettings" method="PATCH" url="[[userBackend.perfil_user.empresa.url]]" handle-as="json" debounce-duration="3000"></iron-ajax>
+
+    <iron-ajax id="pvAddAjax" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/puntos-venta/"  method="POST" content-type="application/json" handle-as="json" last-response="{{_pvAddedObject}}"></iron-ajax>
+    
+    <iron-ajax id="pvRemoveAjax" headers="[[getAuthHeader(userBackend.auth_token)]]" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
+
+    <iron-ajax headers="[[authHeader]]" headers="[[getAuthHeader(userBackend.auth_token)]]" id="afipStatus" url="[[apiUrl]]/utils/afip-status/" handle-as="json" last-response="{{afipStatus}}"></iron-ajax>
+
+      <paper-card heading="General">
+        <div class="card-content layout vertical">
+          <paper-input label="Razon Social" value="{{userBackend.perfil_user.empresa.razon_social}}"></paper-input>
+          <paper-input label="Nombre de fantasía" value="{{userBackend.perfil_user.empresa.nombre_fantasia}}"></paper-input>
+          <div class="spacer"></div>
+          <div class="layout horizontal justified wrap">
+            <appline-idfiscal-input value="{{userBackend.perfil_user.empresa.cuit}}" label="CUIT"></appline-idfiscal-input>
+            <paper-dropdown-menu label="Categoría IVA">
+              <paper-listbox attr-for-selected="value" selected="{{userBackend.perfil_user.empresa.categoria_iva}}" class="dropdown-content">
+                <paper-item value="0">Responsable Inscripto</paper-item>
+                <paper-item value="1">Responsable Monotributo</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-input label="Ingresos Brutos" value="{{userBackend.perfil_user.empresa.ingresos_brutos}}"></paper-input>
+          </div>
+          <div class="layout horizontal justified wrap">
+            <vaadin-date-picker id="fechaInicioAct" value={{userBackend.perfil_user.empresa.inicio_actividades}} label="Fecha Inicio Actividades"></vaadin-date-picker>
+            <appline-ptovta-input on-pv-added="_pvAddedHandler" on-pv-removed="_pvRemovedHandler" puntos-venta="{{userBackend.perfil_user.empresa.puntos_venta}}"></appline-ptovta-input>
+          </div>
+          <div class="spacer"></div>
+          <div class="layout horizontal justified wrap">
+          <paper-input label="Dirección" value="{{userBackend.perfil_user.empresa.direccion}}"></paper-input>
+          <paper-input label="Cuidad" value="{{userBackend.perfil_user.empresa.ciudad}}"></paper-input>
+          <paper-dropdown-menu label="Provincia">
+              <paper-listbox attr-for-selected="value" selected="{{userBackend.perfil_user.empresa.provincia}}" class="dropdown-content">
+                <paper-item value="0">Ciudad autonoma de Buenos Aires</paper-item>
+                <paper-item value="1">Buenos Aires</paper-item>
+                <paper-item value="2">Catamarca</paper-item>
+                <paper-item value="3">Córdoba</paper-item>
+                <paper-item value="4">Corrientes</paper-item>
+                <paper-item value="5">Entre Ríos</paper-item>
+                <paper-item value="6">Jujuy</paper-item>
+                <paper-item value="7">Mendoza</paper-item>
+                <paper-item value="8">La Rioja</paper-item>
+                <paper-item value="9">Salta</paper-item>
+                <paper-item value="10">San Juan</paper-item>
+                <paper-item value="11">San Luis</paper-item>
+                <paper-item value="12">Santa Fe</paper-item>
+                <paper-item value="13">Santiago del Estero</paper-item>
+                <paper-item value="14">Tucuman</paper-item>
+                <paper-item value="15">Chaco</paper-item>
+                <paper-item value="16">Chubut</paper-item>
+                <paper-item value="17">Formosa</paper-item>
+                <paper-item value="18">Misiones</paper-item>
+                <paper-item value="19">Neuquén</paper-item>
+                <paper-item value="20">La Pampa</paper-item>
+                <paper-item value="21">Río Negro</paper-item>
+                <paper-item value="22">Santa Cruz</paper-item>
+                <paper-item value="23">Tierra del Fuego</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+          </div>
+          <div class="layout horizontal justified wrap">
+          <paper-input label="Telefono" value="{{userBackend.perfil_user.empresa.telefono}}"></paper-input>
+          <paper-input label="Codigo Postal" value="{{userBackend.perfil_user.empresa.codigo_postal}}"></paper-input>
+          <paper-input label="Username" readonly value="[[userBackend.username]]"></paper-input>
+          </div>
+          <div class="spacer"></div>
+          <div class="layout horizontal center wrap">
+            <span>Delegación:</span>
+            <span style="margin-left: 20px;">[[estadoDelegacion]] <a hidden$="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" href="#">Mas información.</a></span>
+            <span style="margin-left: 50px;">Estado de servicios AFIP:</span>
+            <span style="margin-left: 20px;">[[afipStatus.AppServer]]</span>
+            <!--<paper-icon-button disabled="[[!userBackend.perfil_user.empresa.delegacion_aceptada]]" raised icon="refresh"></paper-icon-button>-->
+          </div>
+        </div>    
+  </paper-card>  
+  </template>
+
+  <script>
+    Polymer({
+      is: 'trineo-settings',
+
+      behaviors: [DatesBehavior, AjaxBehavior],
+
+      ready: function() {
+        this.$.fechaInicioAct.i18n = this.get_i18n() //From DatesBehavior
+        this.$.afipStatus.generateRequest()
+      },
+
+      properties: {
+        userBackend: {
+          type: Object,
+          notify: true
+        },
+        firebaseUser: {
+          type: Object,
+          observer: "userChanged"
+        },
+        proSettings: Object,
+        _pvAddedObject: {
+          type: Object,
+          observer: "_pvAddedObjectChanged"
+        },
+        estadoDelegacion: {
+          type: String,
+          computed: "_estadoDelegacionCompute(userBackend.perfil_user.empresa.delegacion_iniciada, userBackend.perfil_user.empresa.delegacion_aceptada)"
+        },
+        afipStatus: Object,
+        authHeader: {
+          type: String,
+          computed: "_authHeaderCompute(userBackend.auth_token)"
+        }
+      },
+
+      //computes
+      _estadoDelegacionCompute: function(di, da) {
+        if (di) {
+          if (da) {
+            return "Delegación COMPLETA"
+          } else {
+            return "Pendiente de aprobación"
+          }
+        }
+        return 'Pendiente de iniciación.'
+      },
+
+      _authHeaderCompute: function(token) {
+        return {Authorization: "Token "+token}
+      },
+
+      observers: [
+        "_onEmpresaChanged(userBackend.perfil_user.empresa.*)"
+      ],
+
+      _onEmpresaChanged: function(ch) {
+        if (!(ch.path=="userBackend.perfil_user.empresa")) {
+          var c = ch.path.split(".")
+          var prop = c[c.length-1]
+          var obj = {}
+          obj[prop]=ch.value
+          this.$.updateSettingsAjax.body=obj
+          this.$.updateSettingsAjax.generateRequest()
+        }
+      },
+
+      _pvAddedObjectChanged: function (val) {
+        var index = this.userBackend.perfil_user.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
+        this.splice('userBackend.perfil_user.empresa.puntos_venta',index,1,val)
+        //this.set('userBackend.perfil_user.empresa.puntos_venta['+index+'].empresa', val.empresa)
+      },
+
+      _pvAddedHandler: function(e, det) {
+        this.$.pvAddAjax.body = {"punto_venta":det.punto_venta,"empresa":this.userBackend.perfil_user.empresa.url}
+        this.$.pvAddAjax.generateRequest()
+
+      },
+
+      _pvRemovedHandler: function (e, det) {
+        var index = this.userBackend.perfil_user.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
+        var url = this.get(['userBackend.perfil_user.empresa.puntos_venta',index,'url'])
+        this.$.pvRemoveAjax.url = url
+        this.$.pvRemoveAjax.generateRequest();
+        this.splice('userBackend.perfil_user.empresa.puntos_venta',index,1)
+      }
+    });
+  </script>
+</dom-module>

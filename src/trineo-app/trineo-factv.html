@@ -1,0 +1,44 @@
+<link rel="import" href="../custom-components/appline-factura-form/appline-factura-form.html">
+
+
+
+<dom-module id="trineo-factv">
+  <template>
+    <style include="shared-styles">
+      
+      :host {
+        display: block;
+        --cantidad-width: 50px;
+        --descripcion-width: calc(90% - 50px - 80px - 90px - 120px);
+        --alic-iva-width: 80px;
+        --precio-unitario-width: 90px;
+        --total-width: 120px;
+      }
+      
+      
+    </style>
+    <div class="page-content">
+      <appline-factura-form id="form" pro-settings="[[proSettings]]" user-backend="[[userBackend]]"></appline-factura-form> 
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'trineo-factv',
+
+      properties: {
+        proSettings: Object,
+        userBackend: Object,
+      },
+
+      clearForm: function() {
+        this.$.form.clear();
+      },
+      submitFact: function() {
+        this.$.form.submit();
+      }
+      
+    });
+  </script>
+</dom-module>
