@@ -42,7 +42,7 @@
         }
       }
 
-      #punto-venta {
+      #punto-venta-el {
         max-width: 120px;
       }
       
@@ -66,10 +66,7 @@
         width: 25%;
       }
       
-      .pesos::before {
-        content: "$  ";
-        font-weight: bold;
-      }
+      
       .datos-header { 
         @apply(--paper-font-headline); 
       }
@@ -77,13 +74,15 @@
         font-size: 15px;
         vertical-align: middle;
       }
+
     </style>
 
 <iron-ajax id="ajaxas" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/utils/ultimo-comprobante/" params="[[ultimoComprobanteParams]]" handle-as="json"
   last-response="{{ultimoComprobante}}"></iron-ajax>
 <iron-ajax id="cliFCuitAjax" debounce-duration="300" loading="{{clienteAjaxFlight}}" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/utils/get-cliente-from-cuit/" handle-as="json" last-response="{{cliente}}"></iron-ajax>
-<iron-ajax id="submitComprobanteAjax" method="POST" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse"></iron-ajax>
-<iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onAprobarResponse"></iron-ajax>
+<iron-ajax id="submitComprobanteAjax" method="POST" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
+<iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
+
 
 <form is="iron-form" id="form">  
 <paper-card id="datos-comprobante">
@@ -94,14 +93,14 @@
         </div>
       </div>
     <div class="layout horizontal wrap center justified">
-      <paper-dropdown-menu name="tipo-venta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
+      <paper-dropdown-menu id="tipo-venta-el" name="tipo-venta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
         <paper-listbox class="dropdown-content" selected="{{tipoVenta}}" attr-for-selected="value">
           <paper-item value="0">Productos</paper-item>
           <paper-item value="1">Servicios</paper-item>
           <paper-item value="2">Productos y Servicios</paper-item>
         </paper-listbox>
       </paper-dropdown-menu>
-      <paper-dropdown-menu required id="punto-venta" label="Punto de Venta" error-message="Sel. un punto de venta">
+      <paper-dropdown-menu required id="punto-venta-el" label="Punto de Venta" error-message="Sel. un punto de venta">
         <paper-listbox id="puntoVentaSel" attr-for-selected="value" selected="{{puntoVentaSelected}}" class="dropdown-content">
           <template is="dom-repeat" items=[[userBackend.perfil_user.empresa.puntos_venta]] as=item index-as=index>
             <paper-item value="[[item.punto_venta]]">[[pad_with_zeroes(item.punto_venta,4)]]</paper-item>
@@ -143,25 +142,16 @@
   <div id="detalle" class="card-content">
     <trineo-item-head></trineo-item-head>
     <trineo-item-factv></trineo-item-factv>
-    <paper-icon-button id="botonAgregarItem" icon="add" title="Agregar" on-tap="agregarItem"></paper-icon-button>
+    <paper-icon-button id="botonAgregarItem" icon="add" on-tap="agregarItem"></paper-icon-button>
+    
+    <paper-tooltip
+      for="botonAgregarItem"
+      position="right"
+      offset="14">
+      Agregar item al comprobante
+    </paper-tooltip>
+    
 
-  </div>
-</paper-card>
-
-<paper-card heading="Totales">
-  <div class="card-content">
-    <div class="layout horizontal justified center">
-      <h4>Neto</h4>
-      <h4 class="pesos">{{neto}}</h4>
-      <h4>Iva 10.5%</h4>
-      <h4 class="pesos">{{iva105}}</h4>
-      <h4>Iva 21%</h4>
-      <h4 class="pesos">{{iva21}}</h4>
-      <h4>IVA 27%</h4>
-      <h4 class="pesos">{{iva27}}</h4>
-      <h2>Total</h2>
-      <h2 class="pesos">{{total}}</h2>
-    </div>
   </div>
 </paper-card>
 </form>
@@ -179,6 +169,10 @@
 
 
       properties: {
+        discriminaIva: {
+          type: Boolean,
+          computed: "_discriminaIvaCompute(userBackend.perfil_user.empresa.categoria_iva)"
+        },
         userBackend: Object,
         letraComprobante: {
           type: Boolean,
@@ -230,10 +224,6 @@
           type: Boolean,
           value: false
         },
-        neto: Number,
-        iva105: Number,
-        iva21: Number,
-        iva27: Number,
         total: {
           type: Number,
           observer: "_totalChanged"
@@ -404,13 +394,9 @@
               break;
           }
 
-          this.neto = neto.toFixed(2)
-
-          this.iva105 = iva105.toFixed(2)
-          this.iva21 = iva21.toFixed(2)
-          this.iva27 = iva27.toFixed(2)
-
           this.total = (neto + iva105 + iva21 + iva27).toFixed(2)
+
+          this.fire("trineo-actualizar-totales-comprobante", {neto: neto.toFixed(2), iva105:iva105.toFixed(2), iva21:iva21.toFixed(2), iva27:iva27.toFixed(2), total:this.total})
         }
       },
       clear: function() {
@@ -484,6 +470,11 @@
         this.$.aprobarComprobanteAjax.generateRequest()
       },
 
+      _onSubmitError: function(ev) {
+        this.fire("close-wait")
+        this.fire("error-general")
+      },
+
       _onAprobarResponse: function(ev) {
         this.fire("close-wait")
         var resp = ev.detail.xhr.response
@@ -494,7 +485,12 @@
         else {
           this.fire("comprobante-no-aprobado", {data:resp.data})
         }
-      }
+      },
+
+      _onAprobarError: function(ev) {
+        this.fire("close-wait")
+        this.fire("error-general")
+      },
     });
   </script>
 </dom-module>

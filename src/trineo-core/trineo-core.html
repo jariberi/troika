@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
 
 <link rel="import" href="../custom-components/appline-auth-panel/appline-login-form.html">
@@ -65,7 +66,8 @@
         "open-wait": "_lanzarWaitDialog",
         "close-wait": "_cerrarWaitDialog",
         "logout": "_logout",
-        "comprobante-no-aprobado": "_mostrarError"
+        "comprobante-no-aprobado": "_mostrarError",
+        "error-general": "_mostrarErrorGeneral"
       },
 
       _userLoggedInChanged: function(val) {
@@ -106,6 +108,16 @@
             Polymer.dom(ul).innerHTML="<li>"+err[i].code + " - " + err[i].msg + "</li>"
           }
         }
+        Polymer.dom(d).innerHTML+='<div class="buttons"><paper-button raised dialog-dismiss autofocus>Aceptar</paper-button></div>'
+        d.open()
+      },
+
+      _mostrarErrorGeneral: function(e) {
+        var d = document.createElement("paper-dialog")
+        Polymer.dom(d).setAttribute('id','error-general-dialog')
+        Polymer.dom(d).setAttribute('modal',true)
+        Polymer.dom(this.root).appendChild(d)
+        Polymer.dom(d).innerHTML+="<h1>Ups! Error General</h1><p>Hay problemas en los servidores de Appline. Reintente en unos minutos sino comuniquese con nosotros al 03562-401277.</p>"
         Polymer.dom(d).innerHTML+='<div class="buttons"><paper-button raised dialog-dismiss autofocus>Aceptar</paper-button></div>'
         d.open()
       }

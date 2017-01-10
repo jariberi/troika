@@ -1,0 +1,63 @@
+<dom-module id="trineo-totales-comprobante">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: inline-block;
+                width: 400px;
+                --paper-tooltip: {
+                    font-size: 0.9em;
+                }
+            }
+            h2, h4 {
+                margin: 0;
+            }
+
+            span {
+                font-size: 0.8em;
+            }
+        </style>
+        <div class="layout horizontal center justified">
+        <span>Neto</span>
+        <span class="pesos">[[neto]]</span>
+        <span>IVA</span>
+        <span id="ivat" class="pesos">[[ivat]]</span>
+        
+        <paper-tooltip
+          for="ivat"
+          position="bottom"
+          offset="14">
+          IVA 10.5% $[[iva105]]<br>
+          IVA 21% $[[iva21]]<br>
+          IVA 27% $[[iva27]]
+        </paper-tooltip>
+        
+        <h5>Total</h5>
+        <h5 class="pesos">[[total]]</h5>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-totales-comprobante',
+
+            properties: {
+                neto: {
+                    type: Number,
+                    value: 0
+                },
+                iva105: String,
+                iva21: String,
+                iva27: String,
+                total: String,
+                ivat: {
+                    type: String,
+                    computed: "_ivaTotal(iva105, iva21, iva27)"
+                }
+                
+            },
+
+            _ivaTotal: function(iva105, iva21, iva27) {
+                return (Number(iva105) + Number(iva21) + Number(iva27)).toFixed(2)
+            }
+        });
+    </script>
+</dom-module>

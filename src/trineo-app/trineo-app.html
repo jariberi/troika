@@ -18,9 +18,14 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 
 
+<link rel="import" href="trineo-dashboard.html">
+<link rel="import" href="trineo-totales-comprobante.html">
+
+
+
 <dom-module id="trineo-app">
     <template>
-        <style include="shared-styles">
+        <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
                 display: block;
 
@@ -76,6 +81,23 @@
               }
             }
 
+            iron-pages#footer {
+              position: fixed;
+              bottom: 0;
+              width: calc(100vw - 256px);
+              background: none;
+            }
+
+            iron-pages#footer > paper-card {
+              max-width: 1105px;
+              width: 100%;
+            }
+
+            #totales-el .card-content h4,h2 {
+              margin-top: 0;
+              margin-bottom: 0;
+            }
+
         </style>
         <app-location route="{{route}}"></app-location>
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
@@ -117,21 +139,27 @@
               <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
               <div main-title>[[displayTitle]]</div>
               <iron-pages selected="[[page]]" attr-for-selected="name">
-                <section name="factv">
-                  <paper-icon-button on-tap="_clearFact" icon="clear"></paper-icon-button>
-                  <paper-icon-button on-tap="_submitFact" icon="check"></paper-icon-button>
+                <section name="factv" class="layout horizontal center">
+                  <trineo-totales-comprobante id="totalesComprobante"></trineo-totales-comprobante>
+                  <div style="height: 64px;border-right: 1px solid white;margin-left: 24px;margin-right: 20px;"></div>
+                  <paper-icon-button id="clear-fact-el" on-tap="_clearFact" icon="clear"></paper-icon-button>
+                  <paper-tooltip for="clear-fact-el" position="left" offset="8">Borrar todos los datos del comprobante</paper-tooltip>
+                  <paper-icon-button id="submit-fact-el" on-tap="_submitFact" icon="check"></paper-icon-button>
+                  <paper-tooltip for="submit-fact-el" position="left" offset="8">Confirmar el comprobante</paper-tooltip>
                 </section>
               </iron-pages>
             </app-toolbar>
           </app-header>
 
           <iron-pages id="content" selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
+            
             <trineo-factv id="factv" pro-settings="{{proSettings}}" user-backend=[[userBackend]] name="factv"></trineo-factv>
             <trineo-settings pro-settings="{{proSettings}}" name="settings" user-backend="{{userBackend}}"></trineo-settings>
             <trineo-comprobante route="[[subroute]]" name="comprobante" user-backend=[[userBackend]]></trineo-comprobante>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
         </app-header-layout>
+      
     </app-drawer-layout>
     </template>
     <script>
@@ -150,31 +178,24 @@
               userBackend: Object
             },
 
-            ready: function() {
-                if (this.routeData.page == "") {
-                  if(this.userBackend.perfil_user.empresa.puntos_venta.length == 0) {
-                      this.set('routeData.page','settings')
-                  } else {
-                      this.set('routeData.page','factv')
-                  }
-                }
-
-            },
-
             observers: [
               '_routePageChanged(routeData.page)'
             ],
 
             listeners: {
-              "comprobante-aprobado": "_mostrarComprobante"
+              "comprobante-aprobado": "_mostrarComprobante",
+              "trineo-actualizar-totales-comprobante": "_refreshTotalesComprobante"
             },
 
             _routePageChanged: function(page) {
-              this.page = page || 'factv';
+              this.page = page || 'dashboard';
             },
 
             _pageChanged: function(page) {
               switch (page) {
+                case "dashboard":
+                  this.displayTitle = "Principal"
+                  break;
                 case "factv":
                   this.displayTitle = "Facturación Electrónica"
                   break;
@@ -188,10 +209,11 @@
                   this.displayTitle = "Página no encontrada"
                   break;
               }
-              // Load page import on demand. Show 404 page if fails
-              var resolvedPageUrl = this.resolveUrl('trineo-' + page + '.html');
-              console.log(resolvedPageUrl)
-              this.importHref(resolvedPageUrl, null, this._showPage404, true);
+              // Load page import on demand. Show 404 page if fails. Except Dashboard!
+              if (page!="dashboard") {
+                var resolvedPageUrl = this.resolveUrl('trineo-' + page + '.html');
+                this.importHref(resolvedPageUrl, null, this._showPage404, true);
+              }
             },
 
             _showPage404: function() {
@@ -213,6 +235,14 @@
 
             _mostrarComprobante: function(e) {
               this.set('route.path','/comprobante/'+String(e.detail.data.pk))
+            },
+
+            _refreshTotalesComprobante: function(e) {
+              this.$.totalesComprobante.neto = e.detail.neto
+              this.$.totalesComprobante.iva105 = e.detail.iva105
+              this.$.totalesComprobante.iva21 = e.detail.iva21
+              this.$.totalesComprobante.iva27 = e.detail.iva27
+              this.$.totalesComprobante.total = e.detail.total
             }
         });
     </script>
