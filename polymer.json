@@ -2,9 +2,11 @@
   "entrypoint": "index.html",
   "shell": "src/trineo-core/trineo-core.html",
   "fragments": [
+    "src/trineo-app/trineo-app.html",
     "src/trineo-app/trineo-dashboard.html",
     "src/trineo-app/trineo-settings.html",
-    "src/trineo-app/trineo-factv.html"
+    "src/trineo-app/trineo-factv.html",
+    "src/trineo-app/trineo-comprobante.html"
   ],
   "sourceGlobs": [
    "src/**/*",
