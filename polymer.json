@@ -2,17 +2,20 @@
   "entrypoint": "index.html",
   "shell": "src/trineo-core/trineo-core.html",
   "fragments": [
-    "src/trineo-app/trineo-app.html"
+    "src/trineo-app/trineo-dashboard.html",
+    "src/trineo-app/trineo-settings.html",
+    "src/trineo-app/trineo-factv.html"
   ],
   "sourceGlobs": [
    "src/**/*",
    "images/**/*",
-   "bower.json"
+   "bower.json",
+   "docs/**/*"
   ],
   "includeDependencies": [
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
-	"bower_components/vaadin-date-picker/*",
-	"bower_components/moment/*"
+  	"bower_components/vaadin-date-picker/*",
+	  "bower_components/moment/*"
   ]
 }

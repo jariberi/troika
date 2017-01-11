@@ -108,11 +108,14 @@
           <div class="spacer"></div>
           <div class="layout horizontal center wrap">
             <span>Delegación:</span>
-            <span style="margin-left: 20px;">[[estadoDelegacion]] <a hidden$="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" href="#">Mas información.</a></span>
+            <span style="margin-left: 20px;">[[estadoDelegacion]] 
+              <a hidden$="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" href="../../docs/confini/confini.html" target="_blank">Mas información.</a>
+              <paper-button style="height: 10px;" disabled="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" hidden$="[[userBackend.perfil_user.empresa.delegacion_aceptada]]" on-tap="_notificarDelegacion" raised>Notificar</paper-button>
+            </span>
             <span style="margin-left: 50px;">Estado de servicios AFIP:</span>
             <span hidden$="[[loadingAfipStatus]]" style="margin-left: 20px;">[[afipStatus.AppServer]]</span>
             <span hidden$="[[!loadingAfipStatus]]" style="margin-left: 20px;">Chequeando...</span>
-            <paper-icon-button on-tap="_refreshAfipStatus" disabled="[[!userBackend.perfil_user.empresa.delegacion_aceptada]]" raised icon="refresh"></paper-icon-button>
+            <paper-icon-button on-tap="_refreshAfipStatus" disabled="[[!userBackend.perfil_user.empresa.delegacion_iniciada]]" raised icon="refresh"></paper-icon-button>
           </div>
         </div>    
   </paper-card>  
@@ -207,6 +210,12 @@
 
       _refreshAfipStatus: function() {
         this.$.afipStatus.generateRequest();
+      },
+      _notificarDelegacion: function() {
+        var d = document.createElement("iron-ajax")
+        d.url = this.apiUrl+"/utils/notificar-delegacion/"
+        d.headers = this.getAuthHeader(this.userBackend.auth_token)
+        d.generateRequest()
       }
     });
   </script>
