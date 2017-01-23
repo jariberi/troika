@@ -82,6 +82,7 @@
 <iron-ajax id="cliFCuitAjax" debounce-duration="300" loading="{{clienteAjaxFlight}}" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/utils/get-cliente-from-cuit/" handle-as="json" last-response="{{cliente}}"></iron-ajax>
 <iron-ajax id="submitComprobanteAjax" method="POST" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
 <iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
+<iron-ajax id="buscarPorRazonSocial" debounce-duration="750" url="[[apiUrl]]/utils/get-cliente-from-razon-social/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onBuscarPorRazonSocialResponse" on-error="_onBuscarPorRazonSocialError"></iron-ajax>
 
 
 <form is="iron-form" id="form">  
@@ -122,8 +123,18 @@
           <paper-spinner class="miniwait" active="[[clienteAjaxFlight]]"></paper-spinner>
         </div>
         <div id="cliente-container" class="layout horizontal">
+          <!--<paper-autocomplete remote-source min-length="6" required readonly id="cliente" label="Cliente" value="{{cliente.razonSocial}}" error-message="El cliente no es válido"></paper-autocomplete>-->
           <paper-input required readonly id="cliente" label="Cliente" value="{{cliente.razonSocial}}" error-message="El cliente no es válido"></paper-input>
           <paper-spinner class="miniwait" active="[[clienteAjaxFlight]]"></paper-spinner>
+          <paper-icon-button id="buscarClientePorNombreButton" style="margin-top: 24px;" icon="search" on-tap="_openDialogBuscarCliente"></paper-icon-button>
+          
+          <paper-tooltip
+            for="buscarClientePorNombreButton"
+            position="right"
+            offset="8">
+            Buscar cliente por razón social
+          </paper-tooltip>
+          
         </div>
         <paper-input required="[[]]" id="direccion" label="Direccion" value="{{direccion}}" error-message="Ingrese una dirección"></paper-input>
     </div>
@@ -165,6 +176,7 @@
       //CALLBACK METHODS
       ready: function () {
         this.$.fechaDatePicker.i18n = this.get_i18n() //From DatesBehavior
+
       },
 
 
@@ -233,7 +245,7 @@
       },
 
       listeners: {
-        "item-changed": "handleItemChanged",
+        "item-changed": "handleItemChanged"
       },
 
       //Observer's
@@ -491,6 +503,10 @@
         this.fire("close-wait")
         this.fire("error-general")
       },
+
+      _openDialogBuscarCliente: function() {
+        this.fire("trineo-buscarxrz");
+      }
     });
   </script>
 </dom-module>
