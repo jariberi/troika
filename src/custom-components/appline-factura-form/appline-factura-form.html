@@ -123,11 +123,9 @@
           <paper-spinner class="miniwait" active="[[clienteAjaxFlight]]"></paper-spinner>
         </div>
         <div id="cliente-container" class="layout horizontal">
-          <!--<paper-autocomplete remote-source min-length="6" required readonly id="cliente" label="Cliente" value="{{cliente.razonSocial}}" error-message="El cliente no es válido"></paper-autocomplete>-->
-          <paper-input required readonly id="cliente" label="Cliente" value="{{cliente.razonSocial}}" error-message="El cliente no es válido"></paper-input>
+          <paper-input required readonly id="cliente" label="Cliente" value="{{cliente.razon_social}}" error-message="El cliente no es válido"></paper-input>
           <paper-spinner class="miniwait" active="[[clienteAjaxFlight]]"></paper-spinner>
           <paper-icon-button id="buscarClientePorNombreButton" style="margin-top: 24px;" icon="search" on-tap="_openDialogBuscarCliente"></paper-icon-button>
-          
           <paper-tooltip
             for="buscarClientePorNombreButton"
             position="right"

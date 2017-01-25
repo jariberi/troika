@@ -47,7 +47,7 @@
 
     <iron-pages selected="[[page]]" attr-for-selected="name">
       <appline-login-form name="login" user-backend="{{userBackend}}" login-url="[[apiUrl]]/utils/login/" create-url="[[apiUrl]]/utils/create-user/" id="loginForm"></appline-login-form>
-      <trineo-app user-backend="{{userBackend}}" name="app"></trineo-app>
+      <trineo-app id="app" user-backend="{{userBackend}}" name="app"></trineo-app>
     </iron-pages>
     
   </template>
@@ -79,7 +79,8 @@
         "logout": "_logout",
         "comprobante-no-aprobado": "_mostrarError",
         "error-general": "_mostrarErrorGeneral",
-        "trineo-buscarxrz": "_lanzarDialogBuscarXRZ"
+        "trineo-buscarxrz": "_lanzarDialogBuscarXRZ",
+        "trineo-busca-xrz-cliente-selected": "_onClienteSelected"
       },
 
       _userLoggedInChanged: function(val) {
@@ -139,6 +140,12 @@
         d.token = this.userBackend.auth_token
         Polymer.dom(this.root).appendChild(d);
         d.open();
+      },
+
+      _onClienteSelected: function(e) {
+        console.log(e)
+        this.$.app.$.factv.$.form.set('cliente', e.detail.cliente)
+        //this.$.app.$.factv.$.form.notifyPath('cliente')
       }
       
     });
