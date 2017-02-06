@@ -1,0 +1,37 @@
+
+<dom-module id="trineo-busca-xrz-details">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+                color: var(--accent-color);
+                padding: 14px 20px;
+            }
+
+            paper-spinner {
+                margin: 0 auto;
+            }
+        </style>
+        
+        <iron-ajax
+             auto
+             url="[[contribuyente.url]]"
+             handle-as="json"
+             loading="{{loading}}"
+             last-response="{{contribuyente}}"></iron-ajax>
+        
+        <p hidden$="[[loading]]">CUIT: [[contribuyente.numero_identificacion]] - Razon Social: [[contribuyente.razon_social]]</p>
+        <p hidden$="[[loading]]">Direccion: [[contribuyente.direccion]] - Localidad: [[contribuyente.localidad]] - Codigo postal: [[contribuyente.codigo_postal]] - provincia: [[contribuyente.get_provincia]]</p>
+        <p hidden$="[[loading]]">Impuestos: [[contribuyente.impuestos]] - Actividades: [[contribuyente.actividades]]</p>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-busca-xrz-details',
+
+            properties: {
+                contribuyente: Object,
+                loading: Boolean
+                }
+        });
+    </script>
+</dom-module>

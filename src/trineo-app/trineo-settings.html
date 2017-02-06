@@ -1,5 +1,5 @@
 <link rel="import" href="../custom-components/appline-ptovta-input/appline-ptovta-input.html">
-
+<link rel="import" href="../custom-components/trineo-plan/trineo-plan.html">
 
 <dom-module id="trineo-settings">
   <template>
@@ -37,6 +37,21 @@
         border-bottom: lightgray solid 1px;
         margin-bottom: 20px;
         margin-top: 20px;
+      }
+
+      /*Formateo planes*/
+
+      trineo-plan#free {
+        --template-color: #90CAF9;
+      }
+      trineo-plan#pem {
+        --template-color: #42A5F5;
+      }
+      trineo-plan#mem {
+        --template-color: #1E88E5;
+      }
+      trineo-plan#gem {
+        --template-color: #1565C0;
       }
     </style>
 
@@ -109,7 +124,7 @@
           <div class="layout horizontal center wrap">
             <span>Delegación:</span>
             <span style="margin-left: 20px;">[[estadoDelegacion]] 
-              <a hidden$="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" href="../../docs/confini/confini.html" target="_blank">Mas información.</a>
+              <span style="color: #607D8B; cursor: pointer;" id="delegacionInfo" hidden$="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" on-tap="_openInfoDelegacion">Mas información.</span>
               <paper-button style="height: 10px;" disabled="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" hidden$="[[userBackend.perfil_user.empresa.delegacion_aceptada]]" on-tap="_notificarDelegacion" raised>Notificar</paper-button>
             </span>
             <span style="margin-left: 50px;">Estado de servicios AFIP:</span>
@@ -119,6 +134,46 @@
           </div>
         </div>    
   </paper-card>  
+
+  <div class="layout horizontal justified wrap">
+    <trineo-plan id="free" nombre-plan="Individuos" costo="GRATIS">
+      <iron-icon icon="device:signal-cellular-1-bar"></iron-icon>
+    <ul>
+      <li>Facturación en un solo paso</li>
+      <li>5 veces mas rapido que la página de AFIP</li>
+      <li>1 punto de venta</li>
+      <li>Sin gestión adicional</li>
+    </ul>
+      
+    </trineo-plan>
+    <trineo-plan id="pem" nombre-plan="Pequeña Empresa" costo="$ 590">
+      <iron-icon icon="device:signal-cellular-2-bar"></iron-icon>
+    <ul>
+      <li>Gestión de clientes, articulos y proveedores</li>
+      <li>Uso en celulares</li>
+      <li>2 o mas puntos de venta</li>
+      <li>Informes</li>
+    </ul>
+    </trineo-plan>
+    <!--<trineo-plan disabled id="mem" nombre-plan="Mediana Empresa" costo="PROXIMAMENTE">
+      <iron-icon icon="device:signal-cellular-3-bar"></iron-icon>
+    <ul>
+      <li>Facturación en un solo paso</li>
+      <li>Sin carga adicional de datos</li>
+      <li>1 punto de venta</li>
+      <li>Sin gestión adicional</li>
+    </ul>
+    </trineo-plan>
+    <trineo-plan disabled id="gem" nombre-plan="Gran Empresa" costo="PROXIMAMENTE">
+      <iron-icon icon="device:signal-cellular-4-bar"></iron-icon>
+    <ul>
+      <li>Facturación en un solo paso</li>
+      <li>Sin carga adicional de datos</li>
+      <li>1 punto de venta</li>
+      <li>Sin gestión adicional</li>
+    </ul>
+    </trineo-plan>-->
+  </div>
   </template>
 
   <script>
@@ -138,10 +193,6 @@
         userBackend: {
           type: Object,
           notify: true
-        },
-        firebaseUser: {
-          type: Object,
-          observer: "userChanged"
         },
         proSettings: Object,
         _pvAddedObject: {
@@ -169,8 +220,22 @@
 
       observers: [
         "_onEmpresaChanged(userBackend.perfil_user.empresa.*)",
-        "_onAuthTokenChanged(userBackend.auth_token)"
+        "_onAuthTokenChanged(userBackend.auth_token)",
+        "_onPlanContratadoChange(userBackend.perfil_user.empresa.plan_contratado)"
       ],
+
+      _onPlanContratadoChange: function(val) {
+        this.$.free.actual=false
+        this.$.pem.actual=false
+        switch (val) {
+          case 0:
+            this.$.free.actual = true
+            break;
+          case 1:
+            this.$.pem.actual = true
+            break;
+        }
+      },
 
       _onEmpresaChanged: function(ch) {
         if (!(ch.path=="userBackend.perfil_user.empresa")) {
@@ -216,6 +281,10 @@
         d.url = this.apiUrl+"/utils/notificar-delegacion/"
         d.headers = this.getAuthHeader(this.userBackend.auth_token)
         d.generateRequest()
+      },
+
+      _openInfoDelegacion: function() {
+        this.fire("trineo-settings-info-delegacion");
       }
     });
   </script>

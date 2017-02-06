@@ -25,7 +25,8 @@
         disabled$="[[disabled]]"
         no-label-float="[[noLabelFloat]]"
         always-float-label="[[_computeAlwaysFloatLabel(alwaysFloatLabel,placeholder)]]"
-        invalid="[[invalid]]">
+        invalid="[[invalid]]"
+        hidden$="[[hidden]]">
 
       <label hidden$="[[!label]]">[[label]]</label>
 
@@ -35,7 +36,7 @@
         required$="[[required]]"
         bind-value="{{value}}"
         name$="[[name]]"
-        allowed-pattern="[0-9\-]"
+        allowed-pattern="[0-9\-\a-z\A-Z]"
         autocomplete="cuit"
         type="cuit"
         prevent-invalid-input
@@ -48,7 +49,8 @@
         maxlength$="[[maxlength]]"
         size$="[[size]]"
         maxlength="13"
-        autoValidate>
+        autoValidate
+        on-change>
 
       <template is="dom-if" if="[[errorMessage]]">
         <paper-input-error id="error">[[errorMessage]]</paper-input-error>
@@ -69,13 +71,13 @@
        * The label for this input.
        */
       label: {
-        type: String,
-        value: 'Cuit/DNI'
+        type: String
       },
       isCuit: Boolean,
       value: {
         type: String,
-        observer: '_onValueChanged'
+        observer: '_onValueChanged',
+        notify: true
       },
       onlyCuit: {
         type: Boolean,
@@ -126,9 +128,6 @@
       if (this.onlyCuit) {
         valid = valid && this.$.input.value.length==13
         this.errorMessage = "Ingrese un CUIT válido"
-      } else {
-        valid = valid && (this.$.input.value.length<=8 || this.$.input.value.length==13)
-        this.errorMessage = "Ingrese un CUIT o DNI válido"
       }
       this.$.container.invalid = !valid;
       this.$.container.updateAddons({

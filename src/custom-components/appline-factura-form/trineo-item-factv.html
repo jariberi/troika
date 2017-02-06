@@ -31,7 +31,7 @@
         <paper-input required allowed-pattern="[0-9\.]" id="cantidad" value="{{cantidad}}" error-message="Ing. cantidad"></paper-input>
         <paper-input required id="descripcion" value="{{descripcion}}" error-message="Ingrese la descripcion"></paper-input>
         <paper-input required allowed-pattern="[0-9\.]" id="precio-unitario" value="{{precioUnitario}}" error-message="Ingrese el precio unitario"></paper-input>
-        <paper-dropdown-menu required="[[discriminaIva]]" disabled="[[!discriminaIva]]" id="alic-iva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
+        <paper-dropdown-menu required="[[asignaIva]]" disabled="[[!asignaIva]]" id="alic-iva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
             <paper-listbox attr-for-selected="value" selected="{{alicIva}}" class="dropdown-content">
               <paper-item value="IVA00">Exento</paper-item>
               <paper-item value="IV105">10.5%</paper-item>
@@ -39,7 +39,7 @@
               <paper-item value="IVA27">27%</paper-item>
             </paper-listbox>
           </paper-dropdown-menu>
-        <span id="total">{{total}}</span>
+        <span id="total">[[total]]</span>
         </div>
     </template>
     <script>
@@ -49,7 +49,11 @@
             properties: {
                 discriminaIva: {
                     type: Boolean,
-                    reflectToAttribute: true,
+                    reflectToAttribute: true
+                },
+                asignaIva: {
+                    type: Boolean,
+                    value: false
                 },
                 cantidad: Number,
                 descripcion: String,
@@ -57,7 +61,7 @@
                 neto: {
                     type: Number,
                     readOnly: true,
-                    computed: "calcularNeto(cantidad, precioUnitario)"
+                    computed: "calcularNeto(cantidad, _precioUnitario)"
                 },
                 alicIva: {
                     type: String,
@@ -69,17 +73,21 @@
                 },
                 valorIva: {
                     type: Number,
-                    computed: "calcularIva(neto, alicIvaN)"
+                    computed: "calcularIva(_neto, alicIvaN)"
                 },
                 total: {
                     type: Number,
-                    computed: "calcularTotal(neto, valorIva)"
-                }
-
+                    computed: "calcularTotal(_neto, _valorIva)"
+                },
+                _precioUnitario: {
+                    type: Number,
+                    computed: "_calcular_precioUnitario(precioUnitario, alicIvaN)"},
+                _neto: Number,
+                _valorIva: Number
             },
 
             observers: [
-                "_handleItemChanged(valorIva, neto)"
+                "_handleItemChanged(neto, valorIva)"
             ],
 
             //Observers
@@ -102,17 +110,39 @@
                 }
             },
 
+            _discriminaIvaChanged: function(val) {
+
+            },
+
             _handleItemChanged: function(valorIva, neto) {
                 this.fire('item-changed');
             },
 
-
-            calcularNeto: function(cantidad, precioUnitario) {
-                return (cantidad * precioUnitario).toFixed(2);
+            _calcular_precioUnitario: function(precioUnitario, alicIvaN) {
+                if (this.asignaIva && !this.discriminaIva) {
+                    return Number(precioUnitario / (1 + this.alicIvaN / 100))
+                }
+                else {
+                    return Number(precioUnitario)
+                }
             },
 
-            calcularIva: function(neto, alicIvaN) {
-                return (neto * alicIvaN / 100).toFixed(2);
+
+            calcularNeto: function(cantidad, _precioUnitario) {
+                this._neto = cantidad * this._precioUnitario
+                return (cantidad * this.precioUnitario).toFixed(2)
+            },
+
+            calcularIva: function(_neto, alicIvaN) {
+                var iva = (_neto * alicIvaN / 100)
+                this._valorIva = iva
+                if(this.discriminaIva) {
+                    return iva.toFixed(2)
+                }
+                else {
+                    return "0.00"
+                }
+                
             },
             calcularTotal: function(neto, valorIva) {
                 return (Number(neto) + Number(valorIva)).toFixed(2)

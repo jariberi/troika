@@ -1,0 +1,91 @@
+
+<dom-module id="trineo-plan">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                width: 240px;
+                background-color: white;
+                border-color: var(--template-color);
+                border-width: 2px;
+                border-style: solid;
+                margin: 30px 0;
+            }
+
+            .container ::content iron-icon {
+                color: var(--template-color);
+                width: 60px;
+                height: 60px;
+                margin: 0 auto;
+            }
+
+            .container ::content ul > li {
+                font-size: 0.85em;
+                color: var(--secondary-text-color);
+            }
+
+            h2 {
+                text-align: center;
+                color: var(--template-color);
+            }
+
+            span {
+                width: 100%;
+                text-align: center;
+                margin: 20px auto;
+            }
+
+            paper-button {
+                background-color: var(--accent-color);
+                width: 70%;
+                margin: 0 auto 20px auto;
+                color: white;
+            }
+        </style>
+
+        <iron-ajax id="ajaxcambioplan" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/utils/cambio-plan/[[nombrePlan]]/" handle-as="json" last-response="{{response}}"></iron-ajax>
+
+        <div class="container layout vertical centered">  
+            <h2>[[nombrePlan]]</h2>
+            <content>
+                <!--iron-icon + ul>li * 4 -->
+            </content>
+            <span>[[costo]]</span>
+            <paper-button id="button" disabled="[[disabled]]" raised on-tap="_notificarCambioPlan">¡Contratar!</paper-button>
+            
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-plan',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                nombrePlan: String,
+                costo: String,
+                disabled: Boolean,
+                actual: {
+                    type: Boolean,
+                    observer: "_onActualChanged"
+                },
+                response: Object
+            },
+
+            _onActualChanged: function(val) {
+                if (val) {
+                    this.$.button.disabled=true;
+                    this.$.button.innerHTML="Actualmente"
+                }
+                else {
+                    this.$.button.disabled=false;
+                    this.$.button.innerHTML="¡Contratar!"
+                }
+            },
+
+            _notificarCambioPlan: function() {
+                this.$.ajaxcambioplan.generateRequest();
+            }
+        });
+    </script>
+</dom-module>

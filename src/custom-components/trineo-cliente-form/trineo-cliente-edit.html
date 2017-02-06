@@ -1,0 +1,37 @@
+
+<dom-module id="trineo-cliente-edit">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-icon-button {
+                color: var(--accent-color)
+            }
+        </style>
+        
+        <paper-icon-button id="editar" icon="editor:mode-edit" on-tap="_editCliente"></paper-icon-button>
+        
+        <paper-tooltip
+          for="editar"
+          position="bottom"
+          offset="8">
+          Editar cliente
+        </paper-tooltip>
+
+                
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-cliente-edit',
+
+            properties: {
+                cliente: Object
+            },
+            _editCliente: function() {
+                this.fire("trineo-cliente-form", {accion:1,cliente:this.cliente})
+            }
+        });
+    </script>
+</dom-module>

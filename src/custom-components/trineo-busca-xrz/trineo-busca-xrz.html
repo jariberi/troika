@@ -1,3 +1,7 @@
+
+<link rel="import" href="trineo-busca-xrz-details.html">
+
+
 <dom-module id="trineo-busca-xrz">
     <template>
         <style include="iron-flex iron-flex-alignment">
@@ -6,7 +10,7 @@
             }
             paper-dialog {
                 width: 65vw;
-                height: 60vh;
+                height: 80vh;
             }
 
             div.buttons {
@@ -16,6 +20,7 @@
             }
 
             vaadin-grid {
+                height: 400px;
                 max-height: 60%;
             }
         </style>
@@ -31,7 +36,7 @@
             <vaadin-grid id="table">
                 <table>
                     <colgroup>
-                        <col name="cuit">
+                        <col name="numero_identificacion">
                         <col name="razon_social">
                         <col name="direccion">
                         <col name="localidad">
@@ -50,19 +55,43 @@
         Polymer({
             is: 'trineo-busca-xrz',
 
-            ready: function() {
-                
-                
-            },
-
             behaviors: [AjaxBehavior],
 
+            ready: function() {
+                var that = this
+                this.$.table.rowDetailsGenerator = function(rowIndex) {
+                    var element = document.createElement('trineo-busca-xrz-details');
+                    that.$.table.getItem(rowIndex, function(error, item) {
+                        if (!error) {                   
+                            element.contribuyente = item
+                        }
+                    });
+
+                    return element;
+                    };
+                
+                var detailsOpenIndex = -1;
+
+                // Show details for the selected row
+                this.$.table.addEventListener('selected-items-changed', function() {
+                    that.$.table.setRowDetailsVisible(detailsOpenIndex, false);
+                    var selected = that.$.table.selection.selected();
+                    if (selected.length == 1) {
+                        that.$.table.setRowDetailsVisible(selected[0], true);
+                        detailsOpenIndex = selected[0];
+                    }
+                    });
+            },
+
             properties: {
-                token: String,
                 _nothingSelected: {
                     type: Boolean,
                     value: true
-                    }
+                    },
+                origen: Number, //0: Facturacion, 1: Clientes
+                incluyeAFIP: {
+                    type: Boolean,
+                    value: false}
             },
 
             listeners: {
@@ -83,20 +112,20 @@
                     var val = this.$.rzsearch.value
                     if (val.length > 5) {
                         this.$.table.items = []
-                        this.$.table.size = 30
+                        this.$.table.size = 10
                         var that = this
                         this.$.table.items = function(params, callback) {
                             var val = that.$.rzsearch.value;
                             if (val.length > 5) {
-                                var url = that.apiUrl+'/utils/get-cliente-from-razon-social/?index=' + params.index + '&count=' + params.count + '&razon_social=' + val;
+                                var url = that.apiUrl+'/padron-afip/?index=' + params.index + '&count=' + params.count + '&razon_social=' + val;
                                 var xhr = new XMLHttpRequest();
                                 xhr.open('GET', url, true);
-                                xhr.setRequestHeader("Authorization", "Token " + that.token)
+                                xhr.setRequestHeader("Authorization", "Token " + that.getToken())
                                 xhr.onreadystatechange = function() {
                                     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                                     var response = JSON.parse(xhr.responseText);
-                                    callback(response.data);
-                                    that.$.table.size = response.size
+                                    callback(response.results);
+                                    that.$.table.size = response.count
                                 }
                                 };
                                 xhr.send();
@@ -111,9 +140,23 @@
                 var that = this
                 this.$.table.getItem(sidx, function(error, item) {
                     if (!error) {
-                        that.fire("trineo-busca-xrz-cliente-selected", {cliente:item})
+                        if (!item.completo) {
+                            var url = item.url
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('GET', url, true);
+                            xhr.setRequestHeader("Authorization", "Token " + that.getToken())
+                            xhr.onreadystatechange = function() {
+                                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                                var response = JSON.parse(xhr.responseText);
+                                item = response
+                            }
+                            };
+                            xhr.send();
+                        }
+
                     }
-                })
+                    that.fire("trineo-busca-xrz-cliente-selected", {cliente:item, origen:that.origen})
+                });
             },
 
             open: function() {

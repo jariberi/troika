@@ -11,13 +11,12 @@
   "sourceGlobs": [
    "src/**/*",
    "images/**/*",
-   "bower.json",
-   "docs/**/*"
+   "bower.json"
   ],
   "includeDependencies": [
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
-  	"bower_components/vaadin-date-picker/*",
-	  "bower_components/moment/*"
+    "bower_components/vaadin-grid/**",
+    "docs/**"
   ]
 }

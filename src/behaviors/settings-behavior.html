@@ -1,0 +1,26 @@
+<script>
+    //CONFIGURACION COMUNES PARA AJAX
+    SettingsBehavior = {
+        _getPlan: function () {
+            return JSON.parse(localStorage.getItem("trineolambda")).perfil_user.empresa.plan_contratado;
+        },
+        
+        planMayor0: function() {
+            return this._getPlan() > 0;
+        },
+
+        planMayor1: function() {
+            return this._getPlan() > 1;
+        },
+
+        canPage: function(page) {
+            switch (page) {
+                case "clientes":
+                    return this.planMayor0()
+                default:
+                    return true
+            }
+        }
+        
+    }
+</script>

@@ -1,6 +1,7 @@
 <link rel="import" href="trineo-item-factv.html">
 <link rel="import" href="trineo-item-head.html">
 <link rel="import" href="trineo-servicio-dates.html">
+<link rel="import" href="trineo-cliente.html">
 
 <dom-module id="appline-factura-form">
   <template>
@@ -41,35 +42,15 @@
           max-width: 350px;
         }
       }
-
-      #punto-venta-el {
-        max-width: 120px;
-      }
       
       vaadin-date-picker {
         padding-bottom: 8px;
       }
       
-      #cliente-container {
-        width: 40%;
-      }
-
-      #cliente-container paper-input {
-        width: 100%;
-      }
-      
-      #cuit-dni-container {
-        width: 20%;
-      }
-      
-      #direccion {
-        width: 25%;
-      }
-      
-      
       .datos-header { 
         @apply(--paper-font-headline); 
       }
+
       .datos-location {
         font-size: 15px;
         vertical-align: middle;
@@ -79,10 +60,10 @@
 
 <iron-ajax id="ajaxas" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/utils/ultimo-comprobante/" params="[[ultimoComprobanteParams]]" handle-as="json"
   last-response="{{ultimoComprobante}}"></iron-ajax>
-<iron-ajax id="cliFCuitAjax" debounce-duration="300" loading="{{clienteAjaxFlight}}" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/utils/get-cliente-from-cuit/" handle-as="json" last-response="{{cliente}}"></iron-ajax>
-<iron-ajax id="submitComprobanteAjax" method="POST" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
+
+<iron-ajax id="submitComprobanteAjax" method="POST" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
 <iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
-<iron-ajax id="buscarPorRazonSocial" debounce-duration="750" url="[[apiUrl]]/utils/get-cliente-from-razon-social/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onBuscarPorRazonSocialResponse" on-error="_onBuscarPorRazonSocialError"></iron-ajax>
+
 
 
 <form is="iron-form" id="form">  
@@ -93,48 +74,40 @@
           <span hidden$="[[!headerShowed]]"><b>Comprobante [[letraComprobante]]   --    N° [[pad_with_zeroes(ultimoComprobante.numero,8)]]</b></span>
         </div>
       </div>
-    <div class="layout horizontal wrap center justified">
-      <paper-dropdown-menu id="tipo-venta-el" name="tipo-venta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
-        <paper-listbox class="dropdown-content" selected="{{tipoVenta}}" attr-for-selected="value">
-          <paper-item value="0">Productos</paper-item>
-          <paper-item value="1">Servicios</paper-item>
-          <paper-item value="2">Productos y Servicios</paper-item>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <paper-dropdown-menu required id="punto-venta-el" label="Punto de Venta" error-message="Sel. un punto de venta">
-        <paper-listbox id="puntoVentaSel" attr-for-selected="value" selected="{{puntoVentaSelected}}" class="dropdown-content">
-          <template is="dom-repeat" items=[[userBackend.perfil_user.empresa.puntos_venta]] as=item index-as=index>
-            <paper-item value="[[item.punto_venta]]">[[pad_with_zeroes(item.punto_venta,4)]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <paper-dropdown-menu required id="tipo-comprobante" label="Tipo de comprobante" error-message="Seleccione un tipo de comprobante">
-        <paper-listbox attr-for-selected="value" selected="{{tipoComprobante}}" class="dropdown-content">
-          <paper-item value="FA">Factura</paper-item>
-          <paper-item value="NC">Nota de crédito</paper-item>
-          <paper-item value="ND">Nota de débito</paper-item>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <vaadin-date-picker required id="fechaDatePicker" value={{fecha}} min="{{fechaMin}}" max="{{fechaMax}}" label="Fecha" error-message="Ingrese una fecha correcta"></vaadin-date-picker>
+    <div class="layout horizontal wrap center form-row">
+      <div class="form-field col-3">
+        <paper-dropdown-menu id="tipo-venta-el" name="tipo-venta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
+          <paper-listbox class="dropdown-content" selected="{{tipoVenta}}" attr-for-selected="value">
+            <paper-item value="0">Productos</paper-item>
+            <paper-item value="1">Servicios</paper-item>
+            <paper-item value="2">Productos y Servicios</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="form-field col-3">
+        <paper-dropdown-menu required id="punto-venta-el" label="Punto de Venta" error-message="Seleccione un punto de venta">
+          <paper-listbox id="puntoVentaSel" attr-for-selected="value" selected="{{puntoVentaSelected}}" class="dropdown-content">
+            <template is="dom-repeat" items=[[userBackend.perfil_user.empresa.puntos_venta]] as=item index-as=index>
+              <paper-item value="[[item.punto_venta]]">[[pad_with_zeroes(item.punto_venta,4)]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="form-field col-3">
+        <paper-dropdown-menu required id="tipo-comprobante" label="Tipo de comprobante" error-message="Seleccione un tipo de comprobante">
+          <paper-listbox attr-for-selected="value" selected="{{tipoComprobante}}" class="dropdown-content">
+            <paper-item value="FA">Factura</paper-item>
+            <paper-item value="NC">Nota de crédito</paper-item>
+            <paper-item value="ND">Nota de débito</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="form-field col-3">
+        <vaadin-date-picker required id="fechaDatePicker" value={{fecha}} min="{{fechaMin}}" max="{{fechaMax}}" label="Fecha" error-message="Ingrese una fecha correcta"></vaadin-date-picker>
+      </div>
     </div>
     <div class="layout horizontal wrap center justified">
-        <div id="cuit-dni-container" class="layout horizontal">
-          <appline-idfiscal-input required id="cuitDni" label="Cuit/DNI" value="{{cuitDni}}" error-message="Ingrese un DNI o CUIT válido"></appline-idfiscal-input>
-          <paper-spinner class="miniwait" active="[[clienteAjaxFlight]]"></paper-spinner>
-        </div>
-        <div id="cliente-container" class="layout horizontal">
-          <paper-input required readonly id="cliente" label="Cliente" value="{{cliente.razon_social}}" error-message="El cliente no es válido"></paper-input>
-          <paper-spinner class="miniwait" active="[[clienteAjaxFlight]]"></paper-spinner>
-          <paper-icon-button id="buscarClientePorNombreButton" style="margin-top: 24px;" icon="search" on-tap="_openDialogBuscarCliente"></paper-icon-button>
-          <paper-tooltip
-            for="buscarClientePorNombreButton"
-            position="right"
-            offset="8">
-            Buscar cliente por razón social
-          </paper-tooltip>
-          
-        </div>
-        <paper-input required="[[]]" id="direccion" label="Direccion" value="{{direccion}}" error-message="Ingrese una dirección"></paper-input>
+        <trineo-cliente cliente={{cliente}} razon-social="{{cliente.razon_social}}"></trineo-cliente>  
     </div>
     <div class="layout horizontal wrap center justified">
     <trineo-servicio-dates fecha-c="[[fecha]]" 
@@ -170,23 +143,28 @@
     Polymer({
       is: 'appline-factura-form',
 
-      behaviors: [UtilsBehavior, DatesBehavior, AjaxBehavior],
+      behaviors: [UtilsBehavior, DatesBehavior, AjaxBehavior, SettingsBehavior],
       //CALLBACK METHODS
       ready: function () {
-        this.$.fechaDatePicker.i18n = this.get_i18n() //From DatesBehavior
+        this.$.fechaDatePicker.i18n = this.get_i18n(); //From DatesBehavior
 
       },
 
-
       properties: {
-        discriminaIva: {
+        _discriminaIva: {
           type: Boolean,
-          computed: "_discriminaIvaCompute(userBackend.perfil_user.empresa.categoria_iva)"
+          computed: "_discriminaIvaCompute(userBackend.perfil_user.empresa.categoria_iva, cliente.cond_iva)",
+          observer: "_discriminaIvaChanged"
+        },
+        _asignaIva: {
+          type: Boolean,
+          computed: "_discriminaIvaCompute(userBackend.perfil_user.empresa.categoria_iva)",
+          observer: "_asignaIvaChanged"
         },
         userBackend: Object,
         letraComprobante: {
           type: Boolean,
-          computed: "_letraComprobanteCompute(userBackend.perfil_user.empresa.categoria_iva, cliente.condIva)"
+          computed: "_letraComprobanteCompute(userBackend.perfil_user.empresa.categoria_iva, cliente.cond_iva)"
         },
         tipoVenta: {
           type: String,
@@ -215,14 +193,6 @@
         fechaServHasta: String,
         fechaVencimiento: String,
         cliente: Object,
-        cuitDni: {
-          type: String,
-          observer: "_cuitDniChanged"
-        },
-        direccion: {
-          type: String,
-          value: "No es necesario"
-        },
         ultimoComprobante: {
           type: Object
         },
@@ -249,9 +219,7 @@
       //Observer's
 
       observers: [
-        "_encabezadoChanged(puntoVentaSelected, tipoComprobante, letraComprobante)",
-        "_direccionClienteChanged(cliente.domicilio.direccion)",
-        "_categoriaIvaChanged(userBackend.perfil_user.empresa.categoria_iva)"
+        "_encabezadoChanged(puntoVentaSelected, tipoComprobante, letraComprobante)"
       ],
 
       _encabezadoChanged: function (puntoVentaSelected, tipoComprobante, letraComprobante) {
@@ -260,58 +228,41 @@
           this.$.ajaxas.auto=true
           this.headerShowed = true
         }
-      },
-
-      _cuitDniChanged: function(val) {
-        var patt = new RegExp("\\d{2}-\\d{8}-\\d")
-        if (patt.test(val) || parseInt(val)==0) {//es CUIT o 0
-          this.$.cliFCuitAjax.params={"cuit":val.replace(/-/g, "")}
-          this.$.cliFCuitAjax.generateRequest();
+        else {
+          this.headerShowed = false
         }
       },
 
       _totalChanged: function(val) {
-          if (this.userBackend && this.userBackend.perfil_user.empresa.categoria_iva == 1 && val<1000) {
-            this.$.direccion.disabled=true
-            this.$.direccion.required=false
-            this.$.direccion.value="No es necesario"
-          }
-          else {
-            this.$.direccion.disabled=false
-            this.$.direccion.required=true
-            if (this.cliente) {
-              this.$.direccion.value=this.cliente.domicilio.direccion
-            }
-            else {this.$.direccion.value=""}
-          }
+          //if (this.userBackend && this.userBackend.perfil_user.empresa.categoria_iva == 1 && val<1000) {
+            //this.$.direccion.disabled=true
+            //this.$.direccion.required=false
+            //this.$.direccion.value="No es necesario"
+          //}
+          //else {
+            //this.$.direccion.disabled=false
+            //this.$.direccion.required=true
+            //if (this.cliente) {
+            //  this.$.direccion.value=this.cliente.domicilio.direccion
+            //}
+            //else {this.$.direccion.value=""}
+          //}
         
       },
 
-      _direccionClienteChanged: function(val) {
-        this.$.direccion.value = val
-      },
-
-      _categoriaIvaChanged: function (val) {
-        switch (parseInt(val)) {
-          case 0:
-            var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
-            for (i=0; i<items.length; i++) {
-              items[i].discriminaIva = true
-            }
-            this.$.direccion.disabled=false
-            this.$.direccion.required=true
-            this.$.direccion.value=""
-            break;
-          case 1:
-            var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
-            for (i=0; i<items.length; i++) {
-              items[i].discriminaIva = false
-            }
-            this._totalChanged(this.total)
-            break;
+      _discriminaIvaChanged: function (val) {
+          var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
+          for (i=0; i<items.length; i++) {
+              items[i].discriminaIva = val
         }
-
-        
+        this._totalChanged(this.total)
+      },
+      _asignaIvaChanged: function (val) {
+          var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
+          for (i=0; i<items.length; i++) {
+              items[i].asignaIva = val
+        }
+        this._totalChanged(this.total)
       },
 
       //Compute's
@@ -343,8 +294,15 @@
           return { "punto_venta": puntoVentaSelected, "tipo_comprobante": tipoComprobante+letraComprobante }
       },
 
-      _discriminaIvaCompute: function(categoria) {
-        if (categoria == 0) {
+      _discriminaIvaCompute: function(categoria, con_iva_cliente) {
+        if (categoria==0 && con_iva_cliente !=2) {
+          return true
+        }
+        return false
+      },
+
+      _asignaIvaCompute: function(categoria) {
+        if (categoria==0) {
           return true
         }
         return false
@@ -375,7 +333,20 @@
 
       agregarItem: function () {
         var el = document.createElement('trineo-item-factv');
-        el.discriminaIva=this.discriminaIva
+        switch (this.letraComprobante) {
+            case "A":
+              el.discriminaIva = true
+              el.asignaIva = true
+              break;
+            case "B":
+              el.discriminaIva = false
+              el.asignaIva = true
+              break;
+            case "C":
+              el.discriminaIva = false
+              el.asignaIva = false
+              break;
+          }
         this.$.detalle.insertBefore(el, this.$.botonAgregarItem);
       },
 
@@ -410,11 +381,8 @@
         }
       },
       clear: function() {
-        this.$.ajaxas.auto=false;
+        this.$.ajaxas.auto=false; // Ajax del ultimo comprobante saco auto
         this.tipoVenta = this.puntoVentaSelected = this.tipoComprobante = this.cliente = this.ultimoComprobante = null
-        this.$.cuitDni.value = null
-        if (this.letraComprobante == 'A') {this.direccion = ""}
-        else {this.direccion = "No es necesario"}
         var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
         for (i = 0; i < items.length; i++) {
           Polymer.dom(items[i].parentNode).removeChild(items[i])  
@@ -422,6 +390,7 @@
         this.agregarItem();
         this.actualizarTotales();
       },
+
       submit: function() {
         //Submit del formulario, no tradicional, simplemente valida y hace una post al API rest
         if(this.$.form.validate()){
@@ -442,33 +411,19 @@
             fact['serv_desde'] = this.fechaServDesde
             fact['serv_hasta'] = this.fechaServHasta
             fact['venc_pago'] = this.fechaVencimiento
-            }
-            cliente = {}
-            if (this.cuitDni <=8) {
-              cliente['dni'] = this.cuitDni
-            }
-            else {
-              cliente['cuit'] = this.cuitDni
-            }
-            cliente['razon_social'] = this.cliente.razonSocial
-            cliente['cond_iva'] = this.cliente.condIva
-            cliente['direccion'] = this.cliente.domicilio.direccion
-            cliente['codigo_postal'] = this.cliente.domicilio.codigo_postal
-            cliente['localidad'] = this.cliente.domicilio.localidad
-            cliente['provincia'] = this.cliente.domicilio.provincia
-            fact['cliente'] = cliente
+            }           
+            fact['cliente'] = this.cliente
             fact['items']=[]
             var items = Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
             for (i=0; i<items.length; i++) {
               var obj = {cantidad:items[i].cantidad,
                 descripcion:items[i].descripcion,
-                precio_unitario:items[i].precioUnitario,
+                precio_unitario:items[i]._precioUnitario,
                 iva:items[i].alicIva,
                 tipo: 1}
               fact['items'].push(obj)
             }
             this.$.submitComprobanteAjax.body = fact
-            this.$.submitComprobanteAjax.headers = {"Authorization": "Token "+this.userBackend.auth_token}
             this.$.submitComprobanteAjax.generateRequest()
           }
         }
@@ -500,10 +455,6 @@
       _onAprobarError: function(ev) {
         this.fire("close-wait")
         this.fire("error-general")
-      },
-
-      _openDialogBuscarCliente: function() {
-        this.fire("trineo-buscarxrz");
       }
     });
   </script>

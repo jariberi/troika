@@ -10,11 +10,10 @@
         <iron-localstorage id="lsuser" name="trineolambda" value="{{userBackend}}"></iron-localstorage>
 
         <iron-ajax
-            id="updateUserAjax"
+             id="updateUserAjax"
              headers=[[getAuthHeader(userBackend.auth_token)]]
              url="[[userBackend.url]]"
              handle-as="json"
-             last-response="{{userBackend}}"
              on-response="_onResponse"></iron-ajax>
         
     </template>
@@ -60,7 +59,10 @@
                         this.$.updateUserAjax.generateRequest();
                     }, 7200000);
                 },
-                _onResponse: function() {
+                _onResponse: function(e) {
+                    if (e.detail.xhr.status==200) {
+                        this.set('userBackend', e.detail.xhr.response)
+                    }
                     this._updateUserData();
                 }
             });

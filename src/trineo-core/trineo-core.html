@@ -1,5 +1,11 @@
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/communication-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/device-icons.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
@@ -15,10 +21,17 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-autocomplete/paper-autocomplete.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
+<link rel="import" href="../../bower_components/iron-form-element-behavior/iron-form-element-behavior.html">
 
 <link rel="import" href="../behaviors/ajax-behavior.html">
 <link rel="import" href="../behaviors/dates-behavior.html">
 <link rel="import" href="../behaviors/utils-behavior.html">
+<link rel="import" href="../behaviors/settings-behavior.html">
 
 <link rel="import" href="../shared-styles.html">
 
@@ -30,6 +43,7 @@
 <link rel="import" href="../custom-components/appline-wait/appline-wait.html">
 <link rel="import" href="../custom-components/appline-error-msg/appline-error-msg.html">
 <link rel="import" href="../custom-components/trineo-busca-xrz/trineo-busca-xrz.html">
+<link rel="import" href="../custom-components/trineo-combinacion-fiscal/trineo-combinacion-fiscal.html">
 
 <dom-module id="trineo-core">
   <template>
@@ -49,6 +63,52 @@
       <appline-login-form name="login" user-backend="{{userBackend}}" login-url="[[apiUrl]]/utils/login/" create-url="[[apiUrl]]/utils/create-user/" id="loginForm"></appline-login-form>
       <trineo-app id="app" user-backend="{{userBackend}}" name="app"></trineo-app>
     </iron-pages>
+
+    
+    <paper-dialog id="confini" modal>
+      <h2>Como delegar "Factura Electrónica" en AFIP</h2>
+      <paper-dialog-scrollable>
+        <p>Para poder usar facturofacil es necesario declarar su uso en la AFIP. Para ello se deben seguir los siguientes pasos:</p>        
+        <ol type="1">
+            <li><p>Dirigase a la página de <a href="https://www.afip.gob.ar/" target="_blank">AFIP</a> y registrese con su CUIT y clave fiscal.</p></li>
+            <li>
+                <p>Seleccione "Administrador de Relaciones de Clave Fiscal</p>
+                <img width="600px" src="../../images/confini/afip002.png" alt="Afip Relaciones Clave Fiscal">
+            </li>
+            <li>
+                <p>En la pagina "Administrador de Relaciones" haga click en el boton "Nueva Relacion"</p>
+                <img width="600px" src="../../images/confini/afip003.png" alt="Nueva Relacion">
+            </li>
+            <li>
+                <p>Haga click en el boton "Buscar" para seleccionar el servicio que va a relacionar (Facturación Electrónica)</p>
+                <img width="600px" src="../../images/confini/afip004.jpg" alt="Boton buscar">
+            </li>
+            <li>
+                <p>En la lista desplegada vaya a AFIP -> Web Services y haga click sobre "Facturación Electrónica"</p>
+            </li>
+            <li>
+                <p>Una vez seleccionado "Facturación Electrónica" volverá al "Administrador de Relaciones" y ahi deberá elegir el representante haciendo click en el boton "Buscar"</p>
+                <img width="600px" src="../../images/confini/afip007.jpg" alt="Representante">
+            </li>
+            <li>
+                <p>Ingrese el CUIT 20318638803. Y haga click en "Confirmar"</p>
+                <img width="600px" src="../../images/confini/afip008.jpg" alt="Representante Confirmar">
+            </li>
+            <li>
+                <p>De vuelta en "Administrador de Relaciones" queda hacer click en "Confirmar" para terminar la delegación.</p>
+                <img width="600px" src="../../images/confini/afip009.jpg" alt="Representante Confirmar">
+            </li>
+            <li>
+                <p>Imprima el comprobante de autorización. Y salga de la página de AFIP.</p>
+            </li>
+            <li>
+                <p>Por ultimo debe notificarnos del inicio del trámite para que podamos confirmarlo y permitir el uso del sistema. Para ello haga click en "NOTIFICAR".</p>
+            </li>
+        </ol>
+      </paper-dialog-scrollable>
+      <div class="buttons"><paper-button raised dialog-dismiss autofocus>Aceptar</paper-button></div>
+    </paper-dialog>
+    
     
   </template>
 
@@ -80,7 +140,12 @@
         "comprobante-no-aprobado": "_mostrarError",
         "error-general": "_mostrarErrorGeneral",
         "trineo-buscarxrz": "_lanzarDialogBuscarXRZ",
-        "trineo-busca-xrz-cliente-selected": "_onClienteSelected"
+        "trineo-busca-xrz-cliente-selected": "_onClientePadronSelected",
+        "trineo-cliente-form": "_lanzarTrineoClienteForm", //Es Dialog, todos los dialog se lanzan de aca
+        "trineo-cliente-form-ok": "_clienteChangedOK",
+        "trineo-factv-cliente-no-encontrado": "_onFactvClienteNoEncontrado",
+        "trineo-factv-cuit-no-encontrado": "_onFactvCuitNoEncontrado",
+        "trineo-settings-info-delegacion": "_openInfoDelegacion"
       },
 
       _userLoggedInChanged: function(val) {
@@ -135,17 +200,75 @@
         d.open()
       },
 
-      _lanzarDialogBuscarXRZ: function() {
+      _lanzarDialogBuscarXRZ: function(e) {
         var d = document.createElement('trineo-busca-xrz');
-        d.token = this.userBackend.auth_token
+        d.origen = e.detail.origen
         Polymer.dom(this.root).appendChild(d);
         d.open();
       },
 
-      _onClienteSelected: function(e) {
-        console.log(e)
-        this.$.app.$.factv.$.form.set('cliente', e.detail.cliente)
-        //this.$.app.$.factv.$.form.notifyPath('cliente')
+      _onClientePadronSelected: function(e) {
+        if (e.detail.origen==0) {
+          this.$.app.$.factv.$.form.set("cliente", e.detail.cliente)
+        }
+        else {
+          var d = document.createElement('trineo-cliente-form');
+          d.accion = 0
+          d.set("cliente", e.detail.cliente)
+          Polymer.dom(this.root).appendChild(d);
+          var that = this
+          d.addEventListener('trineo-cliente-form-ok', function(e){
+            Polymer.dom(that.root).removeChild(d);
+          });
+          d.open();
+        }
+        
+      },
+
+      _lanzarTrineoClienteForm: function(e) {
+        //HTML Ya fue importado cuando se cargo la lista de clientes
+        var d = document.createElement('trineo-cliente-form');
+        if (e.detail.accion==0) {//nuevo
+          d.accion=0;
+        }
+        else {
+          d.set("cliente", e.detail.cliente);
+          d.accion=1;
+        }
+        Polymer.dom(this.root).appendChild(d);
+        var that = this
+        d.addEventListener('trineo-cliente-form-ok', function(e){
+          Polymer.dom(that.root).removeChild(d);
+        });
+        d.open();
+
+      },
+
+      _clienteChangedOK: function(e) {
+        var t = document.createElement("paper-toast")
+        if (e.detail.accion==1) {t.text="Cliente Modificado"}
+        else {t.text="Cliente Agregado"}
+        Polymer.dom(this.root).appendChild(t);
+        this.$.app.$.clientes.$.cligrid.refreshItems();
+        t.open();
+      },
+
+      _onFactvClienteNoEncontrado: function(e) {
+        var t = document.createElement("paper-toast")
+        t.text="Cliente no encontrado. Cargue los datos"
+        Polymer.dom(this.root).appendChild(t);
+        t.open();
+      },
+      
+      _onFactvCuitNoEncontrado: function(e) {
+        var t = document.createElement("paper-toast")
+        t.text="Cuit no encontrado en AFIP"
+        Polymer.dom(this.root).appendChild(t);
+        t.open();
+      },
+
+      _openInfoDelegacion: function() {
+        this.$.confini.open();
       }
       
     });

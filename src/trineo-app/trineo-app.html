@@ -7,12 +7,14 @@
 <link rel="import" href="../../bower_components/app-route/app-location.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <!--<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">-->
-<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-submenu.html">
+<link rel="import" href="../../bower_components/appline-paper-fab/appline-paper-fab.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 
 
 <link rel="import" href="trineo-dashboard.html">
@@ -26,7 +28,12 @@
             :host {
                 display: block;
 
+                --paper-menu-selected-item: {
+                    color: var(--accent-color);
+              };
+
             }
+
             app-header {
                 color: #fff;
                 background-color: var(--primary-color);
@@ -41,22 +48,47 @@
                 --paper-icon-button-ink-color: white;
             }
             
-            .drawer-list {
-                margin: 0 20px;
-            }
-            
-            .drawer-list a {
+            .drawer-list .item {
                 display: block;
-                padding: 0 16px;
-                text-decoration: none;
-                color: var(--primary-text);
+                width: 100%;
                 line-height: 40px;
+                text-decoration: none;
+                color: var(--primary-text-color)
             }
-            
-            .drawer-list a.iron-selected {
-                color: black;
-                font-weight: bold;
-            }
+              .drawer-list * {
+                cursor: default;
+              }
+
+              .drawer-list .item * {
+                display: inline-block;
+              }
+
+              .drawer-list .item iron-icon {
+                margin-right: 20px;
+              }
+
+              .drawer-list .iron-selected .item {
+                color: var(--accent-color);
+              }
+
+              .drawer-list paper-submenu paper-menu {
+                padding-left: 18px;
+              }
+
+              .drawer-list paper-submenu paper-menu paper-item {
+                font-size: .92em
+              }
+
+              /*SubMenu style*/
+              .drawer-list paper-menu a {
+                text-decoration: none;
+                color: var(--primary-text-color)
+              }
+
+              .drawer-list paper-menu .iron-selected a {
+                color: var(--accent-color);
+              }
+
 
             iron-pages#content {
               margin-top: 20px;
@@ -102,33 +134,40 @@
         <app-drawer-layout fullbleed>
           <app-drawer>
             <app-toolbar>[[userBackend.perfil_user.empresa.nombre_fantasia]]</app-toolbar>
-            <!--<iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-              <div role="listbox">
-                <a class="paper-item-link" href="/factv" tabindex="-1">
-                  <paper-icon-item>
-                    <iron-icon icon="assignment" item-icon>
-                    </iron-icon>
-                    Facturación
-                  </paper-icon-item>
-                </a>
-                <a class="paper-item-link" href="/settings" tabindex="-1">
-                  <paper-icon-item>
-                    <iron-icon icon="settings" item-icon>
-                    </iron-icon>
-                    Configuración
-                    
-                  </paper-icon-item>
-                </a>
-                <a class="paper-item-link" tabindex="-1">
-                  <paper-icon-item on-tap="logout">
-                    <iron-icon icon="exit-to-app" item-icon>
-                    </iron-icon>
-                    Salir
-                  </paper-icon-item>
-                  </a>
-              </div>
-            </iron-selector>-->
+        <paper-menu class="drawer-list">
+          <paper-item>
+            <a class="item" href="/factv" tabindex="-1">
+              <iron-icon icon="assignment" item-icon></iron-icon>
+              <span>Facturación</span>
+            </a>
+          </paper-item>
+          <paper-submenu disabled="[[!planMayor0()]]">
+            <paper-item class="menu-trigger">
+              <div class="item">
+            <iron-icon icon="social:people"></iron-icon>
+            <span>Clientes</span>
+            </div>
+            </paper-item>
 
+        <paper-menu class="menu-content">
+          <paper-item><a href="/clientes">Gestión</a></paper-item>
+          <!--<paper-item>Condiciones de Venta</paper-item>
+          <paper-item>Cobranza</paper-item>-->
+        </paper-menu>
+          </paper-submenu>
+          <paper-item>
+            <a class="item" href="/settings" tabindex="-1">
+              <iron-icon icon="settings" item-icon></iron-icon>
+              <span>Configuración</span>
+            </a>
+          </paper-item>
+          <paper-item>
+            <div class="item" on-tap="logout" tabindex="-1" >
+              <iron-icon icon="exit-to-app" item-icon></iron-icon>
+              <span>Salir</span>
+            </div>
+          </paper-item>
+        </paper-menu>
         </app-drawer>
 
         <app-header-layout has-scrolling-region>
@@ -145,6 +184,37 @@
                   <paper-icon-button id="submit-fact-el" on-tap="_submitFact" icon="check"></paper-icon-button>
                   <paper-tooltip for="submit-fact-el" position="left" offset="8">Confirmar el comprobante</paper-tooltip>
                 </section>
+                <section name="clientes" class="layout horizontal center">
+                <appline-paper-fab>      
+                  <paper-fab id="nuevo-cliente" icon="add"></paper-fab>
+                  <paper-tooltip
+                      for="nuevo-cliente"
+                      position="left"
+                      offset="14">
+                      Nuevo cliente
+                  </paper-tooltip>    
+                  <div class="dropdown-content">
+                    <paper-fab id="fab-nuevo-cliente" on-tap="_nuevoCliente" mini icon="perm-identity"></paper-fab>
+                    <paper-tooltip
+                      for="fab-nuevo-cliente"
+                      position="left"
+                      offset="14">
+                      En blanco
+                    </paper-tooltip>    
+                    <paper-fab disabled="[[!planMayor1()]]" id="fab-cliente-padron" on-tap="_nuevoClienteDesdePadron" mini icon="communication:contacts"></paper-fab>
+                    <paper-tooltip
+                        for="fab-cliente-padron"
+                        position="left"
+                        offset="14">
+                        Desde padrón de AFIP
+                    </paper-tooltip>
+                </div>
+              </appline-paper-fab>
+                  
+                  
+                </section>
+
+
               </iron-pages>
             </app-toolbar>
           </app-header>
@@ -153,6 +223,7 @@
             <trineo-factv id="factv" pro-settings="{{proSettings}}" user-backend=[[userBackend]] name="factv"></trineo-factv>
             <trineo-settings pro-settings="{{proSettings}}" name="settings" user-backend="{{userBackend}}"></trineo-settings>
             <trineo-comprobante route="[[subroute]]" name="comprobante" user-backend=[[userBackend]]></trineo-comprobante>
+            <trineo-clientes id="clientes" name="clientes" user-backend=[[userBackend]]></trineo-clientes>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
         </app-header-layout>
@@ -175,6 +246,8 @@
               userBackend: Object
             },
 
+            behaviors: [SettingsBehavior],
+
             observers: [
               '_routePageChanged(routeData.page)'
             ],
@@ -185,7 +258,9 @@
             },
 
             _routePageChanged: function(page) {
-              this.page = page || 'dashboard';
+              if (this.canPage(page)) {
+                this.page = page || 'dashboard';
+              }
             },
 
             _pageChanged: function(page) {
@@ -201,6 +276,9 @@
                   break;
                 case "comprobante":
                   this.displayTitle = "Comprobante"
+                  break;
+                case "clientes":
+                  this.displayTitle = "Gestión de Clientes"
                   break;
                 default:
                   this.displayTitle = "Página no encontrada"
@@ -240,7 +318,15 @@
               this.$.totalesComprobante.iva21 = e.detail.iva21
               this.$.totalesComprobante.iva27 = e.detail.iva27
               this.$.totalesComprobante.total = e.detail.total
-            }
+            },
+
+            _nuevoCliente: function() {
+              this.fire("trineo-cliente-form", {accion:0});
+            },
+
+            _nuevoClienteDesdePadron: function() {
+              this.fire("trineo-buscarxrz", {origen:1});
+      }
         });
     </script>
 </dom-module>

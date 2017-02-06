@@ -1,0 +1,164 @@
+
+<dom-module id="trineo-cliente-form">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment iron-flex-factors">
+            :host {
+                display: block;
+            }
+
+            form div {
+                width: 100%;
+            }
+
+            paper-textarea {
+                width: 100%;
+            }
+        </style>
+        
+        <iron-ajax
+            id="saveClienteAjax"
+            handle-as="json"
+            on-response="handleResponse"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"></iron-ajax>
+        
+        
+        <paper-dialog id="d" modal>
+            <h2>[[titulo]]: [[cliente.razon_social]]</h2>
+            <paper-dialog-scrollable>
+                <form is="iron-form" id="form">
+                    <div class="layout vertical">
+                        <div class="layout horizontal center justified form-row">
+                            <div class="form-field long-2">
+                                <h3>Número cliente: [[cliente.id]]</h3>
+                            </div>
+                            <div class="form-field long-6">
+                                <paper-input required label="Razón Social" value="{{cliente.razon_social}}" error-message="Ingrese razón social"></paper-input>
+                            </div>
+                        </div>
+                        <div>
+                            <trineo-combinacion-fiscal required
+                                tipo-identificacion="{{cliente.tipo_identificacion}}"
+                                numero-identificacion="{{cliente.numero_identificacion}}"
+                                cond-fiscal="{{cliente.cond_iva}}"
+                             ></trineo-combinacion-fiscal>
+                        </div>
+                        <div class="layout horizontal center justified form-row">
+                            <div class="form-field long-3">
+                                <paper-input label="Dirección" value="{{cliente.direccion}}"></paper-input>
+                            </div>
+                            <div class="form-field long-2">
+                                <paper-input label="Ciudad" value="{{cliente.localidad}}"></paper-input>
+                            </div>
+                            <div class="form-field long-1">
+                                <paper-input label="Código Postal" value="{{cliente.codigo_postal}}"></paper-input>
+                            </div>
+                            <div class="form-field long-2">
+                                <paper-dropdown-menu label="Provincia">
+                                    <paper-listbox attr-for-selected="value" selected="{{cliente.provincia}}" class="dropdown-content">
+                                        <paper-item value="0">Ciudad autonoma de Buenos Aires</paper-item>
+                                        <paper-item value="1">Buenos Aires</paper-item>
+                                        <paper-item value="2">Catamarca</paper-item>
+                                        <paper-item value="3">Córdoba</paper-item>
+                                        <paper-item value="4">Corrientes</paper-item>
+                                        <paper-item value="5">Entre Ríos</paper-item>
+                                        <paper-item value="6">Jujuy</paper-item>
+                                        <paper-item value="7">Mendoza</paper-item>
+                                        <paper-item value="8">La Rioja</paper-item>
+                                        <paper-item value="9">Salta</paper-item>
+                                        <paper-item value="10">San Juan</paper-item>
+                                        <paper-item value="11">San Luis</paper-item>
+                                        <paper-item value="12">Santa Fe</paper-item>
+                                        <paper-item value="13">Santiago del Estero</paper-item>
+                                        <paper-item value="14">Tucuman</paper-item>
+                                        <paper-item value="15">Chaco</paper-item>
+                                        <paper-item value="16">Chubut</paper-item>
+                                        <paper-item value="17">Formosa</paper-item>
+                                        <paper-item value="18">Misiones</paper-item>
+                                        <paper-item value="19">Neuquén</paper-item>
+                                        <paper-item value="20">La Pampa</paper-item>
+                                        <paper-item value="21">Río Negro</paper-item>
+                                        <paper-item value="22">Santa Cruz</paper-item>
+                                        <paper-item value="23">Tierra del Fuego</paper-item>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
+                        </div>
+                        <div class="layout horizontal center justified form-row">
+                            <div class="form-field long-2">
+                                <paper-input label="Teléfono" value="{{cliente.telefono}}"></paper-input>
+                            </div>
+                            <div class="form-field long-2">
+                                <paper-input label="Fax" value="{{cliente.fax}}"></paper-input>
+                            </div>
+                            <div class="form-field long-4">
+                                <paper-input label="Email" value="{{cliente.email}}"></paper-input>
+                            </div>
+                        </div>
+                        <div class="layout horizontal">
+                            <paper-textarea label="Notas" value="{{cliente.notas}}"></paper-textarea>
+                        </div>
+                    </div>
+                </form>
+            </paper-dialog-scrollable>
+            <div class="buttons">
+                <paper-button raised dialog-dismiss autofocus>Cancelar</paper-button>
+                <paper-button raised on-tap="_saveCliente">Aceptar</paper-button>
+            </div>
+        </paper-dialog>
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-cliente-form',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                cliente: {
+                    type: Object,
+                    value: function(){ 
+                        return {razon_social: "", tipo_identificacion: "", numero_identificacion: "", cuit: "", cond_iva: ""}
+                    }},
+                accion: Number,//0: Nuevo, 1: Edición
+                titulo: {
+                    type: String,
+                    computed: "_tituloCompute(accion)",
+                    readonly: true
+                }
+            },
+
+            //Computes
+            _tituloCompute: function(accion) {
+                if (accion==0) {return "Nuevo Cliente"}
+                return "Modificar Cliente"
+            },
+
+            open: function() {
+                this.$.d.open();
+            },
+
+            _saveCliente: function() {
+                if(this.$.form.validate()){
+                    if (this.accion == 1) {
+                        this.$.saveClienteAjax.url = this.cliente.url
+                        this.$.saveClienteAjax.method = "PUT"
+                        this.$.saveClienteAjax.body = JSON.stringify(this.cliente)
+                        this.$.saveClienteAjax.generateRequest();
+                    }
+                    else {
+                        this.$.saveClienteAjax.url = this.apiUrl+"/clientes/"
+                        this.$.saveClienteAjax.method = "POST"
+                        this.$.saveClienteAjax.body = JSON.stringify(this.cliente)
+                        this.$.saveClienteAjax.generateRequest();
+                    }
+                }
+            },
+            handleResponse: function(e) {
+                if(e.detail.xhr.status==200 || e.detail.xhr.status==201) {
+                    this.fire("trineo-cliente-form-ok", {accion:this.accion});
+                }
+            }
+        });
+    </script>
+</dom-module>

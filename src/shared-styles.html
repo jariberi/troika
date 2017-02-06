@@ -17,14 +17,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :root {
-        --dark-primary-color: #303F9F;
-        --primary-color: #3F51B5;
+
+        --primary-text-color: var(--light-theme-text-color);
+        --primary-background-color: var(--light-theme-background-color);
+        --secondary-text-color: var(--light-theme-secondary-color);
+        --disabled-text-color: var(--light-theme-disabled-color);
+        --divider-color: var(--light-theme-divider-color);
+        --error-color: var(--paper-deep-orange-a700);
+        /*
+        * Primary and accent colors. Also see color.html for more colors.
+        */
+        --primary-color: #3F51b5;
         --light-primary-color: #C5CAE9;
-        --text-icons: #FFFFFF;
+        --dark-primary-color: #303F9F;
         --accent-color: #607D8B;
-        --primary-text: #212121;
-        --secondary-text: #757575;
-        --divider-color: #BDBDBD;
+        --light-accent-color: #CFD8DC;
+        --dark-accent-color: #455A64;
+        /*
+        * Material Design Light background theme
+        */
+        --light-theme-background-color: #ffffff;
+        --light-theme-base-color: #000000;
+        --light-theme-text-color: #212121;
+        --light-theme-secondary-color: #757575;  /* for secondary text and icons */
+        --light-theme-disabled-color: #9b9b9b;  /* disabled/hint text */
+        --light-theme-divider-color: #dbdbdb;
+        /*
+        * Material Design Dark background theme
+        */
+        --dark-theme-background-color: var(--paper-grey-900);
+        --dark-theme-base-color: #ffffff;
+        --dark-theme-text-color: #ffffff;
+        --dark-theme-secondary-color: #bcbcbc;  /* for secondary text and icons */
+        --dark-theme-disabled-color: #646464;  /* disabled/hint text */
+        --dark-theme-divider-color: #3c3c3c;
       }
 
       paper-button[raised].accent {
@@ -60,6 +86,121 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         content: "$  ";
         font-weight: bold;
       }
+
+      .form-row, .form-row > * {
+        width: 100%;
+      }
+
+
+      .form-row > .form-field {
+        position: relative;
+      }
+
+      .form-field > * {
+        width: calc(100% - 40px);
+        margin: 0 20px;
+      }
+
+      .form-row > .form-field:first-child > * {
+        width: calc(100% - 20px);
+        margin-right: 20px;
+        margin-left: 0;
+      }
+
+      .form-row > .form-field:last-child > * {
+        width: calc(100% - 20px);
+        margin-right: 0;
+        margin-left: 20px;
+      }
+
+      .form-row > .form-field > * > :not(paper-spinner) {
+        width: 100%;
+      }
+
+      .form-row > .form-field > * > paper-spinner {
+        position: absolute;
+        top: 26px;
+        right: 20px;
+        width: 22px;
+        height: 22px;
+      }
+
+      .long-1 {
+        width: 120px;
+      }
+
+      .long-2 {
+        width: 240px;
+      }
+
+      .long-3 {
+        width: 360px;
+      }
+
+      .long-4 {
+        width: 480px;
+      }
+      .long-5 {
+        width: 600px;
+      }
+
+      .long-6 {
+        width: 720px;
+      }
+
+      .long-7 {
+        width: 840px;
+      }
+
+      .long-8 {
+        width: 960px;
+      }
+
+      paper-dialog > h2 {
+        color: var(--dark-accent-color);
+      }
+
+      /*Responsive with porcentages*/
+
+      .col-1 {
+        width: 8.333333%;
+      }
+      .col-2 {
+        width: 16.666666%;
+      }
+      .col-3 {
+        width: 25%;
+      }
+      .col-4 {
+        width: 33.333333%;
+      }
+      .col-5 {
+        width: 41.666666%;
+      }
+      .col-6 {
+        width: 50%;
+      }
+      .col-7 {
+        width: 58.333333%;
+      }
+      .col-8 {
+        width: 66.666666%;
+      }
+      .col-9 {
+        width: 75%;
+      }
+      .col-10 {
+        width: 83.333333%;
+      }
+      .col-11 {
+        width: 91.666666%;
+      }
+      .col-12 {
+        width: 100%;
+      }
+      
+
+      
     </style>
 </template>
 </dom-module>

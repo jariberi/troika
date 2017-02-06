@@ -1,0 +1,165 @@
+<!-- Numero Identificación, tipo identificación, cond fiscal-->
+<dom-module id="trineo-combinacion-fiscal">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+        </style>
+        <div class="layout horizontal wrap center form-row">
+            <div class="form-field col-4">
+                <div>
+                    <div>
+                        <appline-idfiscal-input id="numeroId" on-keydown="_onNumeroidKeyPressed" on-value-changed="_onNumeroIdentificacionChanged" 
+                        label="Número de Identificación" required=[[required]] value="{{numeroIdentificacion}}" error-message="Ingrese número de identificación"></appline-idfiscal-input>
+                    </div>
+                    <paper-spinner active=[[spinnerActivo]]></paper-spinner>
+                </div>
+            </div>
+            <div class="form-field col-4">
+                <div>
+                    <paper-dropdown-menu required="[[required]]" id="tipoIdentificacion" label="Tipo de identificación" error-message="Seleccione un tipo de identificación">
+                        <paper-listbox attr-for-selected="value" selected="{{tipoIdentificacion}}" class="dropdown-content">
+                            <paper-item value="0">CI Policía Federal</paper-item>
+                            <paper-item value="1">CI Buenos Aires</paper-item>
+                            <paper-item value="2">CI Catamarca</paper-item>
+                            <paper-item value="3">CI Córdoba</paper-item>
+                            <paper-item value="4">CI Corrientes</paper-item>
+                            <paper-item value="5">CI Entre Ríos</paper-item>
+                            <paper-item value="6">CI Jujuy</paper-item>
+                            <paper-item value="7">CI Mendoza</paper-item>
+                            <paper-item value="8">CI La Rioja</paper-item>
+                            <paper-item value="9">CI Salta</paper-item>
+                            <paper-item value="10">CI San Juan</paper-item>
+                            <paper-item value="11">CI San Luis</paper-item>
+                            <paper-item value="12">CI Santa Fe</paper-item>
+                            <paper-item value="13">CI Santiago del Estero</paper-item>
+                            <paper-item value="14">CI Tucumán</paper-item>
+                            <paper-item value="16">CI Chaco</paper-item>
+                            <paper-item value="17">CI Chubut</paper-item>
+                            <paper-item value="18">CI Formosa</paper-item>
+                            <paper-item value="19">CI Misiones</paper-item>
+                            <paper-item value="20">CI Neuquen</paper-item>
+                            <paper-item value="21">CI La Pampa</paper-item>
+                            <paper-item value="22">CI Río Negro</paper-item>
+                            <paper-item value="23">CI Santa Cruz</paper-item>
+                            <paper-item value="24">CI Tierra del Fuego</paper-item>
+                            <paper-item value="80">CUIT</paper-item>
+                            <paper-item value="86">CUIL</paper-item>
+                            <paper-item value="87">CDI</paper-item>
+                            <paper-item value="89">LE</paper-item>
+                            <paper-item value="90">LC</paper-item>
+                            <paper-item value="91">CI extranjera</paper-item>
+                            <paper-item value="92">en trámite</paper-item>
+                            <paper-item value="93">Acta de nacimiento</paper-item>
+                            <paper-item value="94">Pasaporte</paper-item>
+                            <paper-item value="95">CI Bs. As. RNP</paper-item>
+                            <paper-item value="96">DNI</paper-item>
+                            <paper-item value="99">Sin identificar</paper-item>
+                            <paper-item value="30">Certificado de migración</paper-item>
+                            <paper-item value="88">Usado por Anses para padrón</paper-item>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-spinner active=[[spinnerActivo]]></paper-spinner>
+                </div>
+            </div>
+            <div class="form-field col-4">
+                <div>
+                    <paper-dropdown-menu required="[[required]]" id="condFiscal" label="IVA" error-message="Seleccione la categoría de IVA">
+                        <paper-listbox attr-for-selected="value" selected="{{condFiscal}}" class="dropdown-content">
+                            <paper-item value="0">Responsable Inscripto</paper-item>
+                            <paper-item value="1">Monotributo</paper-item>
+                            <paper-item value="2">Consumidor Final</paper-item>
+                            <paper-item value="3">Exento</paper-item>
+                            <paper-item value="4">Responsable No Inscripto</paper-item>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-spinner active=[[spinnerActivo]]></paper-spinner>
+                </div>
+            </div>        
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-combinacion-fiscal',
+
+            behaviors: [Polymer.IronValidatableBehavior, Polymer.IronFormElementBehavior],
+
+            properties: {
+                tipoIdentificacion: {
+                    type: Number,
+                    notify: true
+                },
+                numeroIdentificacion: {
+                    type: String,
+                    notify: true
+                },
+                condFiscal: {
+                    type: Number,
+                    notify: true
+                },
+                required: Boolean,
+                spinnerActivo: {
+                    type: Boolean,
+                    value: false
+                },
+            },
+
+            _onNumeroIdentificacionChanged: function(e) {
+                var patt = new RegExp("\\d{2}-\\d{8}-\\d{1}");
+                if (patt.test(e.detail.value)) {
+                    this.fire("combifiscal-cuit-ingresed", {value: e.detail.value});
+                }
+            },
+
+            _onNumeroidKeyPressed: function(e) {
+                if (e.keyCode==13) {
+                    this.fire("combifiscal-enter-pressed", {value: this.numeroIdentificacion});
+                }
+            },
+
+            _getValidity: function() {
+                var valid = true
+                //Validate individual element
+                
+                valid &= this.$.condFiscal.validate()
+                valid &= this.$.tipoIdentificacion.validate()
+                valid &= this.$.numeroId.validate()
+
+                if (valid) {
+                    if (this.condFiscal == 2) { //Consumidor final, debe tener un tipo distinto de CUIT, ademas valido segun el selecciado
+                        if (this.tipoIdentificacion == 80) {
+                            this.$.condFiscal.errorMessage="Con CUIT no puede ser Consumidor Final"
+                            Polymer.dom(this.$.condFiscal).setAttribute("invalid", true)
+                            return false    
+                        }
+                        var dni_patt = new RegExp("\\d{1,8}")
+                        if (this.tipoIdentificacion == 96 && !dni_patt.test(this.numeroIdentificacion)) {
+                            this.$.numeroId.errorMessage="El DNI ingresado es inválido"
+                            Polymer.dom(this.$.numeroId).setAttribute("invalid", true)
+                            return false
+                        }
+                    }
+                    else {
+                        if (this.tipoIdentificacion != 80) {
+                        this.$.tipoIdentificacion.errorMessage="Debe seleccionar CUIT para un NO consumidor final"
+                        Polymer.dom(this.$.tipoIdentificacion).setAttribute("invalid", true)
+                        return false
+                        }
+                        else {
+                            var cuit_patt = new RegExp("\\d{2}-\\d{8}-\\d{1}")
+                            if (!cuit_patt.test(this.numeroIdentificacion)) {
+                                this.$.numeroId.errorMessage="El CUIT ingresado es inválido"
+                                Polymer.dom(this.$.numeroId).setAttribute("invalid", true)
+                                return false
+                            }
+                        }
+                    }
+                    
+                    return true
+                }
+                return valid
+            } 
+        });
+    </script>
+</dom-module>

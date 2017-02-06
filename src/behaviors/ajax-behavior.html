@@ -10,6 +10,16 @@
         },
         getAuthHeader: function(token) {
             return {Authorization: "Token "+token}
+        },
+
+        getAuthorizationHeader: function() {
+            token = JSON.parse(localStorage.getItem("trineolambda")).auth_token
+            return {Authorization: "Token "+token}
+        },
+
+        getToken: function() {
+            return JSON.parse(localStorage.getItem("trineolambda")).auth_token
         }
+
     }
 </script>
