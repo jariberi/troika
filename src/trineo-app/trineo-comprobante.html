@@ -25,22 +25,36 @@
              last-response="{{comprobante}}"></iron-ajax>
         
 
-        <div class="page-content">
-            <paper-card heading="[[comp]] [[pad_with_zeroes(comprobante.punto_venta,4)]] - [[pad_with_zeroes(comprobante.numero,8)]]">
-            <div class="card-content">
-                <div class="layout vertical">
-                    <div class="layout horizontal justified">
-                        <span>Tipo: [[comp]]</span>
-                        <span>Número: [[pad_with_zeroes(comprobante.punto_venta,4)]] - [[pad_with_zeroes(comprobante.numero,8)]]</span>
-                        <span>CAE: [[comprobante.cae]]</span>
-                        <span>Vecimiento CAE: [[vencimientoCAE]]</span>
+        
+        <iron-pages selected="[[_listOrDetail]]">
+            <section>
+                <trineo-list
+                    columns="[[_ventasColumns]]"
+                    headers="[[_ventasHeaders]]"
+                    url="[[apiUrl]]/ventas/"></trineo-list>
+            </section>
+            <section>
+                <paper-card>
+                    <div class="card-content">
+                        <paper-icon-button style="width: 50px;height: 50px;margin-right: 20px;" on-tap="_clearDetail" icon="clear"></paper-icon-button>
+                        <h2 style="display: inline-block;">[[comp]] [[pad_with_zeroes(comprobante.punto_venta,4)]] - [[pad_with_zeroes(comprobante.numero,8)]]</h2>
+                        <div class="layout vertical">
+                            <div class="layout horizontal justified">
+                                <span>Tipo: [[comp]]</span>
+                                <span>Número: [[pad_with_zeroes(comprobante.punto_venta,4)]] - [[pad_with_zeroes(comprobante.numero,8)]]</span>
+                                <span>CAE: [[comprobante.cae]]</span>
+                                <span>Vecimiento CAE: [[vencimientoCAE]]</span>
+                            </div>
+                        </div>
+                        <template is="dom-if" if=[[routeData.comprobante_id]]>
+                            <object data="[[apiUrl]]/utils/comprobante_en_pdf/[[routeData.comprobante_id]]/" type="application/pdf"></object>
+                        </template>
                     </div>
-                </div>
-                <object data="[[apiUrl]]/utils/comprobante_en_pdf/[[routeData.comprobante_id]]/" type="application/pdf">
-                    </object>
-            </div>
-        </paper-card>
-        </div>
+                </paper-card>
+            </section>
+        </iron-pages>
+        
+        
         
         
     </template>
@@ -62,6 +76,66 @@
                 vencimientoCAE: {
                     type:String,
                     computed: "_vencimientoCAECompute(comprobante.fvto_cae)"
+                },
+                _listOrDetail: {
+                    type: Number,
+                    computed: "_listOrDetailCompute(routeData.comprobante_id)"
+                },
+                _ventasColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+                        var compNumeracion = function(cell) {
+                            cell.element.innerHTML = ''
+                            var pv = that.pad_with_zeroes(cell.row.data.punto_venta, 4)
+                            var n = that.pad_with_zeroes(cell.row.data.numero, 8)
+                            var letr = cell.row.data.tipo
+                            cell.element.innerHTML = letr + "-" + pv + '-' + n;
+                        };
+                    
+                        var neto = function(cell) {
+                            cell.element.innerHTML = ''
+                            var netoex = Number(cell.row.data.netoex)
+                            var neto21 = Number(cell.row.data.neto21)
+                            var neto105 = Number(cell.row.data.neto105)
+                            var neto27 = Number(cell.row.data.neto27)
+                            cell.element.innerHTML = (netoex + neto21 + neto105 + neto27).toFixed(2);
+                        };
+                        
+                        var iva = function(cell) {
+                            cell.element.innerHTML = ''
+                            var iva21 = Number(cell.row.data.iva21)
+                            var iva105 = Number(cell.row.data.iva105)
+                            var iva27 = Number(cell.row.data.iva27)
+                            cell.element.innerHTML = (iva21 + iva105 + iva27).toFixed(2);
+                        };
+
+                        var verComp = function(cell) {
+                            cell.element.innerHTML = ''
+                            var but = document.createElement("paper-icon-button");
+                            but.icon= "pageview"
+                            var id = cell.row.data.id
+                            but.addEventListener("tap", function(){
+                                that.fire("trineo-comprobante-ver-comprobante", {comprobante:id})    
+                            })
+                            cell.element.appendChild(but);
+                        };
+                        return [
+                            {name: "fecha", renderer: that.grid_date_format_renderer, sortable: true, width: 120}, //SUM: 1105px
+                            {name: "compNumeracion", renderer: compNumeracion, width: 180},
+                            {name: "cliente.razon_social", maxWidth: 310},
+                            {name: "neto", renderer: neto, width: 120},
+                            {name: "iva", renderer: iva, width: 100},
+                            {name: "total", width: 140},
+                            {name: "ver", renderer: verComp, width: 115} //88px
+                        ]
+                    }
+                },
+                _ventasHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["FECHA", "NÚMERO", "CLIENTE", "NETO", "IVA", "TOTAL", ""]
+                    }
                 }
             },
 
@@ -69,9 +143,16 @@
                 "_compChanged(routeData.comprobante_id)"
             ],
 
+            listeners: {
+                "trineo-comprobante-ver-comprobante": "_verComprobante"
+            },
+
             _compChanged: function (id) {
-                if (id != undefined && id != null) {
+                if (id != undefined && id != null && id != "") {
                     this.$.getcompajax.auto=true
+                }
+                else {
+                    this.$.getcompajax.auto=false
                 }
             },
 
@@ -87,6 +168,22 @@
 
             _vencimientoCAECompute: function(fvto) {
                 return moment(fvto).format('DD/MM/YYYY')
+            },
+
+            _listOrDetailCompute: function(cid) {
+                if (cid != undefined && cid != null && cid != "") {
+                    return 1
+                }
+                return 0
+            },
+
+            _verComprobante: function(e) {
+                var id = e.detail.comprobante
+                this.set("route.path", "/"+id+"/");
+            },
+
+            _clearDetail: function(e) {    
+                this.set("route.path", "/");
             }
         });
     </script>

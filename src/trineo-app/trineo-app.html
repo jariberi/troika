@@ -135,12 +135,19 @@
           <app-drawer>
             <app-toolbar>[[userBackend.perfil_user.empresa.nombre_fantasia]]</app-toolbar>
         <paper-menu class="drawer-list">
-          <paper-item>
-            <a class="item" href="/factv" tabindex="-1">
-              <iron-icon icon="assignment" item-icon></iron-icon>
-              <span>Facturación</span>
-            </a>
-          </paper-item>
+          <paper-submenu>
+            <paper-item class="menu-trigger">
+              <div class="item">
+            <iron-icon icon="assignment"></iron-icon>
+            <span>Facturación</span>
+            </div>
+            </paper-item>
+
+        <paper-menu class="menu-content">
+          <paper-item><a href="/factv/">Nuevo</a></paper-item>
+          <paper-item><a href="/comprobante/">Consulta</a></paper-item>
+        </paper-menu>
+          </paper-submenu>
           <paper-submenu disabled="[[!planMayor0()]]">
             <paper-item class="menu-trigger">
               <div class="item">
@@ -150,13 +157,13 @@
             </paper-item>
 
         <paper-menu class="menu-content">
-          <paper-item><a href="/clientes">Gestión</a></paper-item>
+          <paper-item><a href="/clientes/">Gestión</a></paper-item>
           <!--<paper-item>Condiciones de Venta</paper-item>
           <paper-item>Cobranza</paper-item>-->
         </paper-menu>
           </paper-submenu>
           <paper-item>
-            <a class="item" href="/settings" tabindex="-1">
+            <a class="item" href="/settings/" tabindex="-1">
               <iron-icon icon="settings" item-icon></iron-icon>
               <span>Configuración</span>
             </a>
@@ -222,7 +229,7 @@
           <iron-pages id="content" selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
             <trineo-factv id="factv" pro-settings="{{proSettings}}" user-backend=[[userBackend]] name="factv"></trineo-factv>
             <trineo-settings pro-settings="{{proSettings}}" name="settings" user-backend="{{userBackend}}"></trineo-settings>
-            <trineo-comprobante route="[[subroute]]" name="comprobante" user-backend=[[userBackend]]></trineo-comprobante>
+            <trineo-comprobante route="{{subroute}}" name="comprobante" user-backend=[[userBackend]]></trineo-comprobante>
             <trineo-clientes id="clientes" name="clientes" user-backend=[[userBackend]]></trineo-clientes>
             <my-view404 name="view404"></my-view404>
           </iron-pages>

@@ -1,0 +1,120 @@
+
+<dom-module id="trineo-list">
+    <template>
+        <style include="iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                height: calc(100vh - 200px);
+                max-height: calc(100vh - 200px);
+            }
+
+            vaadin-grid, paper-material {
+                height: 100%;
+                max-height: 100%;
+            }
+
+            paper-card {
+                width: 100%;
+                margin-bottom: 30px;
+            }
+
+            paper-card span {
+                margin-right: 40px;
+                font-size: 1.1em;
+            }
+
+            paper-card paper-input {
+                width: 100%;
+            }
+            
+        </style>
+        <paper-card elevation="1" animated-shadow="false">
+            <div class="card-content">
+                <div class="layout horizontal center">
+                    <span>Búsqueda</span>
+                    <paper-input no-label-float value="{{search}}"></paper-input>
+                </div>
+            </div>
+        </paper-card>
+        
+        <paper-material elevation="1">    
+            <vaadin-grid selection-mode="disabled" id="comgrid">
+                <table>
+                </table>
+            </vaadin-grid>
+        </paper-material>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-list',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                search: {
+                    type: String,
+                    observer: "_onSearchChanged"
+                },
+                columns: Array,
+                headers: Array,
+                url: String
+            },
+
+            ready: function() {
+                var that = this
+                //var editButtonRenderer = function(cell) {
+                //    cell.element.innerHTML = '';
+
+                //    var editButton = document.createElement('trineo-cliente-edit');
+                //    editButton.set('cliente', cell.row.data);
+                //    cell.element.appendChild(editButton);
+                //};
+                
+                this.$.comgrid.columns = this.columns;
+
+                //this.$.comgrid.sortOrder = [
+                    //{column: 1, direction: "asc"}
+                //]
+                
+                for(i=0; i<this.headers.length; i++) {
+                    this.$.comgrid.header.getCell(0,i).content=this.headers[i];
+                }
+                
+
+                this.$.comgrid.items = function(params, callback) {
+                    var sorting = ""
+                    if (params.sortOrder) {
+                        sorting = "&ordering="
+                        for (i=0;i<params.sortOrder.length;i++) {
+                            var column = that.$.comgrid.columns[params.sortOrder[i].column].name
+                            if (params.sortOrder[i].direction=="desc") {
+                                column = "-"+column
+                            }
+                            sorting += column+","
+                        }
+                    }
+                    var search = ""
+                    if (that.search) {
+                        search = '&search='+that.search
+                    }
+                    var url = that.url+'?index=' + params.index + '&count=' + params.count + search + sorting;
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', url, true);
+                    xhr.setRequestHeader("Authorization", "Token " + that.getToken())
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        callback(response.results);
+                        that.$.comgrid.size = response.count
+                    }
+                    };
+                    xhr.send();
+                };
+            },
+            
+            _onSearchChanged: function(val) {
+                this.$.comgrid.refreshItems();
+            },
+        });
+    </script>
+</dom-module>
