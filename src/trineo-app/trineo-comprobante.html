@@ -27,7 +27,7 @@
 
         
         <iron-pages selected="[[_listOrDetail]]">
-            <section>
+            <section hidden$="[[!planMayor0()]]">
                 <trineo-list
                     columns="[[_ventasColumns]]"
                     headers="[[_ventasHeaders]]"
@@ -62,7 +62,7 @@
         Polymer({
             is: 'trineo-comprobante',
 
-            behaviors: [UtilsBehavior, AjaxBehavior],
+            behaviors: [UtilsBehavior, AjaxBehavior, SettingsBehavior],
 
             properties: {
                 route: Object,
