@@ -82,7 +82,6 @@
             ready: function() {
                 var editButtonRenderer = function(cell) {
                     cell.element.innerHTML = '';
-
                     var editButton = document.createElement('trineo-cliente-edit');
                     editButton.set('cliente', cell.row.data);
                     cell.element.appendChild(editButton);

@@ -31,7 +31,8 @@
                 <trineo-list
                     columns="[[_ventasColumns]]"
                     headers="[[_ventasHeaders]]"
-                    url="[[apiUrl]]/ventas/"></trineo-list>
+                    url="[[apiUrl]]/ventas/"
+                    sort-order="[[_ventasSortOrder]]"></trineo-list>
             </section>
             <section>
                 <paper-card>
@@ -123,7 +124,7 @@
                         return [
                             {name: "fecha", renderer: that.grid_date_format_renderer, sortable: true, width: 120}, //SUM: 1105px
                             {name: "compNumeracion", renderer: compNumeracion, width: 180},
-                            {name: "cliente.razon_social", maxWidth: 310},
+                            {name: "cliente.razon_social", sortable: true, maxWidth: 310},
                             {name: "neto", renderer: neto, width: 120},
                             {name: "iva", renderer: iva, width: 100},
                             {name: "total", width: 140},
@@ -135,6 +136,14 @@
                     type: Array,
                     value: function() {
                         return ["FECHA", "NÚMERO", "CLIENTE", "NETO", "IVA", "TOTAL", ""]
+                    }
+                },
+                _ventasSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 0, direction: "desc"}
+                        ]
                     }
                 }
             },

@@ -57,36 +57,28 @@
                 },
                 columns: Array,
                 headers: Array,
-                url: String
+                url: String,
+                sortOrder: Array
             },
 
             ready: function() {
                 var that = this
-                //var editButtonRenderer = function(cell) {
-                //    cell.element.innerHTML = '';
-
-                //    var editButton = document.createElement('trineo-cliente-edit');
-                //    editButton.set('cliente', cell.row.data);
-                //    cell.element.appendChild(editButton);
-                //};
                 
                 this.$.comgrid.columns = this.columns;
 
-                //this.$.comgrid.sortOrder = [
-                    //{column: 1, direction: "asc"}
-                //]
+                this.$.comgrid.sortOrder = this.sortOrder;
                 
                 for(i=0; i<this.headers.length; i++) {
                     this.$.comgrid.header.getCell(0,i).content=this.headers[i];
                 }
                 
-
                 this.$.comgrid.items = function(params, callback) {
                     var sorting = ""
                     if (params.sortOrder) {
                         sorting = "&ordering="
                         for (i=0;i<params.sortOrder.length;i++) {
                             var column = that.$.comgrid.columns[params.sortOrder[i].column].name
+                            column = column.replace(/\./g,"__")
                             if (params.sortOrder[i].direction=="desc") {
                                 column = "-"+column
                             }
