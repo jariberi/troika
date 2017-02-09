@@ -1,7 +1,9 @@
-<link rel="import" href="trineo-item-factv.html">
+<!--<link rel="import" href="trineo-item-factv.html">-->
 <link rel="import" href="trineo-item-head.html">
 <link rel="import" href="trineo-servicio-dates.html">
 <link rel="import" href="trineo-cliente.html">
+<link rel="import" href="../../custom-components/trineo-factv-item/trineo-factv-item.html">
+
 
 <dom-module id="appline-factura-form">
   <template>
@@ -123,9 +125,8 @@
 <paper-card heading="Detalles">
   <div id="detalle" class="card-content">
     <trineo-item-head></trineo-item-head>
-    <trineo-item-factv></trineo-item-factv>
+    <trineo-factv-item asigna-iva="[[_asignaIva]]" discrimina-iva="[[_discriminaIva]]"></trineo-factv-item>
     <paper-icon-button id="botonAgregarItem" icon="add" on-tap="agregarItem"></paper-icon-button>
-    
     <paper-tooltip
       for="botonAgregarItem"
       position="right"
@@ -158,7 +159,7 @@
         },
         _asignaIva: {
           type: Boolean,
-          computed: "_discriminaIvaCompute(userBackend.perfil_user.empresa.categoria_iva)",
+          computed: "_asignaIvaCompute(userBackend.perfil_user.empresa.categoria_iva)",
           observer: "_asignaIvaChanged"
         },
         userBackend: Object,

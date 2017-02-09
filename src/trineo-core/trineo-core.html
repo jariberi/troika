@@ -27,6 +27,8 @@
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="../../bower_components/iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../../bower_components/iron-dropdown/iron-dropdown.html">
+
 
 <link rel="import" href="../behaviors/ajax-behavior.html">
 <link rel="import" href="../behaviors/dates-behavior.html">
@@ -146,7 +148,15 @@
         "trineo-cliente-form-ok": "_clienteChangedOK",
         "trineo-factv-cliente-no-encontrado": "_onFactvClienteNoEncontrado",
         "trineo-factv-cuit-no-encontrado": "_onFactvCuitNoEncontrado",
-        "trineo-settings-info-delegacion": "_openInfoDelegacion"
+        "trineo-settings-info-delegacion": "_openInfoDelegacion",
+        "trineo-articulo-form": "_lanzarTrineoArticuloForm", //Es Dialog, todos los dialog se lanzan de aca
+        "trineo-articulo-form-ok": "_articuloFormOK",
+        "trineo-linea-form": "_lanzarTrineoLineaForm", //Es Dialog, todos los dialog se lanzan de aca
+        "trineo-linea-form-ok": "_lineaFormOK",
+        "trineo-rubro-form": "_lanzarTrineoRubroForm", //Es Dialog, todos los dialog se lanzan de aca
+        "trineo-rubro-form-ok": "_rubroFormOK",
+        "trineo-subrubro-form": "_lanzarTrineoSubrubroForm", //Es Dialog, todos los dialog se lanzan de aca
+        "trineo-subrubro-form-ok": "_subrubroFormOK",
       },
 
       _userLoggedInChanged: function(val) {
@@ -242,7 +252,6 @@
           Polymer.dom(that.root).removeChild(d);
         });
         d.open();
-
       },
 
       _clienteChangedOK: function(e) {
@@ -270,6 +279,114 @@
 
       _openInfoDelegacion: function() {
         this.$.confini.open();
+      },
+
+      _lanzarTrineoArticuloForm: function(e) {
+        //HTML Ya fue importado cuando se cargo la lista de clientes
+        var d = document.createElement('trineo-articulo-form');
+        if (e.detail.accion==0) {//nuevo
+          d.accion=0;
+        }
+        else {
+          d.set("articulo", e.detail.articulo);
+          d.accion=1;
+        }
+        Polymer.dom(this.root).appendChild(d);
+        var that = this
+        d.addEventListener('trineo-articulo-form-ok', function(e){
+          Polymer.dom(that.root).removeChild(d);
+        });
+        d.open();
+      },
+
+      _articuloFormOK: function(e) {
+        var t = document.createElement("paper-toast")
+        if (e.detail.accion==1) {t.text="Articulo Modificado"}
+        else {t.text="Articulo Agregado"}
+        Polymer.dom(this.root).appendChild(t);
+        this.$.app.$.articulos.$.artgrid.refreshItems();
+        t.open();
+      },
+
+      _lanzarTrineoLineaForm: function(e) {
+        //HTML Ya fue importado cuando se cargo la lista de clientes
+        var d = document.createElement('trineo-linea-form');
+        if (e.detail.accion==0) {//nuevo
+          d.accion=0;
+        }
+        else {
+          d.set("linea", e.detail.linea);
+          d.accion=1;
+        }
+        Polymer.dom(this.root).appendChild(d);
+        var that = this
+        d.addEventListener('trineo-linea-form-ok', function(e){
+          Polymer.dom(that.root).removeChild(d);
+        });
+        d.open();
+      },
+
+      _lineaFormOK: function(e) {
+        var t = document.createElement("paper-toast")
+        if (e.detail.accion==1) {t.text="Linea Modificada"}
+        else {t.text="Linea Creada"}
+        Polymer.dom(this.root).appendChild(t);
+        this.$.app.$.lineas.$.lingrid.refreshItems();
+        t.open();
+      },
+
+      _lanzarTrineoRubroForm: function(e) {
+        //HTML Ya fue importado cuando se cargo la lista de clientes
+        var d = document.createElement('trineo-rubro-form');
+        if (e.detail.accion==0) {//nuevo
+          d.accion=0;
+        }
+        else {
+          d.set("rubro", e.detail.rubro);
+          d.accion=1;
+        }
+        Polymer.dom(this.root).appendChild(d);
+        var that = this
+        d.addEventListener('trineo-rubro-form-ok', function(e){
+          Polymer.dom(that.root).removeChild(d);
+        });
+        d.open();
+      },
+
+      _rubroFormOK: function(e) {
+        var t = document.createElement("paper-toast")
+        if (e.detail.accion==1) {t.text="Rubro Modificado"}
+        else {t.text="Rubro Creado"}
+        Polymer.dom(this.root).appendChild(t);
+        this.$.app.$.rubros.$.rubgrid.refreshItems();
+        t.open();
+      },
+
+      _lanzarTrineoSubrubroForm: function(e) {
+        //HTML Ya fue importado cuando se cargo la lista de clientes
+        var d = document.createElement('trineo-subrubro-form');
+        if (e.detail.accion==0) {//nuevo
+          d.accion=0;
+        }
+        else {
+          d.set("subrubro", e.detail.subrubro);
+          d.accion=1;
+        }
+        Polymer.dom(this.root).appendChild(d);
+        var that = this
+        d.addEventListener('trineo-subrubro-form-ok', function(e){
+          Polymer.dom(that.root).removeChild(d);
+        });
+        d.open();
+      },
+
+      _subrubroFormOK: function(e) {
+        var t = document.createElement("paper-toast")
+        if (e.detail.accion==1) {t.text="Subrubro Modificado"}
+        else {t.text="Subrubro Creado"}
+        Polymer.dom(this.root).appendChild(t);
+        this.$.app.$.subrubros.$.subgrid.refreshItems();
+        t.open();
       }
       
     });

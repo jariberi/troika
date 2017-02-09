@@ -1,0 +1,71 @@
+
+<link rel="import" href="../custom-components/trineo-subrubro-form/trineo-subrubro-form.html">
+
+
+<dom-module id="trineo-subrubros">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <trineo-list id="subgrid"
+            columns="[[_subrubrosColumns]]"
+            headers="[[_subrubrosHeaders]]"
+            url="[[apiUrl]]/subrubros/"
+            sort-order="[[_subrubrosSortOrder]]"></trineo-list>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-subrubros',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                _subrubrosColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+
+                        var cantRenderer = function(cell) {
+                            cell.element.innerHTML = cell.data + ' Artículos'
+                        };
+
+                        var editRenderer = function(cell) {
+                            cell.element.innerHTML = '';
+                            var but = document.createElement("paper-icon-button");
+                            but.icon= "create";
+                            var subrubro = cell.row.data;
+                            but.addEventListener("tap", function(){
+                                that.fire("trineo-subrubro-form", {accion: 1, subrubro: subrubro})    
+                            });
+                            cell.element.appendChild(but);
+                        };
+
+                        return [
+                            {name: "rubro_nombre", sortable: true, width: 150}, //SUM: 1105px
+                            {name: "nombre", sortable: true},
+                            {name: "iva_display"},
+                            {name: "cantidad_articulos", renderer: cantRenderer, maxWidth: 270},
+                            {name: "edit", renderer: editRenderer, width: 115} //88px
+                        ]
+                    }
+                },
+                _subrubrosHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["RUBRO", "NOMBRE", "ALIC. IVA", "CANT. ARTICULOS", ""]
+                    }
+                },
+                _subrubrosSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 1, direction: "asc"}
+                        ]
+                    }
+                }
+            }
+        });
+    </script>
+</dom-module>

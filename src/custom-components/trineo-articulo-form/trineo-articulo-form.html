@@ -1,0 +1,181 @@
+
+<dom-module id="trineo-articulo-form">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment iron-flex-factors">
+            :host {
+                display: block;
+                width: 60vw;
+                max-width: 1105px;
+            }
+
+            form div {
+                width: 100%;
+            }
+
+            paper-textarea {
+                width: 100%;
+            }
+        </style>
+        
+        <iron-ajax
+            id="saveArticuloAjax"
+            handle-as="json"
+            on-response="handleResponse"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"></iron-ajax>
+
+        <iron-ajax
+            auto
+            url="[[apiUrl]]/lineas/"
+            handle-as="json"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"
+            last-response="{{_lineas}}"></iron-ajax>
+        
+        <iron-ajax
+            auto
+            url="[[apiUrl]]/subrubros/"
+            handle-as="json"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"
+            last-response="{{_subrubros}}"></iron-ajax>
+        
+        <paper-dialog id="d" modal>
+            <h2>[[titulo]]: [[articulo.denominacion]]</h2>
+            <form is="iron-form" id="form">
+                <div class="layout vertical">
+                    <div class="layout horizontal center form-row">
+                        <div class="form-field col-4">
+                            <paper-input required label="Código" value="{{articulo.codigo}}" error-message="Ingrese código"></paper-input>
+                        </div>
+                        <div class="form-field col-4">
+                            <paper-input label="Código Fábrica" value="{{articulo.codigo_fabrica}}"></paper-input>
+                        </div>
+                        <div class="form-field col-4">
+                            <paper-dropdown-menu required label="Unidad de medida" error-message="Seleccione unidad de medida">
+                                <paper-listbox attr-for-selected="value" selected="{{articulo.unidad_medida}}" class="dropdown-content">
+                                    <paper-item value="0">Unidades</paper-item>
+                                    <paper-item value="1">Kilogramos</paper-item>
+                                    <paper-item value="2">Horas</paper-item>
+                                    <paper-item value="3">Metros</paper-item>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                        </div>
+                    </div>
+                    <div class="layout horizontal center form-row">
+                        <div class="form-field col-6">
+                            <paper-input required label="Denominación" value="{{articulo.denominacion}}" error-message="Ingrese denominación"></paper-input>
+                        </div>
+                        <div class="form-field col-3">
+                            <paper-dropdown-menu required label="Línea" error-message="Seleccione línea">
+                                <paper-listbox attr-for-selected="value" selected="{{articulo.linea}}" class="dropdown-content">
+                                    <template is="dom-repeat" items={{_lineas.results}} as=item>
+                                        <paper-item value="[[item.url]]">[[item.nombre]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                        </div>
+                        <div class="form-field col-3">
+                            <paper-dropdown-menu required label="Subrubro" error-message="Seleccione subrubro">
+                                <paper-listbox attr-for-selected="value" selected="{{articulo.subrubro}}" class="dropdown-content">
+                                    <template is="dom-repeat" items={{_subrubros.results}} as=item>
+                                        <paper-item value="[[item.url]]">[[item.nombre]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                        </div>
+                    </div>
+                    <div class="layout horizontal">
+                        <paper-textarea label="Información adicional" value="{{articulo.informacion_adicional}}"></paper-textarea>
+                    </div>
+                    <div class="layout horizontal center form-row">
+                        <div class="form-field col-3">
+                            <paper-input required label="Costo de compra" value="{{articulo.costo_compra}}" error-message="Ingrese precio de compra"!></paper-input>
+                        </div>
+                        <div class="form-field long-3">
+                            <paper-input required label="Descuento Compra" value="{{articulo.descuento_compra}}" error-message="Ingrese descuento, 0 si no tiene descuento"></paper-input>
+                        </div>
+                        <div class="form-field long-3">
+                            <paper-input required label="Ganancia" value="{{articulo.ganancia_venta}}" error-message="Ingrese la ganancia deseada"></paper-input>
+                        </div>
+                        <div class="form-field long-3">
+                            <h3 style="margin-top: 25px;">Precio de venta: [[_precioVenta]]</h3>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="buttons">
+                <paper-button raised dialog-dismiss autofocus>Cancelar</paper-button>
+                <paper-button raised on-tap="_saveArticulo">Aceptar</paper-button>
+            </div>
+        </paper-dialog>
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-articulo-form',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                articulo: {
+                    type: Object,
+                    value: function(){ 
+                        return {costo_compra: "", descuento_compra:"", ganancia_venta:""}
+                    }},
+                accion: Number,//0: Nuevo, 1: Edición
+                titulo: {
+                    type: String,
+                    computed: "_tituloCompute(accion)",
+                    readonly: true
+                },
+                _lineaSelected: Object,
+                _subrubroSelected: Object,
+                _precioVenta: {
+                    type: Number,
+                    computed: "_precioVentaCompute(articulo.costo_compra, articulo.descuento_compra, articulo.ganancia_venta)"
+                }
+            },
+
+            //Computes
+            _tituloCompute: function(accion) {
+                if (accion==0) {return "Nuevo articulo"}
+                return "Modificar articulo"
+            },
+
+            _precioVentaCompute: function(cc, dc, gv) {
+                cc = Number(cc)
+                dc = Number(dc)
+                gv = Number(gv)
+                var cd = (cc - (cc * dc / 100))
+                return (cd * (1 + gv / 100)).toFixed(2);
+            },
+
+            open: function() {
+                this.$.d.open();
+            },
+
+            _saveArticulo: function() {
+                if(this.$.form.validate()){
+                    if (this.accion == 1) {
+                        this.$.saveArticuloAjax.url = this.articulo.url
+                        this.$.saveArticuloAjax.method = "PUT"
+                        this.$.saveArticuloAjax.body = JSON.stringify(this.articulo)
+                        this.$.saveArticuloAjax.generateRequest();
+                    }
+                    else {
+                        this.$.saveArticuloAjax.url = this.apiUrl+"/articulos/"
+                        this.$.saveArticuloAjax.method = "POST"
+                        this.$.saveArticuloAjax.body = JSON.stringify(this.articulo)
+                        this.$.saveArticuloAjax.generateRequest();
+                    }
+                }
+            },
+            handleResponse: function(e) {
+                if(e.detail.xhr.status==200 || e.detail.xhr.status==201) {
+                    this.fire("trineo-articulo-form-ok", {accion:this.accion});
+                }
+            }
+        });
+    </script>
+</dom-module>

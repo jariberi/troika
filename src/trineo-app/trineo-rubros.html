@@ -1,0 +1,71 @@
+
+<link rel="import" href="../custom-components/trineo-rubro-form/trineo-rubro-form.html">
+
+
+<dom-module id="trineo-rubros">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <trineo-list id="rubgrid"
+            columns="[[_rubrosColumns]]"
+            headers="[[_rubrosHeaders]]"
+            url="[[apiUrl]]/rubros/"
+            sort-order="[[_rubrosSortOrder]]"></trineo-list>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-rubros',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                _rubrosColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+
+                        var cantRenderer = function(cell) {
+                            cell.element.innerHTML = cell.data + ' Artículos'
+                        };
+
+                        var editRenderer = function(cell) {
+                            cell.element.innerHTML = '';
+                            var but = document.createElement("paper-icon-button");
+                            but.icon= "create";
+                            var rubro = cell.row.data;
+                            but.addEventListener("tap", function(){
+                                that.fire("trineo-rubro-form", {accion: 1, rubro: rubro})    
+                            });
+                            cell.element.appendChild(but);
+                        };
+
+                        return [
+                            {name: "cod", sortable: true, width: 150}, //SUM: 1105px
+                            {name: "nombre", sortable: true},
+                            {name: "iva_display"},
+                            {name: "cantidad_articulos", renderer: cantRenderer, maxWidth: 270},
+                            {name: "edit", renderer: editRenderer, width: 115} //88px
+                        ]
+                    }
+                },
+                _rubrosHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["CÓDIGO", "NOMBRE", "ALIC. IVA", "CANT. ARTICULOS", ""]
+                    }
+                },
+                _rubrosSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 1, direction: "asc"}
+                        ]
+                    }
+                }
+            }
+        });
+    </script>
+</dom-module>

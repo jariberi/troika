@@ -1,0 +1,69 @@
+
+<link rel="import" href="../custom-components/trineo-articulo-form/trineo-articulo-form.html">
+
+
+<dom-module id="trineo-articulos">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <trineo-list id="artgrid"
+            columns="[[_articulosColumns]]"
+            headers="[[_articulosHeaders]]"
+            url="[[apiUrl]]/articulos/"
+            sort-order="[[_articulosSortOrder]]"></trineo-list>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-articulos',
+
+            behaviors: [AjaxBehavior, UtilsBehavior],
+
+            properties: {
+                _articulosColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+
+                        var editRenderer = function(cell) {
+                            cell.element.innerHTML = '';
+                            var but = document.createElement("paper-icon-button");
+                            but.icon= "create";
+                            var articulo = cell.row.data;
+                            but.addEventListener("tap", function(){
+                                that.fire("trineo-articulo-form", {accion: 1, articulo: articulo})    
+                            });
+                            cell.element.appendChild(but);
+                        };
+
+                        return [
+                            {name: "codigo", sortable: true, width: 120}, //SUM: 1105px
+                            {name: "codigo_fabrica", sortable: true, width: 130},
+                            {name: "denominacion", sortable: true},
+                            {name: "linea_nombre", width: 140},
+                            {name: "subrubro_nombre", width: 140},
+                            {name: "ultima_actualizacion_precio", renderer: that.grid_date_format_renderer, width: 120},
+                            {name: "edit", renderer: editRenderer, width: 80} //88px
+                        ]
+                    }
+                },
+                _articulosHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["CÓDIGO", "CÓD. FABRICA", "DENOMINACIÓN", "LINEA", "RUBRO", "ULT. PRECIO", ""]
+                    }
+                },
+                _articulosSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 0, direction: "asc"}
+                        ]
+                    }
+                }
+            }
+        });
+    </script>
+</dom-module>

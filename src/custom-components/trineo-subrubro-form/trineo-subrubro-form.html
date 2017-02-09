@@ -1,0 +1,120 @@
+
+<dom-module id="trineo-subrubro-form">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment iron-flex-factors">
+            :host {
+                display: block;
+            }
+
+            #d {
+                width: 30vw;
+                max-width: 1105px;
+            }
+
+            form div {
+                width: 100%;
+            }
+
+            paper-textarea {
+                width: 100%;
+            }
+        </style>
+        
+        <iron-ajax
+            id="saveSubrubroAjax"
+            handle-as="json"
+            on-response="handleResponse"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"></iron-ajax>
+
+        <iron-ajax
+            auto
+            handle-as="json"
+            headers="[[getAuthorizationHeader()]]"
+            last-response="{{_rubros}}"
+            url="[[apiUrl]]/rubros/"></iron-ajax>
+        
+        <paper-dialog id="d" modal>
+            <h2>[[titulo]]: [[subrubro.nombre]]</h2>
+                <form is="iron-form" id="form">
+                    <div class="layout vertical">
+                        <paper-dropdown-menu required label="Rubro" value="value" error-message="Ingrese rubro al que pertenece">
+                            <paper-listbox attr-for-selected="value" selected="{{subrubro.rubro}}" class="dropdown-content">
+                                <template is="dom-repeat" items=[[_rubros.results]] as=item>
+                                    <paper-item value="[[item.url]]">[[item.nombre]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-input required label="Nombre de Subrubro" value="{{subrubro.nombre}}" error-message="Ingrese nombre al subrubro"></paper-input>
+                        <paper-dropdown-menu label="Alic. IVA" value="value" error-message="Ingrese alic IVA del subrubro">
+                            <paper-listbox attr-for-selected="value" selected="{{subrubro.iva}}" class="dropdown-content">
+                                <paper-item value="IVA00">Exento</paper-item>
+                                <paper-item value="IV105">10.5%</paper-item>
+                                <paper-item value="IVA21">21%</paper-item>
+                                <paper-item value="IVA27">27%</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                </form>
+            <div class="buttons">
+                <paper-button raised dialog-dismiss autofocus>Cancelar</paper-button>
+                <paper-button raised on-tap="_savesubrubro">Aceptar</paper-button>
+            </div>
+        </paper-dialog>
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-subrubro-form',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                subrubro: {
+                    type: Object,
+                    value: function(){ 
+                        return {}
+                    }},
+                accion: Number,//0: Nuevo, 1: Edición
+                titulo: {
+                    type: String,
+                    computed: "_tituloCompute(accion)",
+                    readonly: true
+                },
+                _rubros: Object
+            },
+
+            //Computes
+            _tituloCompute: function(accion) {
+                if (accion==0) {return "Nuevo subrubro"}
+                return "Modificar subrubro"
+            },
+
+            open: function() {
+                this.$.d.open();
+            },
+
+            _savesubrubro: function() {
+                if(this.$.form.validate()){
+                    if (this.accion == 1) {
+                        this.$.saveSubrubroAjax.url = this.subrubro.url
+                        this.$.saveSubrubroAjax.method = "PUT"
+                        this.$.saveSubrubroAjax.body = JSON.stringify(this.subrubro)
+                        this.$.saveSubrubroAjax.generateRequest();
+                    }
+                    else {
+                        this.$.saveSubrubroAjax.url = this.apiUrl+"/subrubros/"
+                        this.$.saveSubrubroAjax.method = "POST"
+                        this.$.saveSubrubroAjax.body = JSON.stringify(this.subrubro)
+                        this.$.saveSubrubroAjax.generateRequest();
+                    }
+                }
+            },
+            handleResponse: function(e) {
+                if(e.detail.xhr.status==200 || e.detail.xhr.status==201) {
+                    this.fire("trineo-subrubro-form-ok", {accion:this.accion});
+                }
+            }
+        });
+    </script>
+</dom-module>

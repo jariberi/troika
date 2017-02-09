@@ -1,11 +1,11 @@
 
 <dom-module id="trineo-list">
     <template>
-        <style include="iron-flex iron-flex-alignment">
+        <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
                 display: block;
-                height: calc(100vh - 200px);
-                max-height: calc(100vh - 200px);
+                height: calc(100vh - 250px);
+                max-height: calc(100vh - 250px);
             }
 
             vaadin-grid, paper-material {
@@ -25,6 +25,18 @@
 
             paper-card paper-input {
                 width: 100%;
+            }
+
+            vaadin-grid {
+                --vaadin-grid-row-cell: {
+                    padding: 0 14px;
+                }
+            }
+
+            vaadin-grid paper-icon-button {
+                --paper-icon-button: {
+                    color: var(--accent-color);
+                }
             }
             
         </style>
@@ -59,6 +71,10 @@
                 headers: Array,
                 url: String,
                 sortOrder: Array
+            },
+
+            refreshItems: function() {
+                this.$.comgrid.refreshItems();
             },
 
             ready: function() {

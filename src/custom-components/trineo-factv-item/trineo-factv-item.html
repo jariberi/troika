@@ -1,0 +1,51 @@
+
+<link rel="import" href="trineo-factv-item-almacenado.html">
+<link rel="import" href="trineo-factv-item-personalizado.html">
+<link rel="import" href="trineo-factv-item-compuesto.html">
+<link rel="import" href="trineo-factv-item-tipo.html">
+
+
+
+<dom-module id="trineo-factv-item">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+
+            span#total::before{
+                content: "$  ";
+                font-weight: bold; 
+            }
+        </style>
+        <div class="form-row layout horizontal center">
+            <div class="form-field col-1">
+                <trineo-factv-item-tipo tipo="{{tipo}}"></trineo-factv-item-tipo>
+            </div>
+            <div class="form-field col-10">
+                <iron-pages selected="[[tipo]]">
+                    <trineo-factv-item-almacenado></trineo-factv-item-almacenado>
+                    <trineo-factv-item-personalizado total="{{total}}" asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]"></trineo-factv-item-personalizado>
+                    <trineo-factv-item-compuesto></trineo-factv-item-compuesto>
+                </iron-pages>
+            </div>
+            <div class="form-field col-1">
+                <span id="total">[[total]]</span>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-factv-item',
+
+            properties: {
+                asignaIva: Boolean,
+                discriminaIva: Boolean,
+                tipo: {
+                    type: Number,
+                    value: 0
+                }
+            }
+        });
+    </script>
+</dom-module>

@@ -134,47 +134,59 @@
         <app-drawer-layout fullbleed>
           <app-drawer>
             <app-toolbar>[[userBackend.perfil_user.empresa.nombre_fantasia]]</app-toolbar>
-        <paper-menu class="drawer-list">
-          <paper-submenu>
-            <paper-item class="menu-trigger">
-              <div class="item">
-            <iron-icon icon="assignment"></iron-icon>
-            <span>Facturación</span>
-            </div>
+            <paper-menu class="drawer-list">
+              <paper-submenu>
+                <paper-item class="menu-trigger">
+                  <div class="item">
+                    <iron-icon icon="assignment"></iron-icon>
+                    <span>Facturación</span>
+                  </div>
+                </paper-item>
+                <paper-menu class="menu-content">
+                  <paper-item><a href="/factv/">Nuevo</a></paper-item>
+                  <paper-item disabled="[[!planMayor0()]]"><a disabled="[[!planMayor0()]]" href="/comprobante/">Consulta</a></paper-item>
+                </paper-menu>
+              </paper-submenu>
+              <paper-submenu disabled="[[!planMayor0()]]">
+                <paper-item class="menu-trigger">
+                  <div class="item">
+                    <iron-icon icon="social:people"></iron-icon>
+                    <span>Clientes</span>
+                  </div>
+                </paper-item>
+              <paper-menu class="menu-content">
+                <paper-item><a href="/clientes/">Gestión</a></paper-item>
+                <!--<paper-item>Condiciones de Venta</paper-item>
+                <paper-item>Cobranza</paper-item>-->
+              </paper-menu>
+            </paper-submenu>
+            <paper-submenu disabled="[[!planMayor0()]]">
+              <paper-item class="menu-trigger">
+                <div class="item">
+                  <iron-icon icon="device:widgets"></iron-icon>
+                  <span>Stock</span>
+                </div>
+              </paper-item>
+              <paper-menu class="menu-content">
+                <paper-item><a href="/articulos/">Artículos</a></paper-item>
+                <paper-item><a href="/lineas/">Líneas</a></paper-item>
+                <paper-item><a href="/rubros/">Rubros</a></paper-item>
+                <paper-item><a href="/subrubros/">Subrubros</a></paper-item>
+              </paper-menu>
+            </paper-submenu>
+            <paper-item>
+              <a class="item" href="/settings/" tabindex="-1">
+                <iron-icon icon="settings" item-icon></iron-icon>
+                <span>Configuración</span>
+              </a>
             </paper-item>
-
-        <paper-menu class="menu-content">
-          <paper-item><a href="/factv/">Nuevo</a></paper-item>
-          <paper-item disabled="[[!planMayor0()]]"><a disabled="[[!planMayor0()]]" href="/comprobante/">Consulta</a></paper-item>
-        </paper-menu>
-          </paper-submenu>
-          <paper-submenu disabled="[[!planMayor0()]]">
-            <paper-item class="menu-trigger">
-              <div class="item">
-            <iron-icon icon="social:people"></iron-icon>
-            <span>Clientes</span>
-            </div>
+            <paper-item>
+              <div class="item" on-tap="logout" tabindex="-1" >
+                <iron-icon icon="exit-to-app" item-icon></iron-icon>
+                <span>Salir</span>
+              </div>
             </paper-item>
-
-        <paper-menu class="menu-content">
-          <paper-item><a href="/clientes/">Gestión</a></paper-item>
-          <!--<paper-item>Condiciones de Venta</paper-item>
-          <paper-item>Cobranza</paper-item>-->
-        </paper-menu>
-          </paper-submenu>
-          <paper-item>
-            <a class="item" href="/settings/" tabindex="-1">
-              <iron-icon icon="settings" item-icon></iron-icon>
-              <span>Configuración</span>
-            </a>
-          </paper-item>
-          <paper-item>
-            <div class="item" on-tap="logout" tabindex="-1" >
-              <iron-icon icon="exit-to-app" item-icon></iron-icon>
-              <span>Salir</span>
-            </div>
-          </paper-item>
-        </paper-menu>
+          </paper-menu>
         </app-drawer>
 
         <app-header-layout has-scrolling-region>
@@ -220,7 +232,45 @@
                   
                   
                 </section>
+                <section name="articulos" class="layout horizontal center">
+                <paper-fab id="new-articulo" on-tap="_nuevoArticulo" icon="add"></paper-fab>
+                <paper-tooltip
+                    for="new.articulo"
+                    position="left"
+                    offset="8">
+                    Nuevo Articulo
+                </paper-tooltip>
+                </section>
 
+                <section name="lineas" class="layout horizontal center">
+                <paper-fab id="new-linea" on-tap="_nuevaLinea" icon="add"></paper-fab>
+                <paper-tooltip
+                    for="new-linea"
+                    position="left"
+                    offset="8">
+                    Nueva Línea
+                </paper-tooltip>
+                </section>
+                
+                <section name="rubros" class="layout horizontal center">
+                <paper-fab id="new-rubro" on-tap="_nuevoRubro" icon="add"></paper-fab>
+                <paper-tooltip
+                    for="new-rubro"
+                    position="left"
+                    offset="8">
+                    Nuevo Rubro
+                </paper-tooltip>
+                </section>
+
+                <section name="subrubros" class="layout horizontal center">
+                <paper-fab id="new-subrubro" on-tap="_nuevoSubrubro" icon="add"></paper-fab>
+                <paper-tooltip
+                    for="new-subrubro"
+                    position="left"
+                    offset="8">
+                    Nuevo Subrubro
+                </paper-tooltip>
+                </section>
 
               </iron-pages>
             </app-toolbar>
@@ -231,6 +281,10 @@
             <trineo-settings pro-settings="{{proSettings}}" name="settings" user-backend="{{userBackend}}"></trineo-settings>
             <trineo-comprobante route="{{subroute}}" name="comprobante" user-backend=[[userBackend]]></trineo-comprobante>
             <trineo-clientes id="clientes" name="clientes" user-backend=[[userBackend]]></trineo-clientes>
+            <trineo-articulos name="articulos" id="articulos"></trineo-articulos>
+            <trineo-lineas name="lineas" id="lineas"></trineo-lineas>
+            <trineo-rubros name="rubros" id="rubros"></trineo-rubros>
+            <trineo-subrubros name="subrubros" id="subrubros"></trineo-subrubros>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
         </app-header-layout>
@@ -282,10 +336,22 @@
                   this.displayTitle = "Configuración del sistema"
                   break;
                 case "comprobante":
-                  this.displayTitle = "Comprobante"
+                  this.displayTitle = "Comprobantes"
                   break;
                 case "clientes":
                   this.displayTitle = "Gestión de Clientes"
+                  break;
+                case "articulos":
+                  this.displayTitle = "Artículos Almacenados"
+                  break;
+                case "lineas":
+                  this.displayTitle = "Líneas de artículos"
+                  break;
+                case "rubros":
+                  this.displayTitle = "Rubros de artículos"
+                  break;
+                case "subrubros":
+                  this.displayTitle = "Subrubros de artículos"
                   break;
                 default:
                   this.displayTitle = "Página no encontrada"
@@ -333,7 +399,23 @@
 
             _nuevoClienteDesdePadron: function() {
               this.fire("trineo-buscarxrz", {origen:1});
-      }
+            },
+
+            _nuevoArticulo: function() {
+              this.fire("trineo-articulo-form", {accion:0})
+            },
+
+            _nuevaLinea: function() {
+              this.fire("trineo-linea-form", {accion:0})
+            },
+
+            _nuevoRubro: function() {
+              this.fire("trineo-rubro-form", {accion:0})
+            },
+
+            _nuevoSubrubro: function() {
+              this.fire("trineo-subrubro-form", {accion:0})
+            }
         });
     </script>
 </dom-module>
