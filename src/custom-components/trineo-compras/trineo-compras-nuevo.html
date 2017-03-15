@@ -1,0 +1,380 @@
+<!--<link rel="import" href="trineo-item-factv.html">-->
+<link rel="import" href="trineo-compras-item-head.html">
+<link rel="import" href="trineo-proveedor.html">
+<link rel="import" href="trineo-compras-item.html">
+<link rel="import" href="trineo-compras-periodo.html">
+
+<dom-module id="trineo-compras-nuevo">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      :host {
+        display: block;
+      }
+
+      paper-card {
+        width: 100%;
+      }
+
+      paper-spinner.miniwait {
+        margin-top: 30px;
+        width: 18px;
+        height: 18px;
+      }
+      
+      @media (max-width: 768px) {
+        paper-input,
+        vaadin-date-picker, paper-dropdown-menu,
+        appline-idfiscal-input, trineo-servicio-dates {
+          width: 100% !important;
+          margin-right: 0 !important;
+          max-width: 768px !important; 
+        }
+        
+      }
+      
+      @media (max-width: 1440px) {
+        paper-card#datos-comprobante paper-input,
+        vaadin-date-picker,
+        paper-dropdown-menu {
+          max-width: 350px;
+        }
+      }
+      
+      vaadin-date-picker {
+        padding-bottom: 8px;
+      }
+      
+      .datos-header { 
+        @apply(--paper-font-headline); 
+      }
+
+      .datos-location {
+        font-size: 15px;
+        vertical-align: middle;
+      }
+
+    </style>
+
+<iron-ajax id="submitCompraAjax" method="POST" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/compras/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
+
+
+<paper-card id="datos-compra">
+  <div class="card-content">
+    <div class="datos-header">Datos Compra</div>
+    <div class="layout horizontal wrap center form-row">
+      <div class="form-field col-2">
+          <trineo-compras-periodo id="periodo" periodo-selected="{{periodo}}"></trineo-compras-periodo>
+      </div>
+      <div class="form-field col-3">
+        <paper-dropdown-menu id="tipoCompra" value="value" required label="Tipo de Compra" error-message="Seleccione un tipo de compra">
+          <paper-listbox class="dropdown-content" selected="{{tipoCompra}}" attr-for-selected="value">
+            <paper-item value="FAA">Factura A</paper-item>
+            <paper-item value="FAB">Factura B</paper-item>
+            <paper-item value="FAC">Factura C</paper-item>
+            <paper-item value="NCA">Nota de Crédito A</paper-item>
+            <paper-item value="NCB">Nota de Crédito B</paper-item>
+            <paper-item value="NCC">Nota de Crédito C</paper-item>
+            <paper-item value="NDA">Nota de Débito A</paper-item>
+            <paper-item value="NDB">Nota de Débito B</paper-item>
+            <paper-item value="NDC">Nota de Débito C</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="form-field col-2">
+        <paper-input required id="puntoVenta" label="Punto de Venta" error-message="Seleccione un punto de venta" value="{{puntoVenta}}"></paper-input>
+      </div>
+      <div class="form-field col-2">
+        <paper-input required id="numero" label="Número" error-message="Ingrese número de comprobante" value="{{numero}}"></paper-input>
+      </div>
+      <div class="form-field col-3">
+        <vaadin-date-picker required id="fechaDatePicker" value={{fecha}} max="{{fechaMax}}" label="Fecha" error-message="Ingrese una fecha"></vaadin-date-picker>
+      </div>
+    </div>
+    <div class="layout horizontal wrap center justified">
+        <trineo-proveedor id="proveedor" proveedor={{proveedor}} razon-social="{{proveedor.razon_social}}"></trineo-proveedor>
+    </div>
+  </div>
+</paper-card>
+
+<paper-card heading="Detalles">
+  <div id="detalle" class="card-content">
+    <trineo-compras-item-head></trineo-compras-item-head>
+    <trineo-compras-item asigna-iva="[[_asignaIva]]"></trineo-compras-item>
+    <paper-icon-button id="botonAgregarItem" icon="add" on-tap="agregarItem"></paper-icon-button>
+    <paper-tooltip
+      for="botonAgregarItem"
+      position="right"
+      offset="14">
+      Agregar item al comprobante
+    </paper-tooltip>
+    
+
+  </div>
+</paper-card>
+
+<paper-card>
+  <div class="card-content">
+    <div class="layout horizontal form-row">
+      <div class="form-field col-3">
+        <h4>NETO<span style="margin-left: 30px;" class="pesos">[[neto]]</span></h4>
+      </div>
+      <div class="form-field col-3">
+        <h4>IVA 10,5%<span style="margin-left: 30px;" class="pesos">[[iva105]]</span></h4>
+      </div>
+      <div class="form-field col-3">
+        <h4>IVA 21%<span style="margin-left: 30px;" class="pesos">[[iva21]]</span></h4>
+      </div>
+      <div class="form-field col-3">
+        <h4>IVA 27%<span style="margin-left: 30px;" class="pesos">[[iva27]]</span></h4>
+      </div>
+    </div>
+    <div class="layout horizontal form-row">
+      <div class="form-field col-3">
+        <trineo-decimal-input id="exento" label="Exento" value="{{exento}}"></trineo-decimal-input>
+      </div>
+      <div class="form-field col-3">
+        <trineo-decimal-input id="interno" label="Imp. Interno" value="{{interno}}"></trineo-decimal-input>
+      </div>
+      <div class="form-field col-3">
+        <trineo-decimal-input id="ingBrutos" label="Ing. Brutos" value="{{ingBrutos}}"></trineo-decimal-input>
+      </div>
+      <div class="form-field col-3">
+        <trineo-decimal-input id="redondeo" label="Redondeo" value="{{redondeo}}"></trineo-decimal-input>
+      </div>
+    </div>
+    <div class="layout horizontal center form-row">
+      <div class="form-field col-3">
+        <trineo-decimal-input id="percepIva" label="Percepcion Iva" value="{{percepIva}}"></trineo-decimal-input>
+      </div>
+      <!--<div class="form-field col-3">
+        <paper-input id="ingBrutosCba" label="Ing. Brutos Cba" value="{{ingBrutosCba}}"></paper-input>
+      </div>-->
+      <div class="form-field col-9">
+        <h3 style="text-align: right;">TOTAL<span style="margin-left: 30px;" class="pesos">[[total]]</span></h3>
+      </div>
+    </div>
+  </div>
+</paper-card>
+
+</template>
+<script>
+    Polymer({
+      is: 'trineo-compras-nuevo',
+
+      behaviors: [UtilsBehavior, DatesBehavior, AjaxBehavior, SettingsBehavior, Polymer.IronValidatableBehavior],
+      //CALLBACK METHODS
+      ready: function () {
+        this.$.fechaDatePicker.i18n = this.get_i18n(); //From DatesBehavior
+
+      },
+
+      properties: {
+        _asignaIva: {
+          type: Boolean,
+          observer: "_asignaIvaChanged",
+          computed: "_asignaIvaCompute(userBackend.perfil_user.empresa.categoria_iva, proveedor.cond_iva)",
+          value: false
+        },
+        userBackend: Object,
+        tipoCompra: String,
+        fecha: String,
+        fechaMax: {
+          type: String,
+          value: function() {return moment().format("YYYY-MM-DD")}
+        },
+        proveedor: Object,
+        neto: String,
+        iva105: String,
+        iva21: String,
+        iva27: String,
+        total: String,
+        puntoVenta: String,
+        clienteAjaxFlight: Boolean,
+        netoTotal: Number,
+        periodo: String,
+        exento: Number,
+        interno: Number,
+        ingBrutos: Number,
+        redondeo: Number,
+        percepIva: Number,
+        //ingBrutosCba: Number
+      },
+
+      listeners: {
+        "item-changed": "handleItemChanged"
+      },
+
+      //Observer's
+
+      observers: [
+        "_onOtherChanged(exento, redondeo, interno, ingBrutos, percepIva)"
+      ],
+
+      _asignaIvaChanged: function(val) {
+        var items = Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
+        for(i=0;i<items.length;i++) {
+          items[i].asignaIva = val
+        }
+      },
+
+      _onOtherChanged: function() {
+        this.actualizarTotales()
+      },
+
+      //Compute's
+      _asignaIvaCompute: function(categoria, con_iva_cliente) {
+        if (categoria==0 && (con_iva_cliente !=2 && con_iva_cliente !=1)) {
+          return true
+        }
+        return false
+      },
+
+      agregarItem: function () {
+        var el = document.createElement('trineo-compras-item');
+        el.discriminaIva = this._discriminaIva
+        el.asignaIva = this._asignaIva
+        this.$.detalle.insertBefore(el, this.$.botonAgregarItem);
+      },
+
+      handleItemChanged: function (e) {
+        this.actualizarTotales();
+      },
+
+      actualizarTotales: function (recorreItems) {
+        var neto = 0
+        var iva105 = 0
+        var iva21 = 0
+        var iva27 = 0
+        var items = Polymer.dom(this.$.detalle).querySelectorAll('trineo-compras-item')
+        for (i = 0; i < items.length; i++) {
+          neto = neto + Number(items[i].neto())
+          switch (items[i].alicIva()) {
+            case "IV105":
+              iva105 = iva105 + Number(items[i].iva());
+              break;
+            case "IVA21":
+              iva21 = iva21 + Number(items[i].iva());
+              break;
+            case "IVA27":
+              iva27 = iva27 + Number(items[i].iva());
+              break;
+            default:
+              break;
+          }
+        }
+        this.neto = neto.toFixed(2)
+        this.iva105 = iva105.toFixed(2)
+        this.iva21 = iva21.toFixed(2)
+        this.iva27 = iva27.toFixed(2)
+        var exento = Number(this.exento)
+        var interno = Number(this.interno)
+        var interno = Number(this.interno)
+        var ingBrutos = Number(this.ingBrutos)
+        var redondeo = Number(this.redondeo)
+        var percepIva = Number(this.percepIva)
+        //var ingBrutosCba = Number(this.ingBrutosCba)
+        this.total = (neto + iva105 + iva21 + iva27 + exento + interno + ingBrutos + redondeo + percepIva).toFixed(2)
+      },
+      clear: function() {
+        this.$.ajaxas.auto=false; // Ajax del ultimo comprobante saco auto
+        this.tipoVenta = this.puntoVentaSelected = this.tipoComprobante = this.cliente = this.ultimoComprobante = null
+        var items=Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
+        for (i = 0; i < items.length; i++) {
+          Polymer.dom(items[i].parentNode).removeChild(items[i])  
+        }
+        this.agregarItem();
+        this.actualizarTotales();
+      },
+
+      _getValidity: function() {
+        var valid = true;
+        valid &= this.$.periodo.validate()
+        valid &= this.$.tipoCompra.validate()
+        valid &= this.$.puntoVenta.validate()
+        valid &= this.$.numero.validate()
+        valid &= this.$.fechaDatePicker.validate()
+        valid &= this.$.proveedor.validate()
+        var items = Polymer.dom(this.root).querySelectorAll('trineo-compras-item');
+        for (i=0;i<items.length;i++) {
+          valid &= items[i].validate()
+        }
+        return valid
+      },
+
+      submit: function() {
+        //Submit del formulario, no tradicional, simplemente valida y hace una post al API rest
+        if(this.validate()){
+            //Armar el objeto para hacer el post
+            var compra = {}
+            compra['tipo']=this.tipoCompra
+            compra['fecha']=this.fecha
+            compra['empresa'] = this.userBackend.perfil_user.empresa.id
+            compra['punto_venta'] = this.puntoVenta
+            compra['numero'] = this.numero
+            compra['periodo'] = this.periodo
+            compra['proveedor'] = this.proveedor
+            compra['items']=[]
+            var items = Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
+            for (i=0; i<items.length; i++) {
+              var obj = {cantidad:items[i].cantidad(), tipo: items[i].tipo, precio_unitario: items[i].precioUnitario(), iva: items[i].alicIva()}
+              switch (items[i].tipo) {
+                case 0: //almacenado
+                  obj['articulo'] = items[i].articulo().url
+                  break;
+                case 1: //personalizado
+                  obj['descripcion']= items[i].descripcion();
+                  break;
+                  }   
+              compra['items'].push(obj)
+            }
+            if (this.percepIva) {
+              compra['percepcion_iva'] = this.percepIva
+            }
+            if (this.exento) {
+              compra['exento'] = this.exento
+            }
+            if (this.redondeo) {
+              compra['redondeo'] = this.redondeo
+            }
+            if (this.ingBrutos) {
+              compra['ingresos_brutos'] = this.ingBrutos
+            }
+            if (this.interno) {
+              compra['impuesto_interno'] = this.interno
+            }
+            console.log(compra)
+            this.$.submitCompraAjax.body = compra
+            this.$.submitCompraAjax.generateRequest()
+          }
+      },
+
+      _onSubmitResponse: function(ev) {
+        var id = ev.detail.xhr.response.id
+        this.$.aprobarComprobanteAjax.body = {comprobante:id}
+        this.$.aprobarComprobanteAjax.generateRequest()
+      },
+
+      _onSubmitError: function(ev) {
+        this.fire("close-wait")
+        this.fire("error-general")
+      },
+
+      _onAprobarResponse: function(ev) {
+        this.fire("close-wait")
+        var resp = ev.detail.xhr.response
+        if (resp.aprobado) {
+          this.clear();
+          this.fire("comprobante-aprobado", {data:resp.data});
+        }
+        else {
+          this.fire("comprobante-no-aprobado", {data:resp.data})
+        }
+      },
+
+      _onAprobarError: function(ev) {
+        this.fire("close-wait")
+        this.fire("error-general")
+      }
+    });
+  </script>
+</dom-module>

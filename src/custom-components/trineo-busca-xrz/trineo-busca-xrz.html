@@ -4,19 +4,11 @@
 
 <dom-module id="trineo-busca-xrz">
     <template>
-        <style include="iron-flex iron-flex-alignment">
+        <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
                 display: block;
-            }
-            paper-dialog {
                 width: 65vw;
                 height: 80vh;
-            }
-
-            div.buttons {
-                position: absolute !important;
-                bottom: 0 !important;
-                right: 0 !important;   
             }
 
             vaadin-grid {
@@ -25,7 +17,7 @@
             }
         </style>
         
-        <paper-dialog id="dialog" modal>
+        <div class="trineo-dialogs" id="dialog">
             <h2>Búsqueda en Padrón de AFIP</h2>
             
             <div class="layout horizontal center">
@@ -45,19 +37,24 @@
                 </table>
             </vaadin-grid>
             <div class="buttons">
-                <paper-button raised dialog-dismiss autofocus>Cancelar</paper-button>
-                <paper-button raised dialog-dismiss on-tap="_clienteSelected" disabled="[[_nothingSelected]]">Aceptar</paper-button>
+                <paper-button raised autofocus on-tap="_close">Cancelar</paper-button>
+                <paper-button raised on-tap="_contribuyenteSelected" disabled="[[_nothingSelected]]">Aceptar</paper-button>
             </div>
-        </paper-dialog>
+        </div>
         
     </template>
     <script>
         Polymer({
             is: 'trineo-busca-xrz',
 
-            behaviors: [AjaxBehavior],
+            behaviors: [AjaxBehavior, Polymer.IronOverlayBehavior],
 
             ready: function() {
+                this.withBackdrop=true
+                this.noCancelOnEscKey = true
+                this.noCancelOnOutsideClick = true
+                this.alwaysOnTop = true
+
                 var that = this
                 this.$.table.rowDetailsGenerator = function(rowIndex) {
                     var element = document.createElement('trineo-busca-xrz-details');
@@ -87,8 +84,9 @@
                 _nothingSelected: {
                     type: Boolean,
                     value: true
-                    },
-                origen: Number, //0: Facturacion, 1: Clientes
+                },
+                parent: Object,
+                origen: Number, //0: Facturacion, 1: Clientes, 2: Proveedores
                 incluyeAFIP: {
                     type: Boolean,
                     value: false}
@@ -135,7 +133,7 @@
                 }
             },
 
-            _clienteSelected: function() {
+            _contribuyenteSelected: function() {
                 var sidx = this.$.table.selection.selected()
                 var that = this
                 this.$.table.getItem(sidx, function(error, item) {
@@ -155,12 +153,14 @@
                         }
 
                     }
-                    that.fire("trineo-busca-xrz-cliente-selected", {cliente:item, origen:that.origen})
+                    that.fire("trineo-busca-xrz-contribuyente-selected", {contribuyente:item, origen:that.origen})
+                    that._close()
                 });
             },
 
-            open: function() {
-                this.$.dialog.open();
+            _close: function() {
+                this.close()
+                Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
             }
         });
 

@@ -1,0 +1,95 @@
+<link rel="import" href="trineo-item-compuesto-almacenado.html">
+<link rel="import" href="trineo-item-compuesto-personalizado.html">
+
+<dom-module id="trineo-item-compuesto-item">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+        </style>
+        <div class="form-row layout horizontal center">
+            <div class="form-field col-1">
+                <paper-toggle-button checked="{{pers}}"></paper-toggle-button>
+            </div>
+            <div class="form-field col-10">
+                <iron-pages id="items" selected="[[_pers]]">
+                    <trineo-item-compuesto-almacenado id="itemal" discrimina-iva="[[discriminaIva]]" total="{{totalA}}"></trineo-item-compuesto-almacenado>
+                    <trineo-item-compuesto-personalizado id="itempe" total="{{totalP}}"></trineo-item-compuesto-personalizado>
+                </iron-pages>
+            </div>
+            <div class="form-field col-1">
+                <span class="pesos total">[[totalItem]]</span>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-item-compuesto-item',
+
+            behaviors: [Polymer.IronValidatableBehavior],
+
+            properties: {
+                discriminaIva: Boolean,
+                pers: Boolean,
+                _pers: {
+                    type: Number,
+                    computed: "__persCompute(pers)"
+                },
+                totalA: String,
+                totalP: String,
+                totalItem: {
+                    type: String,
+                    observer: "_onTotalItemChanged",
+                    computed: "_totalItemCompute(pers, totalA, totalP)"
+                }
+            },
+
+            _totalItemCompute: function(pers, totalA, totalP) {
+                if (pers) {
+                    return totalP
+                }
+                else {
+                    return totalA
+                }
+            },
+
+            _onTotalItemChanged: function(v) {
+                this.fire('trineo-item-compuesto-changed');
+            },
+
+            __persCompute: function(pers) {
+                if (pers) {
+                    return 1
+                }
+                return 0
+            },
+
+            _getValidity: function() {
+                var valid = true;
+                if (this.pers) {
+                    valid = valid && this.$.itempe.validate()
+                }
+                else {
+                    valid = valid && this.$.itemal.validate()
+                }
+                return valid
+            },
+            cantidad: function() {
+                return this.$.items.selectedItem.cantidad
+            },
+
+            descripcion: function() {
+                return this.$.items.selectedItem.descripcion
+            },
+
+            precioUnitario: function() {
+                return this.$.items.selectedItem.precioUnitario
+            },
+
+            articulo: function() {
+                return this.$.items.selectedItem._articulo
+            }
+        });
+    </script>
+</dom-module>

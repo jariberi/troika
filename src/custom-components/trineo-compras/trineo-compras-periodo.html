@@ -1,0 +1,51 @@
+
+<dom-module id="trineo-compras-periodo">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <paper-dropdown-menu id="per" value="value" required label="Periodo" error-message="Seleccione un periodo">
+          <paper-listbox class="dropdown-content" selected="{{periodoSelected}}" attr-for-selected="value">
+              
+              <template is="dom-repeat" items={{_response.results}} as=item>
+                  <paper-item value="[[item.url]]">[[pad_with_zeroes(item.mes,2)]]/[[item.ano]]</paper-item>
+              </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-compras-periodo',
+
+            behaviors: [AjaxBehavior, UtilsBehavior, Polymer.IronValidatableBehavior],
+
+            properties: {
+                periodoSelected: {
+                    type: String, //URL
+                    notify: true
+                },
+                _response: Object
+            },
+
+            ready: function() {
+                var url = this.apiUrl+'/periodos/?index=0&count=6&ordering=-ano,-mes'; //Los ultimos 6 periodos
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                var that = this
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    that._response = JSON.parse(xhr.responseText);
+                }
+                };
+                xhr.send();
+            },
+
+            _getValidity: function() {
+                return this.$.per.validate();
+            }
+        });
+    </script>
+</dom-module>

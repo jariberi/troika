@@ -7,6 +7,12 @@
             }
             return my_string;
         },
+
+        round: function (number, decimals) {
+            return Number(number).toFixed(decimals);
+            
+        },
+
         grid_date_format_renderer: function(cell) {
             var ar = cell.data.split("-")
             cell.element.innerHTML = ar[2]+"/"+ar[1]+"/"+ar[0]

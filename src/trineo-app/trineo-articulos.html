@@ -1,10 +1,10 @@
-
 <link rel="import" href="../custom-components/trineo-articulo-form/trineo-articulo-form.html">
+<link rel="import" href="../custom-components/trineo-articulo-form/trineo-articulo-stock.html">
 
 
 <dom-module id="trineo-articulos">
     <template>
-        <style>
+        <style include="shared-styles">
             :host {
                 display: block;
             }
@@ -28,31 +28,83 @@
                         var that = this
 
                         var editRenderer = function(cell) {
+                            cell.element.style.padding="0"
                             cell.element.innerHTML = '';
                             var but = document.createElement("paper-icon-button");
-                            but.icon= "create";
+                            but.icon = "create";
+                            but.style.padding="4px";
                             var articulo = cell.row.data;
                             but.addEventListener("tap", function(){
-                                that.fire("trineo-articulo-form", {accion: 1, articulo: articulo})    
+                                that.fire("trineo-articulo-form", {accion: 1, articulo: articulo})
                             });
                             cell.element.appendChild(but);
+                        };
+
+                        var increaseRenderer = function(cell) {
+                            cell.element.style.padding="0"
+                            cell.element.innerHTML = '';
+                            var but = document.createElement("paper-icon-button");
+                            but.icon= "arrow-upward";
+                            but.style.padding="4px";
+                            var articulo = cell.row.data;
+                            but.addEventListener("tap", function(){
+                                var moddia= document.createElement("trineo-articulo-stock");
+                                moddia.accion=0
+                                moddia.articulo = articulo
+                                Polymer.dom(document.querySelector("trineo-core").root).appendChild(moddia)
+                                moddia.open();
+                                moddia.addEventListener("trineo-dialog-close", function(e) {
+                                    that.$.artgrid.refreshItems();
+                                    Polymer.dom(moddia).parentNode.removeChild(moddia);
+                                });
+                            });
+                            cell.element.appendChild(but);
+                            var too = document.createElement("paper-tooltip");
+                            too.innerHtml="Agregar a stock"
+                            cell.element.appendChild(too);
+                        };
+
+                        var decreaseRenderer = function(cell) {
+                            cell.element.style.padding="0"
+                            cell.element.innerHTML = '';
+                            var but = document.createElement("paper-icon-button");
+                            but.icon= "arrow-downward";
+                            but.style.padding="4px";
+                            var articulo = cell.row.data;
+                            but.addEventListener("tap", function(){
+                                var moddia= document.createElement("trineo-articulo-stock");
+                                moddia.accion=1
+                                moddia.articulo = articulo
+                                Polymer.dom(document.querySelector("trineo-core").root).appendChild(moddia)
+                                moddia.open();
+                                moddia.addEventListener("trineo-dialog-close", function(e) {
+                                    that.$.artgrid.refreshItems()
+                                    Polymer.dom(moddia).parentNode.removeChild(moddia);
+                                });
+                            });
+                            cell.element.appendChild(but);
+                            var too = document.createElement("paper-tooltip");
+                            too.innerHtml="Sacar de stock"
+                            cell.element.appendChild(too);
                         };
 
                         return [
                             {name: "codigo", sortable: true, width: 120}, //SUM: 1105px
                             {name: "codigo_fabrica", sortable: true, width: 130},
                             {name: "denominacion", sortable: true},
-                            {name: "linea_nombre", width: 140},
                             {name: "subrubro_nombre", width: 140},
                             {name: "ultima_actualizacion_precio", renderer: that.grid_date_format_renderer, width: 120},
-                            {name: "edit", renderer: editRenderer, width: 80} //88px
+                            {name: "stock", width: 140},
+                            {name: "edit", renderer: editRenderer, width: 40},
+                            {name: "increase", renderer: increaseRenderer, width: 40},
+                            {name: "decrease", renderer: decreaseRenderer, width: 40}
                         ]
                     }
                 },
                 _articulosHeaders: {
                     type: Array,
                     value: function() {
-                        return ["CÓDIGO", "CÓD. FABRICA", "DENOMINACIÓN", "LINEA", "RUBRO", "ULT. PRECIO", ""]
+                        return ["CÓDIGO", "CÓD. FABRICA", "DENOMINACIÓN", "RUBRO", "ULT. PRECIO", "EN STOCK", "", "", ""]
                     }
                 },
                 _articulosSortOrder: {

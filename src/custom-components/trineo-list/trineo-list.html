@@ -27,6 +27,11 @@
                 width: 100%;
             }
 
+            paper-card paper-icon-button {
+                padding: 4px;
+                margin-left: 40px;
+            }
+
             vaadin-grid {
                 --vaadin-grid-row-cell: {
                     padding: 0 14px;
@@ -35,7 +40,7 @@
 
             vaadin-grid paper-icon-button {
                 --paper-icon-button: {
-                    color: var(--accent-color);
+                    color: red;
                 }
             }
             
@@ -45,12 +50,19 @@
                 <div class="layout horizontal center">
                     <span>Búsqueda</span>
                     <paper-input no-label-float value="{{search}}"></paper-input>
+                    <paper-icon-button id="refresh" on-tap="refreshItems" icon="refresh"></paper-icon-button>
+                    <paper-tooltip
+                      for="refresh"
+                      position="bottom"
+                      offset="14">
+                      Actualizar
+                    </paper-tooltip>
                 </div>
             </div>
         </paper-card>
         
         <paper-material elevation="1">    
-            <vaadin-grid selection-mode="disabled" id="comgrid">
+            <vaadin-grid id="comgrid">
                 <table>
                 </table>
             </vaadin-grid>

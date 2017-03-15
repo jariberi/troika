@@ -1,0 +1,120 @@
+
+<dom-module id="trineo-factv-detalle-compuesto">
+    <template>
+        <style include="iron-flex iron-flex-alignment shared-styles">
+            :host {
+                display: block;
+            }
+        </style>
+        <div class="trineo-dialogs">
+            <h2>Composición de articulo</h2>
+            <!--Cabecera-->
+            <div class="layout horizontal form-row">
+                <div class="form-field col-1">
+                    <h5 class="pers">Pers.</h5>
+                </div>
+                <div class="form-field col-1">
+                    <h5 class="cant">Cant.</h5>
+                </div>
+                <div class="form-field col-4">
+                    <h5 class="descripcion">Descripcion</h5>
+                </div>
+                <div class="form-field col-2">
+                    <h5 class="precio">Precio Unitario</h5>
+                </div>
+                <div class="form-field col-2">
+                    <h5 class="alic-iva">Alic. Iva</h5>
+                </div>
+                <div class="form-field col-2">
+                    <h5 class="total">Total (iva inc)</h5>
+                </div>
+            </div>
+            <div id="detalleCompuesto">                
+                <trineo-item-compuesto-item discrimina-iva="[[discriminaIva]]"></trineo-item-compuesto-item>
+                <paper-icon-button id="agregarItemButton" icon="add" on-tap="_agregarItemCompuesto"></paper-icon-button>
+                <h3 style="width: 100%; text-align: right;">Total  $ [[totalArticuloCompuesto]]</h3>
+            </div>
+            <div class="buttons">
+                <paper-button on-tap="_close">Cancelar</paper-button>
+                <paper-button on-tap="_confirm">Aceptar</paper-button>
+            </div>
+        </div>
+        
+
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-factv-detalle-compuesto',
+
+            properties: {
+                asignaIva: Boolean,
+                discriminaIva: Boolean,
+                _totalArticuloCompuesto: {
+                    type: Number,
+                    value: 0
+                },
+                totalArticuloCompuesto: {
+                    type: String,
+                    computed: "totalArticuloCompuestoCompute(_totalArticuloCompuesto)"
+                },
+                node: Object
+            },
+
+            behaviors: [Polymer.IronOverlayBehavior, Polymer.IronValidatableBehavior],
+
+            listeners: {
+                "trineo-item-compuesto-changed": "actualizarTotalItemCompuesto"
+            },
+
+            ready: function() {
+                this.withBackdrop=true
+                this.noCancelOnEscKey = true
+                this.noCancelOnOutsideClick = true
+                this.alwaysOnTop = true
+            },
+
+            totalArticuloCompuestoCompute: function(n) {
+                return n.toFixed(2)
+            },
+
+            actualizarTotalItemCompuesto: function(e) {
+                var total = 0
+                var comps = Polymer.dom(this.$.detalleCompuesto).querySelectorAll("trineo-item-compuesto-item");
+                for (i = 0; i < comps.length; i++) {
+                    total = total + Number(comps[i].totalItem)
+                }
+                this._totalArticuloCompuesto = total;
+                
+            },
+
+            _agregarItemCompuesto: function() {
+                var el = document.createElement("trineo-item-compuesto-item");
+                el.asignaIva = this.asignaIva
+                el.discriminaIva = this.discriminaIva
+                this.$.detalleCompuesto.insertBefore(el, this.$.agregarItemButton);
+                this.center();
+            },
+            _close: function() {
+                this.close();
+                Polymer.dom(this.node).appendChild(this)
+            },
+
+            _getValidity: function() {
+                var valid = true
+                var comps = Polymer.dom(this.$.detalleCompuesto).querySelectorAll("trineo-item-compuesto-item");
+                for (i=0;i<comps.length;i++) {
+                    valid = valid & comps[i].validate()
+                }
+                return valid
+            },
+
+            _confirm: function() {
+                if (this.validate()) {
+                    this.node._precioUnitario = this._totalArticuloCompuesto
+                    this.node.precioUnitario = this.totalArticuloCompuesto
+                    this._close()
+                }
+            }
+        });
+    </script>
+</dom-module>

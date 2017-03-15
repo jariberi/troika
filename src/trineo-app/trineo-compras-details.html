@@ -1,0 +1,56 @@
+<dom-module id="trineo-compras-details">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                color: var(--accent-color);
+                padding: 14px 20px;
+                width: 40vw;
+            }
+        </style>
+        
+        <div id="wrapper">
+            <h3 style="height: 20px; margin: 0 0 8px 0;">DETALLE</h3>
+            <div class="layout horizontal" style="height: 26px; padding:3px 0;">
+                <div class="form-field col-1">Num.</div>
+                <div class="form-field col-2">Cantidad</div>
+                <div class="form-field col-9">Descripción</div>
+            </div>
+        <template is="dom-repeat" items={{compra.items}} 
+            as=item index-as=index>
+            <div class="layout horizontal" style="height: 20px; padding:3px 0;">
+                <div class="col-1">[[_numItem(index)]]</div>
+                <div class="col-2">[[item.cantidad]]</div>
+                <div class="col-9">[[item.descripcion]][[item.articulo_detail.denominacion]]</div>
+            </div>
+        </template>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-compras-details',
+
+            behaviors: [UtilsBehavior],
+
+            properties: {
+                compra: Object
+            },
+            
+            observers: ["_onItemsChanged(compra.items)"],
+
+            _numItem: function (num) {
+                return Number(num)+1
+            },
+
+            _onItemsChanged: function(a) {
+                var len = 32 + 28 //Alto header + Padding de Host
+                len += a.length*26
+                for (i=0;i<a.length;i++) {
+                    if (a[i].tipo==2) {
+                        len += a[i].compuestos.length*20
+                    }
+                }
+                this.$.wrapper.style.height = String(len)+'px'
+            }
+        });
+    </script>
+</dom-module>

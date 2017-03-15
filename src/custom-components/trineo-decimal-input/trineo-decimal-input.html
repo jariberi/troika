@@ -1,0 +1,79 @@
+<!-- Componente para el ingreso de un numero decimal con una cantidad fija de decimales
+    -->
+<dom-module id="trineo-decimal-input">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <paper-input id="input" 
+                     readonly="[[readonly]]" no-label-float="[[noLabelFloat]]" hidden$="[[hidden]]" 
+                     allowed-pattern="[0-9\.]" required="[[required]]" label="[[label]]" 
+                     value="{{value}}" error-message="[[errorMessage]]" invalid="{{invalid}}"></paper-input>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-decimal-input',
+
+            properties: {
+                /**
+                * Si el ingreso es requerido
+                */
+                required: {
+                    type: Boolean,
+                    value: false
+                },
+                /**
+                * Etiqueta del input
+                */
+                label: String,
+                /**
+                * Valor ingresado
+                */
+                value: {
+                    type: String,
+                    value: "",
+                    observer: "_onValueChanged",
+                    notify: true,
+                },
+                /**
+                * Mensaje de error
+                */
+                errorMessage: {
+                    type: String,
+                    value: "Valor inválido"
+                },
+                /**
+                * Limite de decimal
+                */
+                decimalPlaces: {
+                    type: String,
+                    value: "2",
+                    reflectToAttribute: true
+                },
+                hidden: Boolean,
+                noLabelFloat: {
+                    type: Boolean,
+                    value: false
+                },
+                readonly: Boolean,
+                invalid: Boolean
+            },
+
+            behaviors: [Polymer.IronValidatableBehavior],
+
+            _onValueChanged: function(newval, oldval) {
+                var ex = "(?:^\\d{1,10}\\.\\d{0,"+this.decimalPlaces+"}$)|(^\\d+\\.?$)";
+                var regex = new RegExp(ex);
+                if (newval != "" && !regex.test(newval)) {
+                    this.value = oldval
+                }
+            },
+
+            _getValidity: function() {
+                return this.$.input.validate();
+            }
+        });
+    </script>
+</dom-module>

@@ -1,0 +1,180 @@
+
+<dom-module id="trineo-proveedor-form">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment iron-flex-factors">
+            :host {
+                display: block;
+            }
+
+            paper-textarea {
+                width: 100%;
+            }
+        </style>
+        
+        <iron-ajax
+            id="saveProveedorAjax"
+            handle-as="json"
+            on-response="handleResponse"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"></iron-ajax>
+        
+        <div class="trineo-dialogs">
+            <h2>[[titulo]]: [[proveedor.razon_social]]</h2>
+                    <div class="layout vertical">
+                        <div class="layout horizontal center justified form-row">
+                            <div class="form-field long-2">
+                                <h3>Número proveedor: [[proveedor.id]]</h3>
+                            </div>
+                            <div class="form-field long-6">
+                                <paper-input required label="Razón Social" value="{{proveedor.razon_social}}" id="razonSocial" error-message="Ingrese razón social"></paper-input>
+                            </div>
+                        </div>
+                        <div>
+                            <trineo-combinacion-fiscal id="combiFiscal" required
+                                tipo-identificacion="{{proveedor.tipo_identificacion}}"
+                                numero-identificacion="{{proveedor.numero_identificacion}}"
+                                cond-fiscal="{{proveedor.cond_iva}}"
+                             ></trineo-combinacion-fiscal>
+                        </div>
+                        <div class="layout horizontal center justified form-row">
+                            <div class="form-field long-3">
+                                <paper-input id="direccion" label="Dirección" value="{{proveedor.direccion}}"></paper-input>
+                            </div>
+                            <div class="form-field long-2">
+                                <paper-input id="ciudad" label="Ciudad" value="{{proveedor.localidad}}"></paper-input>
+                            </div>
+                            <div class="form-field long-1">
+                                <paper-input id="codigoPostal" label="Código Postal" value="{{proveedor.codigo_postal}}"></paper-input>
+                            </div>
+                            <div class="form-field long-2">
+                                <paper-dropdown-menu id="provincia" label="Provincia">
+                                    <paper-listbox attr-for-selected="value" selected="{{proveedor.provincia}}" class="dropdown-content">
+                                        <paper-item value="0">Ciudad autonoma de Buenos Aires</paper-item>
+                                        <paper-item value="1">Buenos Aires</paper-item>
+                                        <paper-item value="2">Catamarca</paper-item>
+                                        <paper-item value="3">Córdoba</paper-item>
+                                        <paper-item value="4">Corrientes</paper-item>
+                                        <paper-item value="5">Entre Ríos</paper-item>
+                                        <paper-item value="6">Jujuy</paper-item>
+                                        <paper-item value="7">Mendoza</paper-item>
+                                        <paper-item value="8">La Rioja</paper-item>
+                                        <paper-item value="9">Salta</paper-item>
+                                        <paper-item value="10">San Juan</paper-item>
+                                        <paper-item value="11">San Luis</paper-item>
+                                        <paper-item value="12">Santa Fe</paper-item>
+                                        <paper-item value="13">Santiago del Estero</paper-item>
+                                        <paper-item value="14">Tucuman</paper-item>
+                                        <paper-item value="15">Chaco</paper-item>
+                                        <paper-item value="16">Chubut</paper-item>
+                                        <paper-item value="17">Formosa</paper-item>
+                                        <paper-item value="18">Misiones</paper-item>
+                                        <paper-item value="19">Neuquén</paper-item>
+                                        <paper-item value="20">La Pampa</paper-item>
+                                        <paper-item value="21">Río Negro</paper-item>
+                                        <paper-item value="22">Santa Cruz</paper-item>
+                                        <paper-item value="23">Tierra del Fuego</paper-item>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
+                        </div>
+                        <div class="layout horizontal center justified form-row">
+                            <div class="form-field long-2">
+                                <paper-input id="telefono" label="Teléfono" value="{{proveedor.telefono}}"></paper-input>
+                            </div>
+                            <div class="form-field long-2">
+                                <paper-input id="fax" label="Fax" value="{{proveedor.fax}}"></paper-input>
+                            </div>
+                            <div class="form-field long-4">
+                                <paper-input id="email" label="Email" value="{{proveedor.email}}"></paper-input>
+                            </div>
+                        </div>
+                        <div class="layout horizontal">
+                            <paper-textarea id="notas" label="Notas" value="{{proveedor.notas}}"></paper-textarea>
+                        </div>
+                    </div>
+            <div class="buttons">
+                <paper-button raised autofocus on-tap="_close">Cancelar</paper-button>
+                <paper-button raised on-tap="_saveProveedor">Aceptar</paper-button>
+            </div>
+        </div>
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-proveedor-form',
+
+            behaviors: [AjaxBehavior, Polymer.IronOverlayBehavior, Polymer.IronValidatableBehavior],
+
+            properties: {
+                proveedor: {
+                    type: Object,
+                    value: function(){ 
+                        return {razon_social: "", tipo_identificacion: "", numero_identificacion: "", cuit: "", cond_iva: ""}
+                    }},
+                accion: Number,//0: Nuevo, 1: Edición
+                parent: Object,
+                titulo: {
+                    type: String,
+                    computed: "_tituloCompute(proveedor)",
+                    readonly: true
+                }
+            },
+
+            ready: function() {
+                this.withBackdrop=true
+                this.noCancelOnEscKey = true
+                this.noCancelOnOutsideClick = true
+                this.alwaysOnTop = true
+            },
+
+            //Computes
+            _tituloCompute: function(accion) {
+                if (accion == 1) {return "Modificar proveedor"}
+                return "Nuevo proveedor"
+            },
+
+            _getValidity: function() {
+                var valid = true
+                valid = valid & this.$.razonSocial.validate();
+                valid = valid & this.$.combiFiscal.validate();
+                valid = valid & this.$.direccion.validate();
+                valid = valid & this.$.ciudad.validate();
+                valid = valid & this.$.codigoPostal.validate();
+                valid = valid & this.$.provincia.validate();
+                valid = valid & this.$.telefono.validate();
+                valid = valid & this.$.fax.validate();
+                valid = valid & this.$.email.validate();
+                valid = valid & this.$.notas.validate();
+                return valid
+            },
+
+            _saveProveedor: function() {
+                if(this.validate()){
+                    if (this.accion == 1) {
+                        this.$.saveProveedorAjax.url = this.proveedor.url
+                        this.$.saveProveedorAjax.method = "PUT"
+                        this.$.saveProveedorAjax.body = JSON.stringify(this.proveedor)
+                        this.$.saveProveedorAjax.generateRequest();
+                    }
+                    else {
+                        this.$.saveProveedorAjax.url = this.apiUrl+"/proveedores/"
+                        this.$.saveProveedorAjax.method = "POST"
+                        this.$.saveProveedorAjax.body = JSON.stringify(this.proveedor)
+                        this.$.saveProveedorAjax.generateRequest();
+                    }
+                }
+            },
+            handleResponse: function(e) {
+                if(e.detail.xhr.status==200 || e.detail.xhr.status==201) {
+                    //this.parent.$.proveedoresList.refreshItems();
+                    this.fire("trineo-proveedor-form-ok", {accion:this.accion});
+                    this._close()
+                }
+            },
+            _close: function() {
+                this.close()
+                Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
+            }
+        });
+    </script>
+</dom-module>

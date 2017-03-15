@@ -1,12 +1,10 @@
 
-<link rel="import" href="trineo-factv-item-almacenado.html">
-<link rel="import" href="trineo-factv-item-personalizado.html">
-<link rel="import" href="trineo-factv-item-compuesto.html">
-<link rel="import" href="trineo-factv-item-tipo.html">
+<link rel="import" href="trineo-compras-item-almacenado.html">
+<link rel="import" href="trineo-compras-item-personalizado.html">
+<link rel="import" href="trineo-compras-item-tipo.html">
 
 
-
-<dom-module id="trineo-factv-item">
+<dom-module id="trineo-compras-item">
     <template>
         <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
@@ -21,13 +19,12 @@
         </style>
         <div class="form-row layout horizontal center">
             <div class="form-field col-1">
-                <trineo-factv-item-tipo tipo="{{tipo}}"></trineo-factv-item-tipo>
+                <trineo-compras-item-tipo tipo="{{tipo}}"></trineo-compras-item-tipo>
             </div>
             <div class="col-9">
                 <iron-pages id="items" selected="[[tipo]]">
-                    <trineo-factv-item-almacenado asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-almacenado>
-                    <trineo-factv-item-personalizado asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-personalizado>
-                    <trineo-factv-item-compuesto asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-compuesto>
+                    <trineo-compras-item-almacenado asigna-iva="[[asignaIva]]" total="{{total}}"></trineo-compras-item-almacenado>
+                    <trineo-compras-item-personalizado asigna-iva="[[asignaIva]]" total="{{total}}"></trineo-compras-item-personalizado>
                 </iron-pages>
             </div>
             <div style="text-align: right" class="form-field col-2">
@@ -37,15 +34,12 @@
     </template>
     <script>
         Polymer({
-            is: 'trineo-factv-item',
+            is: 'trineo-compras-item',
 
             behaviors: [Polymer.IronValidatableBehavior],
 
             properties: {
                 asignaIva: {
-                    type: Boolean
-                },
-                discriminaIva: {
                     type: Boolean
                 },
                 tipo: {
@@ -125,8 +119,8 @@
                 return this.$.items.selectedItem.descripcion
             },
 
-            _precioUnitario: function() {
-                return this.$.items.selectedItem._precioUnitario
+            precioUnitario: function() {
+                return this.$.items.selectedItem.precioUnitario
             },
 
             _getValidity: function() {

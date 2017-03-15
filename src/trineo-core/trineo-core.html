@@ -19,15 +19,18 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-autocomplete/paper-autocomplete.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="../../bower_components/iron-form-element-behavior/iron-form-element-behavior.html">
 <link rel="import" href="../../bower_components/iron-dropdown/iron-dropdown.html">
+<link rel="import" href="../../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
 
 
 <link rel="import" href="../behaviors/ajax-behavior.html">
@@ -47,10 +50,11 @@
 <link rel="import" href="../custom-components/trineo-busca-xrz/trineo-busca-xrz.html">
 <link rel="import" href="../custom-components/trineo-combinacion-fiscal/trineo-combinacion-fiscal.html">
 <link rel="import" href="../custom-components/trineo-list/trineo-list.html">
+<link rel="import" href="../custom-components/trineo-decimal-input/trineo-decimal-input.html">
 
 <dom-module id="trineo-core">
   <template>
-    <style include="shared-styles">
+    <style include="shared-styles iron-flex iron-flex-alignment">
       
       :host {
         display: block;
@@ -143,9 +147,10 @@
         "comprobante-no-aprobado": "_mostrarError",
         "error-general": "_mostrarErrorGeneral",
         "trineo-buscarxrz": "_lanzarDialogBuscarXRZ",
-        "trineo-busca-xrz-cliente-selected": "_onClientePadronSelected",
+        "trineo-busca-xrz-contribuyente-selected": "_onContribuyentePadronSelected",
         "trineo-cliente-form": "_lanzarTrineoClienteForm", //Es Dialog, todos los dialog se lanzan de aca
         "trineo-cliente-form-ok": "_clienteChangedOK",
+        "trineo-proveedor-form-ok": "_proveedorChangedOK",
         "trineo-factv-cliente-no-encontrado": "_onFactvClienteNoEncontrado",
         "trineo-factv-cuit-no-encontrado": "_onFactvCuitNoEncontrado",
         "trineo-settings-info-delegacion": "_openInfoDelegacion",
@@ -156,7 +161,7 @@
         "trineo-rubro-form": "_lanzarTrineoRubroForm", //Es Dialog, todos los dialog se lanzan de aca
         "trineo-rubro-form-ok": "_rubroFormOK",
         "trineo-subrubro-form": "_lanzarTrineoSubrubroForm", //Es Dialog, todos los dialog se lanzan de aca
-        "trineo-subrubro-form-ok": "_subrubroFormOK",
+        "trineo-subrubro-form-ok": "_subrubroFormOK"
       },
 
       _userLoggedInChanged: function(val) {
@@ -218,19 +223,27 @@
         d.open();
       },
 
-      _onClientePadronSelected: function(e) {
+      _onContribuyentePadronSelected: function(e) {
         if (e.detail.origen==0) {
-          this.$.app.$.factv.$.form.set("cliente", e.detail.cliente)
+          this.$.app.$.factv.$.form.set("cliente", e.detail.contribuyente)
         }
-        else {
+        else if (e.detail.origen == 1) {
           var d = document.createElement('trineo-cliente-form');
           d.accion = 0
-          d.set("cliente", e.detail.cliente)
+          d.set("cliente", e.detail.contribuyente)
           Polymer.dom(this.root).appendChild(d);
           var that = this
           d.addEventListener('trineo-cliente-form-ok', function(e){
             Polymer.dom(that.root).removeChild(d);
           });
+          d.open();
+        }
+        else if (e.detail.origen == 2) {
+          var d = document.createElement('trineo-proveedor-form');
+          d.accion = 0
+          d.set("proveedor", e.detail.contribuyente)
+          Polymer.dom(this.root).appendChild(d);
+          var that = this
           d.open();
         }
         
@@ -387,7 +400,16 @@
         Polymer.dom(this.root).appendChild(t);
         this.$.app.$.subrubros.$.subgrid.refreshItems();
         t.open();
-      }
+      },
+
+      _proveedorChangedOK: function(e) {
+        var t = document.createElement("paper-toast")
+        if (e.detail.accion==1) {t.text="Proveedor Modificado"}
+        else {t.text="Proveedor Agregado"}
+        Polymer.dom(this.root).appendChild(t);
+        this.$.app.$.proveedores.$.proveedoresList.refreshItems();
+        t.open();
+      },
       
     });
   </script>

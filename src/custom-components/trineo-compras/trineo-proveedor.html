@@ -1,0 +1,165 @@
+
+<dom-module id="trineo-proveedor">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            [hidden] {
+                display: none;
+            }
+            :host {
+                display: block;
+                width: 100%;
+            }
+
+            .manual {
+                border: solid 3px red;
+            }
+        </style>
+
+        <iron-ajax id="proFCuitAjax" loading="{{proveedorAjaxFlight}}" headers="[[getAuthorizationHeader()]]" handle-as="json" on-response="_handleProFCuitAjaxResponse" on-error="_handleProFCuitAjaxError"></iron-ajax>
+        <iron-ajax id="getProveedor" headers="[[getAuthorizationHeader()]]" handle-as="json" last-response="{{proveedor}}"></iron-ajax>
+
+        <div id="all" class="layout vertical center">
+            <div class="layout horizontal form-row">
+                <trineo-combinacion-fiscal id="combifi" required spinner-activo="[[proveedorAjaxFlight]]"
+                tipo-identificacion="{{proveedor.tipo_identificacion}}"
+                numero-identificacion="{{proveedor.numero_identificacion}}"
+                cond-fiscal="{{proveedor.cond_iva}}"
+                ></trineo-combinacion-fiscal>
+            </div>
+            <div class="layout horizontal form-row">
+                <div class="form-field col-6">
+                    <div>
+                        <div class="layout horizontal">
+                            <paper-autocomplete disable-show-clear style="width: calc(100% - 40px);" hidden="[[!planMayor0()]]" required text-property="razon_social" value-property="id" name="proveedor" id="proveedorautocomplete" label="Razon Social" remote-source="true" min-length="3" text="{{proveedor.razon_social}}">
+                                <template autocomplete-custom-template>
+                                <paper-item style="padding: 10px 5px;" on-tap="_onSelect" id$="[[_getSuggestionId(index)]]" role="option" aria-selected="false">
+                                    <div>
+                                    <div>[[item.razon_social]]</div>
+                                    <div style="font-size:0.75em;color:#757575;">[[item.numero_identificacion]]</div>
+                                    <div style="font-size:0.75em;color:#757575;">[[item.direccion]]   [[item.localidad]]</div>
+                                    </div>
+                                </paper-item>
+                                </template>
+                            </paper-autocomplete>  
+                            <paper-icon-button disabled="[[!planMayor1()]]" id="buscarproveedorPorNombreButton" style="margin-top: 24px;" icon="search" on-tap="_openDialogBuscarproveedor"></paper-icon-button>
+                            <paper-tooltip
+                                for="buscarproveedorPorNombreButton"
+                                position="right"
+                                offset="8">
+                                Buscar proveedor en padron AFIP
+                            </paper-tooltip>
+                        </div>
+                        <paper-spinner active="[[proveedorAjaxFlight]]"></paper-spinner>
+                    </div>
+                </div>
+                <div class="form-field col-6">
+                    <div>
+                        <paper-input readonly="[[!manual]]" required id="direccion" label="Direccion" value="{{proveedor.direccion}}" error-message="Ingrese una dirección"></paper-input>      
+                        <paper-spinner active="[[proveedorAjaxFlight]]"></paper-spinner>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-proveedor',
+
+            behaviors: [AjaxBehavior, SettingsBehavior, Polymer.IronValidatableBehavior, Polymer.IronFormElementBehavior],
+
+            properties: {
+                proveedor: {
+                    type: Object,
+                    notify: true,
+                    value: function() {
+                        return {}
+                    }
+                },
+                manual: {
+                    type: Boolean,
+                    value: false
+                },
+                cuitAnterior: String //Para evitar bucle en CUIT al buscar y no encontrar
+            },
+
+            listeners: {
+                "autocomplete-change": "_onAutocompleteChanged",
+                "autocomplete-selected": "_onAutocompleteSelected",
+                "combifiscal-cuit-ingresed": "_onCuitIngresed",
+                "combifiscal-enter-pressed": "_onNumeroIdentificacionEnterPressed"
+            },
+
+            _onAutocompleteChanged: function(e) {
+                var search = e.detail.option.text 
+                var input = this.$.proveedorautocomplete;
+                var url = this.apiUrl+'/proveedores/?search=' + search;
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText).results;
+                    input.suggestions(response);
+                }
+                };
+                xhr.send();
+            },
+
+            _onAutocompleteSelected: function(e) {
+                this.$.getProveedor.url = this.apiUrl+'/proveedores/' + e.detail.value + '/';
+                this.$.getProveedor.generateRequest();
+            },
+
+            _onCuitIngresed: function(e) {
+                this._searchproveedorFId(e.detail.value);
+            },
+
+            _onNumeroIdentificacionEnterPressed: function(e) {
+                this._searchproveedorFId(e.detail.value);
+            },
+
+             _searchproveedorFId: function(id) {
+                this.$.proFCuitAjax.url = this.apiUrl + "/utils/get-proveedor-from-id/" + id + "/";
+                this.$.proFCuitAjax.generateRequest();
+            },
+
+             _openDialogBuscarproveedor: function() {
+                this.fire("trineo-buscarxrz", {origen:0});
+            },
+
+            _handleProFCuitAjaxError: function(e) {
+                if (e.detail.request.status=404) { //proveedor no encontrado
+                    if (this.proveedor.numero_identificacion.length == 13) {
+                        this.fire("trineo-factv-cuit-no-encontrado")
+                        this.set("proveedor", {})
+                    }
+                    else {
+                        this.fire("trineo-factv-proveedor-no-encontrado");
+                        var numeroid = this.get("proveedor.numero_identificacion");
+                        this.set("proveedor", {})
+                        this.set("proveedor.numero_identificacion", numeroid)
+                        this.$.proveedor.readonly=false;
+                        this.$.direccion.readonly=false;
+                        this.$.proveedor.focus();
+                        this.$.proveedorautocomplete.focus();
+                    }
+                }
+            },
+            _handleProFCuitAjaxResponse: function(e) {
+                this.set("proveedor", e.detail.xhr.response)    
+            },
+
+            _direccionproveedorChanged: function(val) {
+                this.$.direccion.value = val
+            },
+
+            _getValidity: function() {
+                var valid = true
+                valid &= this.$.combifi.validate()
+                valid &= this.$.direccion.validate()
+                valid &= this.$.proveedorautocomplete.validate()
+                return valid
+            }
+        });
+    </script>
+</dom-module>

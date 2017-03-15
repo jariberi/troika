@@ -45,13 +45,13 @@
             <form is="iron-form" id="form">
                 <div class="layout vertical">
                     <div class="layout horizontal center form-row">
-                        <div class="form-field col-4">
+                        <div class="form-field col-3">
                             <paper-input required label="Código" value="{{articulo.codigo}}" error-message="Ingrese código"></paper-input>
                         </div>
-                        <div class="form-field col-4">
+                        <div class="form-field col-3">
                             <paper-input label="Código Fábrica" value="{{articulo.codigo_fabrica}}"></paper-input>
                         </div>
-                        <div class="form-field col-4">
+                        <div class="form-field col-3">
                             <paper-dropdown-menu required label="Unidad de medida" error-message="Seleccione unidad de medida">
                                 <paper-listbox attr-for-selected="value" selected="{{articulo.unidad_medida}}" class="dropdown-content">
                                     <paper-item value="0">Unidades</paper-item>
@@ -60,6 +60,9 @@
                                     <paper-item value="3">Metros</paper-item>
                                 </paper-listbox>
                             </paper-dropdown-menu>
+                        </div>
+                        <div class="form-field col-3">
+                            <trineo-decimal-input required label="Stock Mínimo" value="{{articulo.stock_minimo}}"></trineo-decimal-input>
                         </div>
                     </div>
                     <div class="layout horizontal center form-row">
@@ -90,13 +93,16 @@
                     </div>
                     <div class="layout horizontal center form-row">
                         <div class="form-field col-3">
-                            <paper-input required label="Costo de compra" value="{{articulo.costo_compra}}" error-message="Ingrese precio de compra"!></paper-input>
+                            <paper-checkbox checked="{{articulo.actualizar_precio_compra}}">Act. precio al comprar</paper-checkbox>
                         </div>
-                        <div class="form-field long-3">
-                            <paper-input required label="Descuento Compra" value="{{articulo.descuento_compra}}" error-message="Ingrese descuento, 0 si no tiene descuento"></paper-input>
+                        <div class="form-field col-2">
+                            <trineo-decimal-input required label="Costo de compra" value="{{articulo.costo_compra}}" error-message="Ingrese precio de compra"></trineo-decimal-input>
                         </div>
-                        <div class="form-field long-3">
-                            <paper-input required label="Ganancia" value="{{articulo.ganancia_venta}}" error-message="Ingrese la ganancia deseada"></paper-input>
+                        <div class="form-field long-2">
+                            <trineo-decimal-input required label="Descuento de compra" value="{{articulo.descuento_compra}}" error-message="Ingrese descuento, 0 si no tiene descuento"></trineo-decimal-input>
+                        </div>
+                        <div class="form-field long-2">
+                            <trineo-decimal-input required label="Ganancia" value="{{articulo.ganancia_venta}}" error-message="Ingrese la ganancia deseada"></trineo-decimal-input>
                         </div>
                         <div class="form-field long-3">
                             <h3 style="margin-top: 25px;">Precio de venta: [[_precioVenta]]</h3>

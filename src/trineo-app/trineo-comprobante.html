@@ -1,3 +1,7 @@
+
+<link rel="import" href="trineo-comprobante-details.html">
+
+
 <dom-module id="trineo-comprobante">
     <template>
         <style include="shared-styles iron-flex iron-flex-alignment">
@@ -14,21 +18,28 @@
                 height: 64vh;
             }
         </style>
+        
 
         <app-route route="{{route}}" pattern="/:comprobante_id" data="{{routeData}}" ></app-route>
 
         <iron-ajax
              id="getcompajax"
-             headers="[[getAuthHeader(userBackend.auth_token)]]"
+             headers="[[getAuthorizationHeader()]]"
              url="[[apiUrl]]/ventas/[[routeData.comprobante_id]]/"
              handle-as="json"
              last-response="{{comprobante}}"></iron-ajax>
+
+        <iron-ajax
+             id="delcompajax"
+             headers="[[getAuthorizationHeader()]]"
+             method= "DELETE"
+             on-response="_comprobanteDeleted"></iron-ajax>
         
 
         
         <iron-pages selected="[[_listOrDetail]]">
             <section hidden$="[[!planMayor0()]]">
-                <trineo-list
+                <trineo-list id="comprobantesList"
                     columns="[[_ventasColumns]]"
                     headers="[[_ventasHeaders]]"
                     url="[[apiUrl]]/ventas/"
@@ -64,6 +75,31 @@
             is: 'trineo-comprobante',
 
             behaviors: [UtilsBehavior, AjaxBehavior, SettingsBehavior],
+
+            ready: function() {
+                var that = this
+                this.$.comprobantesList.$.comgrid.rowDetailsGenerator = function(rowIndex) {
+                    var element = document.createElement('trineo-comprobante-details');
+                    that.$.comprobantesList.$.comgrid.getItem(rowIndex, function(error, item) {
+                        if (!error) {
+                            element.comprobante = item    
+                        }
+                    });
+                    return element;
+                    };
+                
+                var detailsOpenIndex = -1;
+
+                // Show details for the selected row
+                this.$.comprobantesList.$.comgrid.addEventListener('selected-items-changed', function() {
+                    that.$.comprobantesList.$.comgrid.setRowDetailsVisible(detailsOpenIndex, false);
+                    var selected = that.$.comprobantesList.$.comgrid.selection.selected();
+                    if (selected.length == 1) {
+                        that.$.comprobantesList.$.comgrid.setRowDetailsVisible(selected[0], true);
+                        detailsOpenIndex = selected[0];
+                    }
+                    });
+            },
 
             properties: {
                 route: Object,
@@ -114,28 +150,48 @@
                         var verComp = function(cell) {
                             cell.element.innerHTML = ''
                             var but = document.createElement("paper-icon-button");
-                            but.icon= "pageview"
+                            but.style.padding = "0 4px"
+                            but.icon= "print"
                             var id = cell.row.data.id
                             but.addEventListener("tap", function(){
                                 that.fire("trineo-comprobante-ver-comprobante", {comprobante:id})    
                             })
                             cell.element.appendChild(but);
                         };
+
+                        var delComp = function(cell) {
+                            cell.element.innerHTML = ''
+                            var but = document.createElement("paper-icon-button");
+                            but.style.padding = "0 4px"
+                            but.icon= "delete"
+                            if (!cell.row.data.aprobado) {
+                                var id = cell.row.data.id
+                                but.addEventListener("tap", function(){
+                                    that.fire("trineo-comprobante-borrar", {comprobante: id})    
+                                })
+                            }
+                            else {
+                                but.disabled = true
+                            }
+                            cell.element.appendChild(but);
+                        };
+
                         return [
-                            {name: "fecha", renderer: that.grid_date_format_renderer, sortable: true, width: 120}, //SUM: 1105px
-                            {name: "compNumeracion", renderer: compNumeracion, width: 180},
-                            {name: "cliente.razon_social", sortable: true, maxWidth: 310},
-                            {name: "neto", renderer: neto, width: 120},
-                            {name: "iva", renderer: iva, width: 100},
-                            {name: "total", width: 140},
-                            {name: "ver", renderer: verComp, width: 115} //88px
+                            {name: "fecha", renderer: that.grid_date_format_renderer, sortable: true, width: 100}, //SUM: 1105px
+                            {name: "compNumeracion", renderer: compNumeracion, width: 170},
+                            {name: "cliente.razon_social", sortable: true, maxWidth: 405-17}, //Barra de scroll
+                            {name: "neto", renderer: neto, width: 100},
+                            {name: "iva", renderer: iva, width: 90},
+                            {name: "total", width: 120},
+                            {name: "ver", renderer: verComp, width: 60}, //88px
+                            {name: "del", renderer: delComp, width: 60} //88px
                         ]
                     }
                 },
                 _ventasHeaders: {
                     type: Array,
                     value: function() {
-                        return ["FECHA", "NÚMERO", "CLIENTE", "NETO", "IVA", "TOTAL", ""]
+                        return ["FECHA", "NÚMERO", "CLIENTE", "NETO", "IVA", "TOTAL", "", ""]
                     }
                 },
                 _ventasSortOrder: {
@@ -153,7 +209,8 @@
             ],
 
             listeners: {
-                "trineo-comprobante-ver-comprobante": "_verComprobante"
+                "trineo-comprobante-ver-comprobante": "_verComprobante",
+                "trineo-comprobante-borrar": "_delComprobante"
             },
 
             _compChanged: function (id) {
@@ -193,6 +250,15 @@
 
             _clearDetail: function(e) {    
                 this.set("route.path", "/");
+            },
+
+            _delComprobante: function(e) {
+                this.$.delcompajax.url = this.apiUrl+"/ventas/"+String(e.detail.comprobante)+"/";
+                this.$.delcompajax.generateRequest();
+            },
+
+            _comprobanteDeleted: function(e) {
+                this.$.comprobantesList.refreshItems();
             }
         });
     </script>

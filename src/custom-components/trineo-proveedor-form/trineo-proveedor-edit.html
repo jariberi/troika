@@ -1,0 +1,38 @@
+
+<dom-module id="trineo-proveedor-edit">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-icon-button {
+                color: var(--accent-color)
+            }
+        </style>
+        
+        <paper-icon-button id="editar" icon="editor:mode-edit" on-tap="_editProveedor"></paper-icon-button>
+        
+        <paper-tooltip
+          for="editar"
+          position="bottom"
+          offset="8">
+          Editar proveedor
+        </paper-tooltip>
+
+                
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-proveedor-edit',
+
+            properties: {
+                proveedor: Object,
+                parent: Object
+            },
+            _editProveedor: function() {
+                this.parent.launchForm(this.proveedor)
+            }
+        });
+    </script>
+</dom-module>

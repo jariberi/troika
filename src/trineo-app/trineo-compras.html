@@ -1,0 +1,185 @@
+
+<link rel="import" href="../custom-components/trineo-compras/trineo-compras-nuevo.html">
+<link rel="import" href="trineo-compras-details.html">
+
+
+<dom-module id="trineo-compras">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+            paper-card {
+                margin: 30px 40px;
+                width: 100%;
+            }
+            object {
+                margin-top: 30px;
+                width: 100%;
+                height: 64vh;
+            }
+        </style>
+        
+
+        <app-route route="{{route}}" pattern="/:nuevo" data="{{routeData}}"></app-route>
+
+        <iron-ajax
+             id="getcompajax"
+             headers="[[getAuthorizationHeader()]]"
+             url="[[apiUrl]]/compras/[[routeData.comprobante_id]]/"
+             handle-as="json"
+             last-response="{{comprobante}}"></iron-ajax>
+
+        <iron-ajax
+             id="delcompajax"
+             headers="[[getAuthorizationHeader()]]"
+             method= "DELETE"
+             on-response="_compraDeleted"></iron-ajax>
+        
+
+        
+        <iron-pages id="pages" selected="[[selected]]">
+            <section>
+                <trineo-list id="comprasList"
+            columns="[[_comprasColumns]]"
+            headers="[[_comprasHeaders]]"
+            url="[[apiUrl]]/compras/"
+            sort-order="[[_comprasSortOrder]]"></trineo-list>
+            </section>
+            <section>
+                <trineo-compras-nuevo id="comprasNuevo" user-backend="[[userBackend]]"></trineo-compras-nuevo>
+            </section>
+        </iron-pages>
+    
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-compras',
+
+            behaviors: [UtilsBehavior, AjaxBehavior, SettingsBehavior],
+
+            ready: function() {
+                var that = this
+                this.$.comprasList.$.comgrid.rowDetailsGenerator = function(rowIndex) {
+                    var element = document.createElement('trineo-compras-details');
+                    that.$.comprasList.$.comgrid.getItem(rowIndex, function(error, item) {
+                        if (!error) {
+                            element.compra = item    
+                        }
+                    });
+                    return element;
+                    };
+                
+                var detailsOpenIndex = -1;
+
+                // Show details for the selected row
+                this.$.comprasList.$.comgrid.addEventListener('selected-items-changed', function() {
+                    that.$.comprasList.$.comgrid.setRowDetailsVisible(detailsOpenIndex, false);
+                    var selected = that.$.comprasList.$.comgrid.selection.selected();
+                    if (selected.length == 1) {
+                        that.$.comprasList.$.comgrid.setRowDetailsVisible(selected[0], true);
+                        detailsOpenIndex = selected[0];
+                    }
+                    });
+            },
+
+            properties: {
+                route: Object,
+                routeData: Object,
+                selected: {
+                    type: Number,
+                    computed: "_selectedCompute(routeData.nuevo)"
+                },
+                userBackend: Object,
+                _comprasColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+                        var compNumeracion = function(cell) {
+                            cell.element.innerHTML = ''
+                            var pv = that.pad_with_zeroes(cell.row.data.punto_venta, 4)
+                            var n = that.pad_with_zeroes(cell.row.data.numero, 8)
+                            var letr = cell.row.data.tipo
+                            cell.element.innerHTML = letr + "-" + pv + '-' + n;
+                        };
+                    
+                        var neto = function(cell) {
+                            cell.element.innerHTML = ''
+                            var netoex = Number(cell.row.data.netoex)
+                            var neto21 = Number(cell.row.data.neto21)
+                            var neto105 = Number(cell.row.data.neto105)
+                            var neto27 = Number(cell.row.data.neto27)
+                            cell.element.innerHTML = (netoex + neto21 + neto105 + neto27).toFixed(2);
+                        };
+                        
+                        var iva = function(cell) {
+                            cell.element.innerHTML = ''
+                            var iva21 = Number(cell.row.data.iva21)
+                            var iva105 = Number(cell.row.data.iva105)
+                            var iva27 = Number(cell.row.data.iva27)
+                            cell.element.innerHTML = (iva21 + iva105 + iva27).toFixed(2);
+                        };
+
+                        var delComp = function(cell) {
+                            cell.element.innerHTML = ''
+                            cell.element.style.padding="0px"
+                            var but = document.createElement("paper-icon-button");
+                            but.style.padding = "0 4px"
+                            but.icon= "delete"
+                            var id = cell.row.data.id
+                            but.addEventListener("tap", function(){
+                                    that._delComprobante(id)
+                                });                            
+                            cell.element.appendChild(but);
+                        };
+
+                        return [
+                            {name: "fecha", renderer: that.grid_date_format_renderer, sortable: true, width: 100}, //SUM: 1105px
+                            {name: "compNumeracion", renderer: compNumeracion, width: 170},
+                            {name: "proveedor.razon_social", sortable: true, maxWidth: 482-17}, //Barra de scroll
+                            {name: "neto", renderer: neto, width: 100},
+                            {name: "iva", renderer: iva, width: 90},
+                            {name: "total", width: 120},
+                            {name: "del", renderer: delComp, width: 60} //88px
+                        ]
+                    }
+                },
+                _comprasHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["FECHA", "NÚMERO", "PROVEEDOR", "NETO", "IVA", "TOTAL", ""]
+                    }
+                },
+                _comprasSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 0, direction: "desc"}
+                        ]
+                    }
+                }
+            },
+
+            listeners: {
+                "trineo-compras-ver-comprobante": "_verComprobante",
+            },            
+
+            _delComprobante: function(e) {
+                this.$.delcompajax.url = this.apiUrl+"/compras/"+String(e)+"/";
+                this.$.delcompajax.generateRequest();
+            },
+
+            _compraDeleted: function(e) {
+                this.$.comprasList.refreshItems();
+            },
+
+            _selectedCompute: function(n) {
+                if (n=="nuevo") {
+                    return 1
+                }
+                return 0
+            }
+        });
+    </script>
+</dom-module>

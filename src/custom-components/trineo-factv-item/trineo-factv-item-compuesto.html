@@ -1,16 +1,181 @@
 
+<link rel="import" href="trineo-item-compuesto-item.html">
+<link rel="import" href="trineo-factv-detalle-compuesto.html">
+
+
 <dom-module id="trineo-factv-item-compuesto">
     <template>
-        <style>
+        <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
                 display: block;
             }
         </style>
-        <h1>compuesto</h1>
+        
+        <trineo-factv-detalle-compuesto asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" id="detalle"></trineo-factv-detalle-compuesto>
+
+        <div class="layout horizontal form-row">
+            <div class="form-field col-2">
+                <trineo-decimal-input no-label-float required id="cantidad" value="{{cantidad}}" error-message="Ing. cantidad"></trineo-decimal-input>
+            </div>
+            <div class="form-field col-6">
+                <div class="layout horizontal">
+                    <paper-input style="width: calc(100% - 50px);" no-label-float required id="descripcion" value="{{descripcion}}" error-message="Ingrese la descripcion"></paper-input>
+                    <paper-icon-button on-tap="openDetalle" style="width: 50px;" icon="list"></paper-icon-button>
+                 </div>
+            </div>
+            <div class="form-field col-2">
+                <trineo-decimal-input no-label-float required readonly allowed-pattern="[0-9\.]" value="[[precioUnitario]]" error-message="Ingrese el precio unitario"></trineo-decimal-input>
+            </div>
+            <div class="form-field col-2">
+                <paper-dropdown-menu no-label-float required="[[asignaIva]]" disabled="[[!asignaIva]]" id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
+                    <paper-listbox attr-for-selected="value" selected="{{alicIva}}" class="dropdown-content">
+                        <paper-item value="IVA00">Exento</paper-item>
+                        <paper-item value="IV105">10.5%</paper-item>
+                        <paper-item value="IVA21">21%</paper-item>
+                        <paper-item value="IVA27">27%</paper-item>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+            </div>
+        </div>
+    </template>
     </template>
     <script>
         Polymer({
-            is: 'trineo-factv-item-compuesto'
+            is: 'trineo-factv-item-compuesto',
+
+            behaviors: [Polymer.IronValidatableBehavior],
+
+            properties: {
+                asignaIva: Boolean,
+                discriminaIva: Boolean,
+                cantidad: Number,
+                precioUnitario: Number,
+                descripcion: String,
+                precioUnitario: {
+                    type: Number
+                },
+                _precioUnitario: {
+                    type: Number,
+                    computed: "_calcular_precioUnitario(precioUnitario, alicIvaN, discriminaIva)",
+                    value: 0
+                },
+                alicIva: {
+                    type: String
+                },
+                neto: {
+                    type: Number,
+                    readOnly: true,
+                    computed: "calcularNeto(cantidad, precioUnitario)"
+                },
+                _neto: {
+                    type: Number,
+                    value: 0,
+                    computed: "_calcular_neto(cantidad, _precioUnitario)"
+                },
+                alicIvaN: {
+                    type: Number,
+                    value: 0,
+                    computed: "_alicIvaNCompute(alicIva)"
+                },
+                valorIva: {
+                    type: Number,
+                    computed: "calcularIva(neto, alicIvaN, discriminaIva)"
+                },
+                _valorIva: {
+                    type: Number,
+                    value: 0,
+                    computed: "_calcular_iva(_neto, alicIvaN)"
+                },
+                total: {
+                    type: Number,
+                    computed: "calcularTotal(neto, valorIva)",
+                    notify: true
+                }
+            },
+
+            _alicIvaNCompute: function (alicIva) {
+                switch(alicIva) {
+                    case "IVA21":
+                        return 21;
+                    case "IV105":
+                        return 10.5;
+                    case "IVA27":
+                        return 27
+                    default:
+                        return 0;
+                }
+            },
+
+            _calcular_precioUnitario: function(precioUnitario, alicIvaN, discriminaIva) {
+                if (precioUnitario=="") {
+                    return 0
+                }
+                if (this.asignaIva && !discriminaIva) {
+                    return Number(precioUnitario / (1 + this.alicIvaN / 100))
+                }
+                else {
+                    return Number(precioUnitario)
+                }
+            },
+
+
+            calcularNeto: function(cantidad, precioUnitario) {
+                return (cantidad * precioUnitario).toFixed(2)
+            },
+
+            _calcular_neto: function(cantidad, _precioUnitario) {
+                return (cantidad * _precioUnitario)
+            },
+
+            calcularIva: function(neto, alicIvaN, discriminaIva) {
+                var iva = (neto * alicIvaN / 100)
+                if(discriminaIva) {
+                    return iva.toFixed(2)
+                }
+                else {
+                    return "0.00"
+                }
+                
+            },
+            _calcular_iva: function(_neto, alicIvaN) {
+                var iva = (_neto * alicIvaN / 100)
+                return iva                
+            },
+
+            calcularTotal: function(neto, valorIva) {
+                return (Number(neto) + Number(valorIva)).toFixed(2)
+            },
+
+            getAlicIva: function() {
+                return this.alicIva
+            },
+
+            ready: function() {
+                //Polymer.dom(document.body).appendChild(this.$.dialog)
+            },
+
+            totalArticuloCompuestoCompute: function(n) {
+                return n.toFixed(2)
+            },
+
+            openDetalle: function() {
+                this.$.detalle.node=this
+                Polymer.dom(document.querySelector("trineo-core").root).appendChild(this.$.detalle)
+                this.$.detalle.open();
+            },
+
+            cantidad: function() {
+
+            },
+
+            _getValidity: function() {
+                var valid= true;
+                valid = valid & this.$.cantidad.validate();
+                valid = valid & this.$.descripcion.validate();
+                valid = valid & this.$.alicIva.validate();
+                valid = valid & this.$.detalle.validate();
+                return valid
+            }
         });
     </script>
 </dom-module>

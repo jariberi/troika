@@ -1,5 +1,5 @@
 
-<dom-module id="trineo-factv-item-personalizado">
+<dom-module id="trineo-compras-item-personalizado">
     <template>
         <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
@@ -30,27 +30,20 @@
     </template>
     <script>
         Polymer({
-            is: 'trineo-factv-item-personalizado',
+            is: 'trineo-compras-item-personalizado',
 
             behaviors: [Polymer.IronValidatableBehavior],
 
             properties: {
-                discriminaIva: {
-                    type: Boolean
-                },
                 asignaIva: {
                     type: Boolean,
-                    value: false
+                    value: false,
+                    observer: "_onAsignaIvaChanged"
                 },
                 cantidad: Number,
                 descripcion: String,
                 precioUnitario: {
                     type: Number
-                },
-                _precioUnitario: {
-                    type: Number,
-                    computed: "_calcular_precioUnitario(precioUnitario, alicIvaN, discriminaIva)",
-                    value: 0
                 },
                 alicIva: {
                     type: String
@@ -60,11 +53,6 @@
                     readOnly: true,
                     computed: "calcularNeto(cantidad, precioUnitario)"
                 },
-                _neto: {
-                    type: Number,
-                    value: 0,
-                    computed: "_calcular_neto(cantidad, _precioUnitario)"
-                },
                 alicIvaN: {
                     type: Number,
                     value: 0,
@@ -72,12 +60,7 @@
                 },
                 valorIva: {
                     type: Number,
-                    computed: "calcularIva(neto, alicIvaN, discriminaIva)"
-                },
-                _valorIva: {
-                    type: Number,
-                    value: 0,
-                    computed: "_calcular_iva(_neto, alicIvaN)"
+                    computed: "calcularIva(neto, alicIvaN)"
                 },
                 total: {
                     type: Number,
@@ -99,40 +82,17 @@
                 }
             },
 
-            _calcular_precioUnitario: function(precioUnitario, alicIvaN, discriminaIva) {
-                if (precioUnitario=="") {
-                    return 0
-                }
-                if (this.asignaIva && !discriminaIva) {
-                    return Number(precioUnitario / (1 + this.alicIvaN / 100))
-                }
-                else {
-                    return Number(precioUnitario)
-                }
-            },
-
-
             calcularNeto: function(cantidad, precioUnitario) {
-                return (cantidad * precioUnitario).toFixed(2)
+                return Number(cantidad) * Number(precioUnitario)
             },
 
-            _calcular_neto: function(cantidad, _precioUnitario) {
-                return (cantidad * _precioUnitario)
-            },
-
-            calcularIva: function(neto, alicIvaN, discriminaIva) {
-                var iva = (neto * alicIvaN / 100)
-                if(discriminaIva) {
-                    return iva.toFixed(2)
+            calcularIva: function(neto, alicIvaN) {
+                if(this.asignaIva) {
+                    return neto * alicIvaN / 100
                 }
                 else {
-                    return "0.00"
-                }
-                
-            },
-            _calcular_iva: function(_neto, alicIvaN) {
-                var iva = (_neto * alicIvaN / 100)
-                return iva                
+                    return 0.00
+                }    
             },
 
             calcularTotal: function(neto, valorIva) {
@@ -141,6 +101,12 @@
 
             getAlicIva: function() {
                 return this.alicIva
+            },
+
+            _onAsignaIvaChanged: function(v) {
+                if (!v) {
+                    this.alicIva="";
+                }
             },
 
             _getValidity: function() {

@@ -1,0 +1,57 @@
+
+<dom-module id="trineo-compras-item-tipo">
+    <template>
+        <style>
+            :host {
+                display: block;
+                margin: 0 auto;
+            }
+            iron-dropdown {
+                box-shadow: rgba(0, 0, 0, 0.24) -2px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+            }
+        </style>
+        
+        <paper-fab class="dropdown-trigger div" on-tap="_toggleOptions" mini label="[[_label]]"></paper-fab>
+        <iron-dropdown id="dropd" class="div">
+             <paper-listbox selected="{{tipo}}" class="dropdown-content">
+                        <paper-item on-tap="_onSelected">Almacenado</paper-item>
+                        <paper-item on-tap="_onSelected">Personalizado</paper-item>
+                    </paper-listbox>
+        </iron-dropdown>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-compras-item-tipo',
+
+            properties: {
+                tipo: {
+                    type: Number,
+                    notify: true
+                },
+                _label: {
+                    type: String,
+                    computed: "_labelCompute(tipo)"
+                }
+            },
+
+            _labelCompute: function(tipo) {
+                switch (tipo) {
+                    case 0:
+                        return "AA";
+                        break;
+                    case 1:
+                        return "AP";
+                        break;
+                }
+            },
+
+            _toggleOptions: function() {
+                this.$.dropd.open();
+            },
+
+            _onSelected: function() {
+                this.$.dropd.close();
+            }
+        });
+    </script>
+</dom-module>

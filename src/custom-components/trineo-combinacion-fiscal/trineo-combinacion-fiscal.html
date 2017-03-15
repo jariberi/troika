@@ -10,7 +10,7 @@
             <div class="form-field col-4">
                 <div>
                     <div>
-                        <appline-idfiscal-input id="numeroId" on-keydown="_onNumeroidKeyPressed" on-value-changed="_onNumeroIdentificacionChanged" 
+                        <appline-idfiscal-input id="numeroId" on-keydown="_onNumeroidKeyPressed" 
                         label="Número de Identificación" required=[[required]] value="{{numeroIdentificacion}}" error-message="Ingrese número de identificación"></appline-idfiscal-input>
                     </div>
                     <paper-spinner active=[[spinnerActivo]]></paper-spinner>
@@ -92,7 +92,8 @@
                 },
                 numeroIdentificacion: {
                     type: String,
-                    notify: true
+                    notify: true,
+                    observer: "_onNumeroIdentificacionChanged"
                 },
                 condFiscal: {
                     type: Number,
@@ -105,10 +106,10 @@
                 },
             },
 
-            _onNumeroIdentificacionChanged: function(e) {
+            _onNumeroIdentificacionChanged: function(v) {
                 var patt = new RegExp("\\d{2}-\\d{8}-\\d{1}");
-                if (patt.test(e.detail.value)) {
-                    this.fire("combifiscal-cuit-ingresed", {value: e.detail.value});
+                if (patt.test(v)) {
+                    this.fire("combifiscal-cuit-ingresed", {value: v});
                 }
             },
 

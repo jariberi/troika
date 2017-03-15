@@ -17,7 +17,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :root {
-
         --primary-text-color: var(--light-theme-text-color);
         --primary-background-color: var(--light-theme-background-color);
         --secondary-text-color: var(--light-theme-secondary-color);
@@ -82,8 +81,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
 
-    .pesos::before {
+      .pesos::before {
         content: "$  ";
+        font-weight: bold;
+      }
+
+      .total {
         font-weight: bold;
       }
 
@@ -198,8 +201,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .col-12 {
         width: 100%;
       }
-      
 
+      div.trineo-dialogs {
+        background: white;
+        color: var(--primary-text-color);
+        padding: 24px;
+        box-shadow: rgba(0, 0, 0, 0.24) -2px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+        @apply(--layout-vertical)
+      }
+
+        div.trineo-dialogs .buttons * {
+          position: relative;
+          float: right;
+        }
       
     </style>
 </template>

@@ -1,0 +1,102 @@
+<link rel="import" href="../custom-components/trineo-proveedor-form/trineo-proveedor-edit.html">
+<link rel="import" href="../custom-components/trineo-proveedor-form/trineo-proveedor-form.html">
+
+<dom-module id="trineo-proveedores">
+    <template>
+        <style include="iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+
+            paper-card {
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            paper-input {
+                width: 100%;
+                max-width: 350px;
+            }
+
+            span {
+                margin-right: 40px;
+            }
+
+            @media (max-width: 768px) {
+              span {
+                margin-right: 10px;
+              }
+              paper-input {
+                  max-width: 100% !important;
+              }
+            }
+            
+        </style>
+        
+        <trineo-list id="proveedoresList"
+                    columns="[[_proveedoresColumns]]"
+                    headers="[[_proveedoresHeaders]]"
+                    url="[[apiUrl]]/proveedores/"
+                    sort-order="[[_proveedoresSortOrder]]"></trineo-list>
+            
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-proveedores',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                userBackend: Object,
+                _proveedoresColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+                        var editButtonRenderer = function(cell) {
+                            cell.element.innerHTML = '';
+                            var editButton = document.createElement('trineo-proveedor-edit');
+                            editButton.set('proveedor', cell.row.data);
+                            editButton.set('parent', that);
+                            cell.element.appendChild(editButton);
+                        };
+
+                        return [
+                            {name: "numero_identificacion", sortable: true, width: 150}, //SUM: 1105px
+                            {name: "razon_social", sortable: true, maxWidth: 267-17},
+                            {name: "direccion", maxWidth: 220}, //Barra de scroll
+                            {name: "localidad", width: 180},
+                            {name: "cond_iva_display", width: 200},
+                            {name: "edit", renderer: editButtonRenderer} //88px
+                        ]
+                    }
+                },
+                _proveedoresHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["IDENTIFICACIOÓN", "RAZÓN SOCIAL", "DIRECCIÓN", "CIUDAD", "COND. IVA", ""]
+                    }
+                },
+                _ventasSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 1, direction: "asc"}
+                        ]
+                    }
+                }
+            },
+
+            launchForm: function(prov) {
+                var form = document.createElement("trineo-proveedor-form");
+                Polymer.dom(document.querySelector("trineo-core").root).appendChild(form)
+                form.accion=0
+                form.parent = this
+                if (prov) {
+                    form.accion=1
+                    form.proveedor = prov
+                }
+                form.open();
+            }
+        });
+    </script>
+</dom-module>

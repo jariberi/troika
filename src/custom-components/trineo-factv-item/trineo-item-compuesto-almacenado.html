@@ -1,5 +1,5 @@
 
-<dom-module id="trineo-factv-item-almacenado">
+<dom-module id="trineo-item-compuesto-almacenado">
     <template>
         <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
@@ -9,13 +9,12 @@
 
         <iron-ajax id="getArticulo" headers="[[getAuthorizationHeader()]]" handle-as="json" last-response="{{_articulo}}"></iron-ajax>
 
-
         <div class="layout horizontal form-row">
             <div class="form-field col-2">
                 <trineo-decimal-input no-label-float required id="cantidad" value="{{cantidad}}" error-message="Ing. cantidad"></trineo-decimal-input>
             </div>
             <div class="form-field col-6">
-                <paper-autocomplete no-label-float disable-show-clear required text-property="denominacion" value-property="url" name="articulo" id="articuloautocomplete" remote-source="true" min-length="3" text="{{descripcion}}">
+                <paper-autocomplete no-label-float disable-show-clear required text-property="denominacion" value-property="url" name="articulo" id="articuloautocomplete" remote-source="true" min-length="3" text="{{descripcion}}" error-message="Seleccione artículo">
                     <template autocomplete-custom-template>
                     <paper-item style="padding: 10px 5px;" on-tap="_onSelect" id$="[[_getSuggestionId(index)]]" role="option" aria-selected="false">
                         <div style="width: 100%;">
@@ -32,49 +31,26 @@
                 <trineo-decimal-input id="precioVenta" no-label-float hidden="[[!discriminaIva]]" required readonly allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
                 <trineo-decimal-input id="precioVentaIvaInc" no-label-float hidden="[[discriminaIva]]" required readonly allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta_iva_inc}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
             </div>
-            <div class="form-field col-2">
-                <paper-dropdown-menu no-label-float required="[[_asignaIva]]" disabled id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
-                    <paper-listbox attr-for-selected="value" selected="{{_articulo.alicuota_iva}}" class="dropdown-content">
-                        <paper-item value="IVA00">Exento</paper-item>
-                        <paper-item value="IV105">10.5%</paper-item>
-                        <paper-item value="IVA21">21%</paper-item>
-                        <paper-item value="IVA27">27%</paper-item>
-                    </paper-listbox>
-                </paper-dropdown-menu>
-            </div>
         </div>
     </template>
     <script>
         Polymer({
-            is: 'trineo-factv-item-almacenado',
+            is: 'trineo-item-compuesto-almacenado',
 
             properties: {
                 discriminaIva: {
                     type: Boolean
                 },
-                asignaIva: {
-                    type: Boolean,
-                    value: false
-                },
                 cantidad: Number,
                 neto: {
                     type: Number,
                     readOnly: true,
-                    computed: "calcularNeto(cantidad, _precioUnitario)"
-                },
-                alicIvaN: {
-                    type: Number,
-                    value: 0,
-                    computed: "_alicIvaNCmpute(_articulo.alicuota_iva)"
-                },
-                valorIva: {
-                    type: Number,
-                    readOnly: true,
-                    computed: "calcularIva(neto, alicIvaN)"
+                    computed: "calcularNeto(cantidad, _precioUnitario)",
+                    value: 0
                 },
                 total: {
                     type: Number,
-                    computed: "calcularTotal(neto, valorIva)",
+                    computed: "calcularTotal(neto)",
                     notify: true
                 },
                 _precioUnitario: {
@@ -92,20 +68,6 @@
                 "autocomplete-selected": "_onAutocompleteSelected"
             },
 
-            //COMPUTES
-            _alicIvaNCmpute: function(val) {
-                switch(val) {
-                    case "IVA21":
-                        return 21;
-                    case "IV105":
-                        return 10.5;
-                    case "IVA27":
-                        return 27
-                    default:
-                        return 0
-                }
-            },
-
             _calcular_precioUnitario: function(precio, precioIva, discriminaIva) {
                 if (!discriminaIva) {
                     return Number(precioIva)
@@ -120,25 +82,8 @@
                 return Number(cantidad) * _precioUnitario
             },
 
-            calcularIva: function(neto, alicIvaN) {
-                if(this.discriminaIva) {
-                    return neto * alicIvaN / 100
-                }
-                else {
-                    return 0.00
-                }    
-            },
-            calcularTotal: function(neto, valorIva) {
-                return (Number(neto) + Number(valorIva)).toFixed(2)
-            },
-
-            getAlicIva: function() {
-                if (this._articulo) {
-                    return this._articulo.alicuota_iva
-                } 
-                else {
-                    return ""
-                } 
+            calcularTotal: function(neto) {
+                return Number(neto).toFixed(2)
             },
 
             _onAutocompleteChanged: function(e) {
@@ -168,7 +113,6 @@
                 valid = valid & this.$.articuloautocomplete.validate()
                 valid = valid & this.$.precioVenta.validate()
                 valid = valid & this.$.precioVentaIvaInc.validate()
-                valid = valid & this.$.alicIva.validate()
                 return valid
             }
         });

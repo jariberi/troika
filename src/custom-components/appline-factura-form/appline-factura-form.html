@@ -67,8 +67,6 @@
 <iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
 
 
-
-<form is="iron-form" id="form">  
 <paper-card id="datos-comprobante">
   <div class="card-content">
     <div class="datos-header">Datos Comprobante
@@ -78,7 +76,7 @@
       </div>
     <div class="layout horizontal wrap center form-row">
       <div class="form-field col-3">
-        <paper-dropdown-menu id="tipo-venta-el" name="tipo-venta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
+        <paper-dropdown-menu id="tipoVenta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
           <paper-listbox class="dropdown-content" selected="{{tipoVenta}}" attr-for-selected="value">
             <paper-item value="0">Productos</paper-item>
             <paper-item value="1">Servicios</paper-item>
@@ -87,7 +85,7 @@
         </paper-dropdown-menu>
       </div>
       <div class="form-field col-3">
-        <paper-dropdown-menu required id="punto-venta-el" label="Punto de Venta" error-message="Seleccione un punto de venta">
+        <paper-dropdown-menu required id="puntoVenta" label="Punto de Venta" error-message="Seleccione un punto de venta">
           <paper-listbox id="puntoVentaSel" attr-for-selected="value" selected="{{puntoVentaSelected}}" class="dropdown-content">
             <template is="dom-repeat" items=[[userBackend.perfil_user.empresa.puntos_venta]] as=item index-as=index>
               <paper-item value="[[item.punto_venta]]">[[pad_with_zeroes(item.punto_venta,4)]]</paper-item>
@@ -96,7 +94,7 @@
         </paper-dropdown-menu>
       </div>
       <div class="form-field col-3">
-        <paper-dropdown-menu required id="tipo-comprobante" label="Tipo de comprobante" error-message="Seleccione un tipo de comprobante">
+        <paper-dropdown-menu required id="tipoComprobante" label="Tipo de comprobante" error-message="Seleccione un tipo de comprobante">
           <paper-listbox attr-for-selected="value" selected="{{tipoComprobante}}" class="dropdown-content">
             <paper-item value="FA">Factura</paper-item>
             <paper-item value="NC">Nota de crédito</paper-item>
@@ -109,10 +107,10 @@
       </div>
     </div>
     <div class="layout horizontal wrap center justified">
-        <trineo-cliente cliente={{cliente}} razon-social="{{cliente.razon_social}}"></trineo-cliente>  
+        <trineo-cliente id="cliente" cliente={{cliente}} razon-social="{{cliente.razon_social}}"></trineo-cliente>  
     </div>
     <div class="layout horizontal wrap center justified">
-    <trineo-servicio-dates fecha-c="[[fecha]]" 
+    <trineo-servicio-dates id="fechasServicio" fecha-c="[[fecha]]" 
         hidden$="[[!esServicio]]" 
         required="[[esServicio]]"
         fecha-desde="{{fechaServDesde}}"
@@ -137,14 +135,13 @@
 
   </div>
 </paper-card>
-</form>
 
 </template>
 <script>
     Polymer({
       is: 'appline-factura-form',
 
-      behaviors: [UtilsBehavior, DatesBehavior, AjaxBehavior, SettingsBehavior],
+      behaviors: [UtilsBehavior, DatesBehavior, AjaxBehavior, SettingsBehavior, Polymer.IronValidatableBehavior],
       //CALLBACK METHODS
       ready: function () {
         this.$.fechaDatePicker.i18n = this.get_i18n(); //From DatesBehavior
@@ -154,13 +151,14 @@
       properties: {
         _discriminaIva: {
           type: Boolean,
+          observer: "_discriminaIvaChanged",
           computed: "_discriminaIvaCompute(userBackend.perfil_user.empresa.categoria_iva, cliente.cond_iva)",
-          observer: "_discriminaIvaChanged"
+          value: false
         },
         _asignaIva: {
           type: Boolean,
+          observer: "_asignaIvaChanged",
           computed: "_asignaIvaCompute(userBackend.perfil_user.empresa.categoria_iva)",
-          observer: "_asignaIvaChanged"
         },
         userBackend: Object,
         letraComprobante: {
@@ -211,6 +209,8 @@
         },
         puntoVentaSelected: String,
         clienteAjaxFlight: Boolean,
+        netoTotal: Number,
+
       },
 
       listeners: {
@@ -251,19 +251,25 @@
         
       },
 
-      _discriminaIvaChanged: function (val) {
-          var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
-          for (i=0; i<items.length; i++) {
-              items[i].discriminaIva = val
+      _discriminaIvaChanged: function(val) {
+        var items = Polymer.dom(this.root).querySelectorAll('trineo-factv-item')
+        for (i = 0; i < items.length; i++) {
+          items[i].fireTotalEvent = false
         }
-        this._totalChanged(this.total)
+        for (i = 0; i < items.length; i++) {
+          items[i].discriminaIva = val
+        }
+        this.actualizarTotales();
+        for (i = 0; i < items.length; i++) {
+          items[i].fireTotalEvent = true
+        }
       },
-      _asignaIvaChanged: function (val) {
-          var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
-          for (i=0; i<items.length; i++) {
-              items[i].asignaIva = val
+
+      _asignaIvaChanged: function(val) {
+        var items = Polymer.dom(this.root).querySelectorAll('trineo-factv-item')
+        for(i=0;i<items.length;i++) {
+          items[i].asignaIva = val
         }
-        this._totalChanged(this.total)
       },
 
       //Compute's
@@ -296,7 +302,7 @@
       },
 
       _discriminaIvaCompute: function(categoria, con_iva_cliente) {
-        if (categoria==0 && con_iva_cliente !=2) {
+        if (categoria==0 && (con_iva_cliente !=2 && con_iva_cliente !=1)) {
           return true
         }
         return false
@@ -333,21 +339,9 @@
       },
 
       agregarItem: function () {
-        var el = document.createElement('trineo-item-factv');
-        switch (this.letraComprobante) {
-            case "A":
-              el.discriminaIva = true
-              el.asignaIva = true
-              break;
-            case "B":
-              el.discriminaIva = false
-              el.asignaIva = true
-              break;
-            case "C":
-              el.discriminaIva = false
-              el.asignaIva = false
-              break;
-          }
+        var el = document.createElement('trineo-factv-item');
+        el.discriminaIva = this._discriminaIva
+        el.asignaIva = this._asignaIva
         this.$.detalle.insertBefore(el, this.$.botonAgregarItem);
       },
 
@@ -360,31 +354,30 @@
         var iva105 = 0
         var iva21 = 0
         var iva27 = 0
-        var items = Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
+        var items = Polymer.dom(this.$.detalle).querySelectorAll('trineo-factv-item')
         for (i = 0; i < items.length; i++) {
-          var item = items[i]
-          neto = neto + Number(item.neto)
-          switch (item.alicIva) {
+          neto = neto + Number(items[i].neto())
+          switch (items[i].alicIva()) {
             case "IV105":
-              iva105 = iva105 + Number(item.valorIva);
+              iva105 = iva105 + Number(items[i].iva());
               break;
             case "IVA21":
-              iva21 = iva21 + Number(item.valorIva);
+              iva21 = iva21 + Number(items[i].iva());
               break;
             case "IVA27":
-              iva27 = iva27 + Number(item.valorIva);
+              iva27 = iva27 + Number(items[i].iva());
+              break;
+            default:
               break;
           }
-
-          this.total = (neto + iva105 + iva21 + iva27).toFixed(2)
-
-          this.fire("trineo-actualizar-totales-comprobante", {neto: neto.toFixed(2), iva105:iva105.toFixed(2), iva21:iva21.toFixed(2), iva27:iva27.toFixed(2), total:this.total})
         }
+        this.total = (neto + iva105 + iva21 + iva27).toFixed(2)
+        this.fire("trineo-actualizar-totales-comprobante", {neto: neto.toFixed(2), iva105:iva105.toFixed(2), iva21:iva21.toFixed(2), iva27:iva27.toFixed(2), total:this.total})
       },
       clear: function() {
         this.$.ajaxas.auto=false; // Ajax del ultimo comprobante saco auto
         this.tipoVenta = this.puntoVentaSelected = this.tipoComprobante = this.cliente = this.ultimoComprobante = null
-        var items=Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
+        var items=Polymer.dom(this.root).querySelectorAll('trineo-factv-item')
         for (i = 0; i < items.length; i++) {
           Polymer.dom(items[i].parentNode).removeChild(items[i])  
         }
@@ -392,15 +385,34 @@
         this.actualizarTotales();
       },
 
+      _getValidity: function() {
+        var valid = true;
+        valid = valid & this.$.tipoVenta.validate()
+        valid = valid & this.$.puntoVenta.validate()
+        valid = valid & this.$.tipoComprobante.validate()
+        valid = valid & this.$.fechaDatePicker.validate()
+        valid = valid & this.$.cliente.validate()
+        valid = valid & this.$.cliente.validate()
+        valid = valid & this.$.cliente.validate()
+        if (this.tipoVenta == "1" || this.tipoVenta == "2") {
+          this.$.fechasServicio.validate()
+        }
+        var items = Polymer.dom(this.root).querySelectorAll('trineo-factv-item');
+        for (i=0;i<items.length;i++) {
+          valid = items[i].validate() && valid
+        }
+        return valid
+      },
+
       submit: function() {
         //Submit del formulario, no tradicional, simplemente valida y hace una post al API rest
-        if(this.$.form.validate()){
+        if(this.validate()){
           var patt = new RegExp("(0+-0+-0+)|(0+)") //Validar que haya un cliente que no sea consumidor final si es B
           if (this.letraComprobante != 'C' && this.total > 1000 && patt.test(this.cuitDni)) {
             alert("No se permite en facturas mayores a $1000 que el cliente no sea identificado.")
           }
           else {
-            this.fire("open-wait", {mensaje: "Aprobando..."})
+            //this.fire("open-wait", {mensaje: "Aprobando..."})
             //Armar el objeto para hacer el post
             var fact = {}
             fact['tipo']=this.tipoComprobante+this.letraComprobante
@@ -415,13 +427,37 @@
             }           
             fact['cliente'] = this.cliente
             fact['items']=[]
-            var items = Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
+            //var items = Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
+            var items = Polymer.dom(this.root).querySelectorAll('trineo-factv-item')
             for (i=0; i<items.length; i++) {
-              var obj = {cantidad:items[i].cantidad,
-                descripcion:items[i].descripcion,
-                precio_unitario:items[i]._precioUnitario,
-                iva:items[i].alicIva,
-                tipo: 1}
+              var obj = {cantidad:items[i].cantidad(), tipo: items[i].tipo}
+              switch (items[i].tipo) {
+                case 0: //almacenado
+                  obj['articulo'] = items[i].articulo().url
+                  break;
+                case 1: //personalizado
+                  obj['descripcion']= items[i].descripcion();
+                  obj['precio_unitario']=items[i]._precioUnitario();
+                  obj['iva'] = items[i].alicIva();
+                  break;
+                case 2: //compuesto
+                  obj['descripcion']= items[i].descripcion();
+                  obj['iva'] = items[i].alicIva();
+                  compuestos = []
+                  var comp = Polymer.dom(items[i].$.items.selectedItem.$.detalle.$.detalleCompuesto).querySelectorAll("trineo-item-compuesto-item")
+                  for (j=0;j<comp.length;j++) {
+                    c = {cantidad: comp[j].cantidad(), pers:comp[j].pers}
+                    if (comp[j].pers) {
+                      c['descripcion']=comp[j].descripcion()
+                      c['precio_unitario']=comp[j].precioUnitario()
+                    }
+                    else {
+                      c['articulo']=comp[j].articulo().url
+                    }
+                    compuestos.push(c)
+                  }
+                  obj['compuestos']=compuestos
+              }   
               fact['items'].push(obj)
             }
             this.$.submitComprobanteAjax.body = fact

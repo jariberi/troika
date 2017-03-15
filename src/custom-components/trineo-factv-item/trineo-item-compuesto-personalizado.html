@@ -1,0 +1,62 @@
+
+<dom-module id="trineo-item-compuesto-personalizado">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+        </style>
+        <div class="layout horizontal form-row">
+            <div class="form-field col-2">
+                <paper-input no-label-float required allowed-pattern="[0-9\.]" id="cantidad" value="{{cantidad}}" error-message="Ing. cantidad"></paper-input>
+            </div>
+            <div class="form-field col-6">
+                <paper-input no-label-float required id="descripcion" value="{{descripcion}}" error-message="Ingrese la descripcion"></paper-input>
+            </div>
+            <div class="form-field col-2">
+                <paper-input no-label-float required allowed-pattern="[0-9\.]" id="precioUnitario" value="{{precioUnitario}}" error-message="Ingrese el precio unitario"></paper-input>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-item-compuesto-personalizado',
+
+            behaviors: [Polymer.IronValidatableBehavior],
+
+            properties: {
+                cantidad: Number,
+                descripcion: String,
+                precioUnitario: {
+                    type: Number
+                },
+                neto: {
+                    type: Number,
+                    readOnly: true,
+                    computed: "calcularNeto(cantidad, precioUnitario)"
+                },
+                total: {
+                    type: Number,
+                    computed: "calcularTotal(neto)",
+                    notify: true
+                }
+            },
+
+            calcularNeto: function(cantidad, precioUnitario) {
+                return (Number(cantidad) * Number(precioUnitario)).toFixed(2)
+            },
+
+            calcularTotal: function(neto) {
+                return neto
+            },
+
+            _getValidity: function() {
+                var valid = true;
+                valid = valid & this.$.cantidad.validate()
+                valid = valid & this.$.descripcion.validate()
+                valid = valid & this.$.precioUnitario.validate()
+                return valid
+            }
+        });
+    </script>
+</dom-module>
