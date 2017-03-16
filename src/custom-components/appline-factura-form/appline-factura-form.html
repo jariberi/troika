@@ -412,7 +412,7 @@
             alert("No se permite en facturas mayores a $1000 que el cliente no sea identificado.")
           }
           else {
-            //this.fire("open-wait", {mensaje: "Aprobando..."})
+            this.fire("open-wait", {mensaje: "Aprobando..."})
             //Armar el objeto para hacer el post
             var fact = {}
             fact['tipo']=this.tipoComprobante+this.letraComprobante

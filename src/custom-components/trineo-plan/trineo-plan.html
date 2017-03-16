@@ -4,12 +4,19 @@
         <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
                 display: block;
+                
+            }
+            paper-material {
                 width: 240px;
                 background-color: white;
                 border-color: var(--template-color);
                 border-width: 2px;
                 border-style: solid;
                 margin: 30px 0;
+            }
+
+            .container {
+                padding: 0 10px 0 0 ;
             }
 
             .container ::content iron-icon {
@@ -45,15 +52,22 @@
 
         <iron-ajax id="ajaxcambioplan" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/utils/cambio-plan/[[nombrePlan]]/" handle-as="json" last-response="{{response}}"></iron-ajax>
 
-        <div class="container layout vertical centered">  
-            <h2>[[nombrePlan]]</h2>
-            <content>
-                <!--iron-icon + ul>li * 4 -->
-            </content>
-            <span>[[costo]]</span>
-            <paper-button id="button" disabled="[[disabled]]" raised on-tap="_notificarCambioPlan">¡Contratar!</paper-button>
+        
+        
+
+        <paper-material elevation="1">
+                <div class="container layout vertical centered">  
+                    <h2>[[nombrePlan]]</h2>
+                    <content>
+                        <!--iron-icon + ul>li * 4 -->
+                    </content>
+                    <span>[[costo]]</span>
+                    <paper-button id="button" disabled="[[disabled]]" raised on-tap="_notificarCambioPlan">¡Contratar!</paper-button>
+                    
+                </div>
             
-        </div>
+        </paper-material>
+
     </template>
     <script>
         Polymer({

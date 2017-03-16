@@ -13,7 +13,7 @@
             <div class="form-field col-2">
                 <trineo-decimal-input no-label-float required id="cantidad" value="{{cantidad}}" error-message="Ing. cantidad"></trineo-decimal-input>
             </div>
-            <div class="form-field col-6">
+            <div class="form-field col-7">
                 <paper-autocomplete no-label-float disable-show-clear required text-property="denominacion" value-property="url" name="articulo" id="articuloautocomplete" remote-source="true" min-length="3" text="{{descripcion}}" error-message="Seleccione artículo">
                     <template autocomplete-custom-template>
                     <paper-item style="padding: 10px 5px;" on-tap="_onSelect" id$="[[_getSuggestionId(index)]]" role="option" aria-selected="false">
@@ -27,7 +27,7 @@
                     </template>
                 </paper-autocomplete>  
             </div>
-            <div class="form-field col-2">
+            <div class="form-field col-3">
                 <trineo-decimal-input id="precioVenta" no-label-float hidden="[[!discriminaIva]]" required readonly allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
                 <trineo-decimal-input id="precioVentaIvaInc" no-label-float hidden="[[discriminaIva]]" required readonly allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta_iva_inc}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
             </div>

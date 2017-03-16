@@ -143,36 +143,44 @@
       <li>5 veces mas rapido que la página de AFIP</li>
       <li>1 punto de venta</li>
       <li>Sin gestión adicional</li>
+      <li>1 único usuario</li>
+      <li><b>SIN SOPORTE</b></li>
     </ul>
       
     </trineo-plan>
-    <trineo-plan id="pem" nombre-plan="Pequeña Empresa" costo="$ 590">
+    <trineo-plan id="pem" nombre-plan="Pequeña Empresa" costo="$ 650">
       <iron-icon icon="device:signal-cellular-2-bar"></iron-icon>
     <ul>
-      <li>Gestión de clientes, articulos y proveedores</li>
-      <li>Uso en celulares</li>
-      <li>2 o mas puntos de venta</li>
-      <li>Informes</li>
+      <li>TODO LO ANTERIOR</li>
+      <li>Gestión de clientes, cobros, artículos y stock</li>
+      <li>Permite uso en smartphones</li>
+      <li>Personalización de la factura</li>
+      <li>Hasta 5 usuarios</li>
+      <li><b>SOPORTE POR MAIL</b></li>
     </ul>
     </trineo-plan>
-    <!--<trineo-plan disabled id="mem" nombre-plan="Mediana Empresa" costo="PROXIMAMENTE">
+    <trineo-plan id="mem" nombre-plan="Mediana Empresa" costo="$ 1290">
       <iron-icon icon="device:signal-cellular-3-bar"></iron-icon>
     <ul>
-      <li>Facturación en un solo paso</li>
-      <li>Sin carga adicional de datos</li>
-      <li>1 punto de venta</li>
-      <li>Sin gestión adicional</li>
+      <li>TODO LO ANTERIOR</li>
+      <li>Acceso al padron de AFIP</li>
+      <li>Gestion de proveedores, compras y pagos</li>
+      <li>Hasta 15 usuarios</li>
+      <li>Informes avanzados</li>
+      <li><b>SOPORTE TELEFONICO</b></li>
     </ul>
     </trineo-plan>
     <trineo-plan disabled id="gem" nombre-plan="Gran Empresa" costo="PROXIMAMENTE">
       <iron-icon icon="device:signal-cellular-4-bar"></iron-icon>
     <ul>
-      <li>Facturación en un solo paso</li>
-      <li>Sin carga adicional de datos</li>
-      <li>1 punto de venta</li>
-      <li>Sin gestión adicional</li>
+      <li>TODO LO ANTERIOR</li>
+      <li>Aviso automático de eventos por mail o SMS</li>
+      <li>Trazabilidad de operaciones</li>
+      <li>Campañas de marketing</li>
+      <li>Informes estadísticos</li>
+      <li><b>SOPORTE TELEFONICO</b></li>
     </ul>
-    </trineo-plan>-->
+    </trineo-plan>
   </div>
   </template>
 
@@ -227,6 +235,8 @@
       _onPlanContratadoChange: function(val) {
         this.$.free.actual=false
         this.$.pem.actual=false
+        this.$.mem.actual=false
+        //this.$.gem.actual=false
         switch (val) {
           case 0:
             this.$.free.actual = true
@@ -234,6 +244,12 @@
           case 1:
             this.$.pem.actual = true
             break;
+          case 2:
+            this.$.mem.actual = true
+            break;
+          //case 3:
+          //  this.$.gem.actual = true
+          //  break;
         }
       },
 
