@@ -140,7 +140,10 @@
             },
 
             getAlicIva: function() {
-                return this.alicIva
+                if (this.alicIva) {
+                    return this.alicIva
+                }
+                return "IVA00"
             },
 
             _getValidity: function() {
