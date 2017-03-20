@@ -88,8 +88,13 @@
                             </paper-dropdown-menu>
                         </div>
                     </div>
-                    <div class="layout horizontal">
-                        <paper-textarea label="Información adicional" value="{{articulo.informacion_adicional}}"></paper-textarea>
+                    <div class="layout horizontal center form-row">
+                        <div class="form-field col-10">
+                            <paper-textarea label="Información adicional" value="{{articulo.informacion_adicional}}"></paper-textarea>
+                        </div>
+                        <div class="form-field col-2">
+                            <paper-checkbox checked="{{articulo.lleva_stock}}">Llevar stock</paper-checkbox>
+                        </div>
                     </div>
                     <div class="layout horizontal center form-row">
                         <div class="form-field col-3">
@@ -127,7 +132,7 @@
                 articulo: {
                     type: Object,
                     value: function(){ 
-                        return {costo_compra: "", descuento_compra:"", ganancia_venta:""}
+                        return {costo_compra: "", descuento_compra:"", ganancia_venta:"", actualizar_precio_compra: true, lleva_stock: true}
                     }},
                 accion: Number,//0: Nuevo, 1: Edición
                 titulo: {

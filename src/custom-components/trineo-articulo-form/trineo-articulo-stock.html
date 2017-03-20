@@ -86,7 +86,7 @@
                     this.$.cantidad.invalid=true
                     valid &= false
                 }
-                else if (this.cantidad > 0 && this.cantidad > Number(this.articulo.stock)) {
+                else if (this.cantidad > 0 && this.cantidad > Number(this.articulo.stock) && this.accion==1) {
                     this.$.cantidad.errorMessage="Stock insuficiente"
                     this.$.cantidad.invalid=true
                     valid &= false

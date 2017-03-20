@@ -22,7 +22,14 @@
                             <div>[[item.denominacion]]</div>
                             <div hidden$="[[!discriminaIva]]" style="font-size:1em;color:#191919;float: right;">$ [[item.precio_venta]]</div>
                             <div hidden$="[[discriminaIva]]" style="font-size:1em;color:#191919;float: right;">$ [[item.precio_venta_iva_inc]]</div>
-                            <div style="font-size:0.75em;color:#757575;">[[item.subrubro_nombre]]</div>
+                            <div style="font-size:0.75em;color:#757575;">
+                                Stock: [[item.stock]]
+                                <iron-pages style="display: inline" selected="[[item.unidad_medida]]">
+                                    <span>Un.</span>
+                                    <span>Kgs.</span>
+                                    <span>Mts.</span>
+                                </iron-pages>
+                            </div>
                         </div>
                     </paper-item>
                     </template>

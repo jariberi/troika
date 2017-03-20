@@ -47,17 +47,22 @@
                             but.icon= "arrow-upward";
                             but.style.padding="4px";
                             var articulo = cell.row.data;
-                            but.addEventListener("tap", function(){
-                                var moddia= document.createElement("trineo-articulo-stock");
-                                moddia.accion=0
-                                moddia.articulo = articulo
-                                Polymer.dom(document.querySelector("trineo-core").root).appendChild(moddia)
-                                moddia.open();
-                                moddia.addEventListener("trineo-dialog-close", function(e) {
-                                    that.$.artgrid.refreshItems();
-                                    Polymer.dom(moddia).parentNode.removeChild(moddia);
+                            if (articulo.lleva_stock) {
+                                but.addEventListener("tap", function(){
+                                    var moddia= document.createElement("trineo-articulo-stock");
+                                    moddia.accion=0
+                                    moddia.articulo = articulo
+                                    Polymer.dom(document.querySelector("trineo-core").root).appendChild(moddia)
+                                    moddia.open();
+                                    moddia.addEventListener("trineo-dialog-close", function(e) {
+                                        that.$.artgrid.refreshItems();
+                                        Polymer.dom(moddia).parentNode.removeChild(moddia);
+                                    });
                                 });
-                            });
+                            }
+                            else {
+                                but.disabled = true;
+                            }
                             cell.element.appendChild(but);
                             var too = document.createElement("paper-tooltip");
                             too.innerHtml="Agregar a stock"
@@ -71,21 +76,36 @@
                             but.icon= "arrow-downward";
                             but.style.padding="4px";
                             var articulo = cell.row.data;
-                            but.addEventListener("tap", function(){
-                                var moddia= document.createElement("trineo-articulo-stock");
-                                moddia.accion=1
-                                moddia.articulo = articulo
-                                Polymer.dom(document.querySelector("trineo-core").root).appendChild(moddia)
-                                moddia.open();
-                                moddia.addEventListener("trineo-dialog-close", function(e) {
-                                    that.$.artgrid.refreshItems()
-                                    Polymer.dom(moddia).parentNode.removeChild(moddia);
+                            if (articulo.lleva_stock) {
+                                but.addEventListener("tap", function(){
+                                    var moddia= document.createElement("trineo-articulo-stock");
+                                    moddia.accion=1
+                                    moddia.articulo = articulo
+                                    Polymer.dom(document.querySelector("trineo-core").root).appendChild(moddia)
+                                    moddia.open();
+                                    moddia.addEventListener("trineo-dialog-close", function(e) {
+                                        that.$.artgrid.refreshItems()
+                                        Polymer.dom(moddia).parentNode.removeChild(moddia);
+                                    });
                                 });
-                            });
+                            }
+                            else {
+                                but.disabled = true;
+                            }
                             cell.element.appendChild(but);
                             var too = document.createElement("paper-tooltip");
                             too.innerHtml="Sacar de stock"
                             cell.element.appendChild(too);
+                        };
+
+                        var stockRenderer = function(cell) {
+                            var articulo = cell.row.data;
+                            if (articulo.lleva_stock) {
+                                cell.element.innerText = articulo.stock
+                            }
+                            else {
+                                cell.element.innerText = ""
+                            }
                         };
 
                         return [
@@ -94,7 +114,7 @@
                             {name: "denominacion", sortable: true},
                             {name: "subrubro_nombre", width: 140},
                             {name: "ultima_actualizacion_precio", renderer: that.grid_date_format_renderer, width: 120},
-                            {name: "stock", width: 140},
+                            {name: "stock", renderer: stockRenderer, width: 140},
                             {name: "edit", renderer: editRenderer, width: 40},
                             {name: "increase", renderer: increaseRenderer, width: 40},
                             {name: "decrease", renderer: decreaseRenderer, width: 40}
