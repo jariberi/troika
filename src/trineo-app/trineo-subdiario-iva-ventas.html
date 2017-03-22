@@ -50,15 +50,14 @@
                             <paper-input label="Página inicial" allowed-pattern="[0-9]" value="{{fpn}}"></paper-input>
                         </div>
                         <div class="col-1">
-                            <paper-icon-button style="width: 50px;height: 50px;margin-right: 20px;" on-tap="_getPDF" icon="refresh"></paper-icon-button>    
+                            <paper-button raised style="width: 50px;height: 50px;margin-right: 20px;" on-tap="_getPDF">VER</paper-button>
+                            <paper-button raised disabled="[[esFecha]]" style="width: 50px;height: 50px;margin-right: 20px;" on-tap="_getExp">EXPORTAR</paper-button>
                         </div>
                     </div>
 
                 </div>
                 
-                <div id="subdiario">
-                    <!--<object data="[[apiUrl]]/utils/subdiario_iva_ventas/[[params]]" type="application/pdf"></object>-->
-                </div>
+                <div id="subdiario"></div>
             </div>
         </paper-card>
     </template>
@@ -143,6 +142,35 @@
                         }
                     };
                     xhr.open('GET', this.apiUrl+"/utils/subdiario-iva-ventas/"+this.params, true);
+                    xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr.send();
+                }
+            },
+
+            _getExp: function() {
+                if (this.validate()) {
+                    var that = this
+                    var xhr = new XMLHttpRequest();
+                    xhr.responseType = 'blob'; //so you can access the response like a normal URL
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                            window.open(URL.createObjectURL(xhr.response)); //create <object> with data set to the blob
+                            //var a = document.createElement("a");
+                            //a.style = "display: none";
+                            //document.body.appendChild(a);
+                            //Create a DOMString representing the blob 
+                            //and point the link element towards it
+                            //var url = window.URL.createObjectURL(xhr.response);
+                            //a.href = url;
+                            //a.download = 'myFile.pdf';
+                            //programatically click the link to trigger the download
+                            //a.click();
+                            //release the reference to the file by revoking the Object URL
+                            //window.URL.revokeObjectURL(url);
+                            //document.body.removeChild(a);
+                        }
+                    };
+                    xhr.open('GET', this.apiUrl+"/utils/rg3685-ventas/"+this.params, true);
                     xhr.setRequestHeader("Authorization", "Token " + this.getToken())
                     xhr.send();
                 }
