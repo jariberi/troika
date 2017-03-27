@@ -1,0 +1,180 @@
+
+<dom-module id="trineo-subdiario-iva-compras">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+
+            paper-card {
+                width: 100%;
+            }
+
+            object {
+                width: 100%;
+                height: calc(100vh - 310px);
+                margin-top: 40px;
+            }
+        </style>
+        
+
+        <paper-card>
+            <div class="card-content">
+                <div class="layout vertical">
+                    <div class="layout horizontal center justified form-row">
+                        <div class="col-3 form-field">
+                            <paper-radio-group class="layout vertical" selected="{{por}}">
+                                <paper-radio-button name="periodo">Periodo</paper-radio-button>
+                                <paper-radio-button name="fechas">Rango de Fechas</paper-radio-button>
+                            </paper-radio-group>
+                        </div>
+                        <div class="layout vertical col-6">
+                            <div class="layout horizontal form-row">
+                                <div class="form-field col-6">
+                                    <paper-input id="mes" allowed-pattern="[0-9]" required="[[!esFecha]]" disabled="[[esFecha]]" value="{{mesPeriodo}}" label="Mes" error-message="Ingrese mes"></paper-input>
+                                </div>
+                                <div class="form-field col-6">
+                                    <paper-input id="ano" allowed-pattern="[0-9]" required="[[!esFecha]]" disabled="[[esFecha]]" value="{{anoPeriodo}}" label="Año" error-message="Ingrese año"></paper-input>
+                                </div>
+                            </div>
+                            <div class="layout horizontal form-row">
+                                <div class="form-field col-6">
+                                    <vaadin-date-picker id="desde" required="[[esFecha]]" disabled="[[!esFecha]]" id="desde" value="{{desde}}" label="Desde" error-message="Ingrese desde"></vaadin-date-picker>
+                                </div>
+                                <div class="form-field col-6">
+                                    <vaadin-date-picker id="hasta" required="[[esFecha]]" disabled="[[!esFecha]]" id="hasta" value="{{hasta}}" label="Hasta" error-message="Ingrese hasta"></vaadin-date-picker>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-2 form-field">
+                            <paper-input label="Página inicial" allowed-pattern="[0-9]" value="{{fpn}}"></paper-input>
+                        </div>
+                        <div class="col-1">
+                            <paper-button raised style="width: 50px;height: 50px;margin-right: 20px;" on-tap="_getPDF">VER</paper-button>
+                            <paper-button raised disabled="[[esFecha]]" style="width: 50px;height: 50px;margin-right: 20px;" on-tap="_getExp">EXPORTAR</paper-button>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div id="subdiario"></div>
+            </div>
+        </paper-card>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-subdiario-iva-compras',
+
+            behaviors: [DatesBehavior, AjaxBehavior, Polymer.IronValidatableBehavior],
+
+            ready: function() {
+                this.$.desde.i18n = this.get_i18n(); //From DatesBehavior
+                this.$.hasta.i18n = this.get_i18n(); //From DatesBehavior
+            },
+
+            properties: {
+                por: {
+                    type: String,
+                    value: "periodo"
+                },
+
+                esFecha: {
+                    type: Boolean,
+                    computed: "_esFechaCompute(por)"
+                },
+                mesPeriodo: String,
+                anoPeriodo: String,
+                desde: String,
+                hasta: String,
+                fpn: String,
+                params: {
+                    type: String,
+                    computed: "_paramsCompute(esFecha, desde, hasta, mesPeriodo, anoPeriodo, fpn)"
+                }
+            },
+
+            _esFechaCompute: function(por) {
+                if (por=="fechas") {
+                    return true
+                }
+                return false
+            },
+
+            _paramsCompute: function(esFecha, desde, hasta, mesPeriodo, anoPeriodo, fpn) {
+                var params= "?"
+                if (this.esFecha) {
+                    params += "por=fechas&desde="+desde+"&hasta="+hasta;
+                }
+                else {
+                    params += "por=periodo&mesPeriodo="+mesPeriodo+"&anoPeriodo="+anoPeriodo;
+                }
+                return params+="&fpn="+fpn
+            },
+
+            _getValidity: function() {
+                var valid= true;
+                valid &= this.$.mes.validate();
+                valid &= this.$.ano.validate();
+                valid &= this.$.desde.validate();
+                valid &= this.$.hasta.validate();
+                if (this.anoPeriodo.length<4) {
+                    this.$.ano.invalid=true
+                    this.$.ano.errorMessage="Ingrese un año válido"
+                    return false
+                }
+                return valid
+
+            },
+
+            _getPDF: function() {
+                if (this.validate()) {
+                    var that = this
+                    var xhr = new XMLHttpRequest();
+                    xhr.responseType = 'blob'; //so you can access the response like a normal URL
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                            //Borro lo que haya dentro de div#subdiario
+                            Polymer.dom(that.$.subdiario).innerHTML = ''
+                            var pdf = document.createElement("object");
+                            pdf.data = URL.createObjectURL(xhr.response); //create <object> with data set to the blob
+                            pdf.type = "application/pdf"
+                            Polymer.dom(that.$.subdiario).appendChild(pdf);
+                        }
+                    };
+                    xhr.open('GET', this.apiUrl+"/utils/subdiario-iva-compras/"+this.params, true);
+                    xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr.send();
+                }
+            },
+
+            _getExp: function() {
+                if (this.validate()) {
+                    var that = this
+                    var xhr = new XMLHttpRequest();
+                    xhr.responseType = 'blob'; //so you can access the response like a normal URL
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                            window.open(URL.createObjectURL(xhr.response)); //create <object> with data set to the blob
+                            //var a = document.createElement("a");
+                            //a.style = "display: none";
+                            //document.body.appendChild(a);
+                            //Create a DOMString representing the blob 
+                            //and point the link element towards it
+                            //var url = window.URL.createObjectURL(xhr.response);
+                            //a.href = url;
+                            //a.download = 'myFile.pdf';
+                            //programatically click the link to trigger the download
+                            //a.click();
+                            //release the reference to the file by revoking the Object URL
+                            //window.URL.revokeObjectURL(url);
+                            //document.body.removeChild(a);
+                        }
+                    };
+                    xhr.open('GET', this.apiUrl+"/utils/rg3685-compras/"+this.params, true);
+                    xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr.send();
+                }
+            }
+        });
+    </script>
+</dom-module>
