@@ -1,3 +1,12 @@
+<!-- B E H A V I O R S -->
+
+<link rel="import" href="../behaviors/ajax-behavior.html">
+<link rel="import" href="../behaviors/dates-behavior.html">
+<link rel="import" href="../behaviors/utils-behavior.html">
+<link rel="import" href="../behaviors/settings-behavior.html">
+
+
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
@@ -35,18 +44,15 @@
 <link rel="import" href="../../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
 
 
-<link rel="import" href="../behaviors/ajax-behavior.html">
-<link rel="import" href="../behaviors/dates-behavior.html">
-<link rel="import" href="../behaviors/utils-behavior.html">
-<link rel="import" href="../behaviors/settings-behavior.html">
 
 <link rel="import" href="../shared-styles.html">
+<link rel="import" href="../trineo-app/trineo-app.html">
 
 <script src="../../bower_components/moment/min/moment.min.js"></script>
 
 <link rel="import" href="../custom-components/appline-idfiscal-input/appline-idfiscal-input.html">
-<link rel="import" href="../custom-components/appline-auth-panel/appline-login-form.html">
-<link rel="import" href="../custom-components/appline-auth-panel/appline-auth-panel.html">
+<link rel="import" href="../custom-components/trineo-auth-panel/trineo-login-form.html">
+<link rel="import" href="../custom-components/trineo-auth-panel/trineo-auth-panel.html">
 <link rel="import" href="../custom-components/appline-wait/appline-wait.html">
 <link rel="import" href="../custom-components/appline-error-msg/appline-error-msg.html">
 <link rel="import" href="../custom-components/trineo-busca-xrz/trineo-busca-xrz.html">
@@ -56,21 +62,38 @@
 
 <dom-module id="trineo-core">
   <template>
-    <style include="shared-styles iron-flex iron-flex-alignment">
+    <style include="shared-styles iron-flex iron-flex-alignment iron-positioning">
       
       :host {
         display: block;
+        min-height: 100vh;
+        min-width: 100vw;
+        background: rgba(56,130,194,1);
+        background: -moz-linear-gradient(top, rgba(56,130,194,1) 0%, rgba(50,66,169,1) 27%, rgba(50,66,169,1) 100%);
+        background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(56,130,194,1)), color-stop(27%, rgba(50,66,169,1)), color-stop(100%, rgba(50,66,169,1)));
+        background: -webkit-linear-gradient(top, rgba(56,130,194,1) 0%, rgba(50,66,169,1) 27%, rgba(50,66,169,1) 100%);
+        background: -o-linear-gradient(top, rgba(56,130,194,1) 0%, rgba(50,66,169,1) 27%, rgba(50,66,169,1) 100%);
+        background: -ms-linear-gradient(top, rgba(56,130,194,1) 0%, rgba(50,66,169,1) 27%, rgba(50,66,169,1) 100%);
+        background: linear-gradient(to bottom, rgba(56,130,194,1) 0%, rgba(50,66,169,1) 27%, rgba(50,66,169,1) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3882c2', endColorstr='#3242a9', GradientType=0 );
+      }
+
+      iron-pages {
+        width: 100%;
+        height: 100vh;
       }
 
     </style>
 
+    <app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+
     <appline-wait id="wait"></appline-wait>
 
-    <appline-auth-panel id="auth" logged-in="{{userLoggedIn}}" user-backend="{{userBackend}}"></appline-auth-panel>
-
-    <iron-pages selected="[[page]]" attr-for-selected="name">
-      <appline-login-form name="login" user-backend="{{userBackend}}" login-url="[[apiUrl]]/utils/login/" create-url="[[apiUrl]]/utils/create-user/" id="loginForm"></appline-login-form>
-      <trineo-app id="app" user-backend="{{userBackend}}" name="app"></trineo-app>
+    <iron-pages class="horizontal layout center-justified" selected="[[page]]" attr-for-selected="name">
+      <trineo-auth-panel class="vertical layout center-justified" id="auth" name="auth" logged-in="{{userLoggedIn}}" perfil-actual="{{perfilActual}}" user-backend="{{userBackend}}"></trineo-auth-panel>
+      <!--<trineo-login-form name="login" user-backend="{{userBackend}}" login-url="[[apiUrl]]/utils/login/" create-url="[[apiUrl]]/utils/create-user/" id="loginForm"></trineo-login-form>-->
+      <trineo-app route="{{route}}" route-data="{{routeData}}" subroute="{{subroute}}" id="app" perfil-actual="[[perfilActual]]" user-backend="[[userBackend]]" name="app"></trineo-app>
     </iron-pages>
 
     
@@ -127,7 +150,6 @@
 
       properties: {
         page: String,
-        userBackend: Object,
         userLoggedIn: {
           type: Boolean,
           observer: "_userLoggedInChanged"
@@ -136,13 +158,17 @@
 
       ready: function() {
         //Cuando termina de cargar este componente, carga el otro (app) mientras el usuario se loguea
-        var resolvedPageUrl = this.resolveUrl('../trineo-app/trineo-app.html');
-        this.importHref(resolvedPageUrl, null, null, true);
+        //var resolvedPageUrl = this.resolveUrl('../trineo-app/trineo-app.html');
+        //this.importHref(resolvedPageUrl, null, null, true);
+        this.$.auth.positionTarget=this;
       },
 
       behaviors: [AjaxBehavior],
 
       listeners: {
+        "trineo-reload-auth-perfil": "__reloadAuthPerfil",
+        "trineo-usuarios-form-sended": "__onUserAdd",
+        "trineo-perfil-changed": "_onPerfilChanged",
         "open-wait": "_lanzarWaitDialog",
         "close-wait": "_cerrarWaitDialog",
         "logout": "_logout",
@@ -165,18 +191,28 @@
         "trineo-subrubro-form": "_lanzarTrineoSubrubroForm", //Es Dialog, todos los dialog se lanzan de aca
         "trineo-subrubro-form-ok": "_subrubroFormOK"
       },
+      __reloadAuthPerfil: function() {
+        this.$.auth.reloadUser();
+      },
+      __onUserAdd: function(e) {
+        this.$.auth.reloadUser();
+      },
+
+      _onPerfilChanged: function(e) {
+        this.$.auth.set("perfilActual", e.detail.perfil)
+      },
 
       _userLoggedInChanged: function(val) {
         if (val==true) {
           this.page="app"
         }
         else {
-          this.page="login"
+          this.page="auth"
         }
       },
 
       _logout: function() {
-        this.set('userBackend', undefined)
+        this.$.auth.logout();
       },
 
       

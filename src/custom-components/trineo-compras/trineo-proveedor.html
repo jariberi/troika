@@ -68,6 +68,7 @@
             behaviors: [AjaxBehavior, SettingsBehavior, Polymer.IronValidatableBehavior, Polymer.IronFormElementBehavior],
 
             properties: {
+                perfilActual: Object,
                 proveedor: {
                     type: Object,
                     notify: true,
@@ -96,6 +97,7 @@
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                xhr.setRequestHeader("trineo-empresa", this.getEmpresa())
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                     var response = JSON.parse(xhr.responseText).results;
@@ -107,6 +109,7 @@
 
             _onAutocompleteSelected: function(e) {
                 this.$.getProveedor.url = this.apiUrl+'/proveedores/' + e.detail.value + '/';
+                this.$.getProveedor.headers = this.getAuthorizationHeader();
                 this.$.getProveedor.generateRequest();
             },
 
@@ -120,6 +123,7 @@
 
              _searchproveedorFId: function(id) {
                 this.$.proFCuitAjax.url = this.apiUrl + "/utils/get-proveedor-from-id/" + id + "/";
+                this.$.proFCuitAjax.headers = this.getAuthorizationHeader();
                 this.$.proFCuitAjax.generateRequest();
             },
 

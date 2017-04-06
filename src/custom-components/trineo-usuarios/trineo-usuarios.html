@@ -1,0 +1,84 @@
+
+<link rel="import" href="trineo-usuarios-form.html">
+
+
+<dom-module id="trineo-usuarios">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+        </style>
+
+        
+        <iron-ajax
+             auto
+             url="[[empresa.url]]users/"
+             headers="[[getAuthorizationHeader()]]"
+             handle-as="json"
+             last-response="{{usuarios}}"></iron-ajax>
+        
+        
+        <paper-icon-button id="addUsuario" on-tap="_addUser" icon="add"></paper-icon-button>
+        
+        <paper-tooltip
+          for="addUsuario"
+          position="bottom"
+          offset="14">
+          Agregar usuario
+        </paper-tooltip>
+        
+        
+
+        
+        <template is="dom-repeat" items={{usuarios}} as=usuario>
+            <template is="dom-if" if={{usuario.confirmado}}>
+            <div class="layout horizontal justified center">
+                <span>[[usuario.username]]</span>
+                <paper-dropdown-menu id="rol" style="width: 140px;" no-label-float disabled="[[usuario.iniciador]]">
+                <paper-listbox attr-for-selected="value" selected="{{usuario.rol}}" class="dropdown-content">
+                    <paper-item value="0">Administrador</paper-item>
+                    <paper-item value="1">Operador</paper-item>
+                    <paper-item value="2">Contable</paper-item>
+                </paper-listbox>
+                </paper-dropdown-menu>
+                <template is="dom-if" if={{usuario.iniciador}}>
+                    <paper-tooltip
+                      for="rol"
+                      position="bottom"
+                      offset="14">
+                      No puede modificarse ya que dio de alta la empresa
+                    </paper-tooltip>
+                    
+                    
+                </template>
+                
+                </iron-pages>
+            </div>
+            
+            </template>
+        </template>
+        
+        
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-usuarios',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                empresa: Object,
+                usuarios: Array
+            },
+
+            _addUser: function() {
+                var form = document.createElement("trineo-usuarios-form");
+                form.set("empresa", this.empresa);
+                Polymer.dom(document.querySelector("trineo-core").root).appendChild(form);
+                form.open();
+            }
+        });
+    </script>
+</dom-module>

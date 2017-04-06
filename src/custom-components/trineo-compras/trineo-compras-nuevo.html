@@ -63,7 +63,7 @@
     <div class="datos-header">Datos Compra</div>
     <div class="layout horizontal wrap center form-row">
       <div class="form-field col-2">
-          <trineo-compras-periodo id="periodo" periodo-selected="{{periodo}}"></trineo-compras-periodo>
+          <trineo-compras-periodo perfil-actual="[[perfilActual]]" id="periodo" periodo-selected="{{periodo}}"></trineo-compras-periodo>
       </div>
       <div class="form-field col-3">
         <paper-dropdown-menu id="tipoCompra" value="value" required label="Tipo de Compra" error-message="Seleccione un tipo de compra">
@@ -91,7 +91,7 @@
       </div>
     </div>
     <div class="layout horizontal wrap center justified">
-        <trineo-proveedor id="proveedor" proveedor={{proveedor}} razon-social="{{proveedor.razon_social}}"></trineo-proveedor>
+        <trineo-proveedor id="proveedor" proveedor={{proveedor}} razon-social="{{proveedor.razon_social}}" perfil-actual="[[perfilActual]]"></trineo-proveedor>
     </div>
   </div>
 </paper-card>
@@ -172,10 +172,10 @@
         _asignaIva: {
           type: Boolean,
           observer: "_asignaIvaChanged",
-          computed: "_asignaIvaCompute(userBackend.perfil_user.empresa.categoria_iva, proveedor.cond_iva)",
+          computed: "_asignaIvaCompute(perfilActual.empresa.categoria_iva, proveedor.cond_iva)",
           value: false
         },
-        userBackend: Object,
+        perfilActual: Object,
         tipoCompra: String,
         fecha: String,
         fechaMax: {
@@ -189,7 +189,7 @@
         iva27: String,
         total: String,
         puntoVenta: String,
-        clienteAjaxFlight: Boolean,
+        numero: String,
         netoTotal: Number,
         periodo: String,
         exento: Number,
@@ -276,8 +276,8 @@
         this.total = (neto + iva105 + iva21 + iva27 + exento + interno + ingBrutos + redondeo + percepIva).toFixed(2)
       },
       clear: function() {
-        this.$.ajaxas.auto=false; // Ajax del ultimo comprobante saco auto
-        this.tipoVenta = this.puntoVentaSelected = this.tipoComprobante = this.cliente = this.ultimoComprobante = null
+        this.tipoCompra = this.fecha = this.proveedor = this.puntoVenta = this.numero = this.periodo = null
+        this.exento = this.interno = this.ingBrutos = this.redondeo = this.percepIva = null
         var items=Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
         for (i = 0; i < items.length; i++) {
           Polymer.dom(items[i].parentNode).removeChild(items[i])  
@@ -308,7 +308,7 @@
             var compra = {}
             compra['tipo']=this.tipoCompra
             compra['fecha']=this.fecha
-            compra['empresa'] = this.userBackend.perfil_user.empresa.id
+            compra['empresa'] = this.perfilActual.empresa.id
             compra['punto_venta'] = this.puntoVenta
             compra['numero'] = this.numero
             compra['periodo'] = this.periodo
@@ -342,7 +342,6 @@
             if (this.interno) {
               compra['impuesto_interno'] = this.interno
             }
-            console.log(compra)
             this.$.submitCompraAjax.body = compra
             this.$.submitCompraAjax.generateRequest()
           }

@@ -143,6 +143,7 @@
                     };
                     xhr.open('GET', this.apiUrl+"/utils/subdiario-iva-ventas/"+this.params, true);
                     xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr.setRequestHeader("trineo-empresa", String(this.getEmpresa()))
                     xhr.send();
                 }
             },
@@ -172,6 +173,7 @@
                     };
                     xhr.open('GET', this.apiUrl+"/utils/rg3685-ventas/"+this.params, true);
                     xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr.setRequestHeader("trineo-empresa", String(this.getEmpresa()))
                     xhr.send();
                 }
             }

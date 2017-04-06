@@ -17,7 +17,7 @@
       
       
     </style>
-      <appline-factura-form id="form" pro-settings="[[proSettings]]" user-backend="[[userBackend]]"></appline-factura-form> 
+      <appline-factura-form id="form" pro-settings="[[proSettings]]" perfil-actual="[[perfilActual]]"></appline-factura-form> 
 
   </template>
 
@@ -27,7 +27,7 @@
 
       properties: {
         proSettings: Object,
-        userBackend: Object,
+        perfilActual: Object,
       },
 
       clearForm: function() {

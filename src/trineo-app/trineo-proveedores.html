@@ -37,7 +37,8 @@
                     columns="[[_proveedoresColumns]]"
                     headers="[[_proveedoresHeaders]]"
                     url="[[apiUrl]]/proveedores/"
-                    sort-order="[[_proveedoresSortOrder]]"></trineo-list>
+                    sort-order="[[_proveedoresSortOrder]]"
+                    empresa="[[perfilActual.empresa.id]]"></trineo-list>
             
     </template>
     <script>
@@ -47,7 +48,10 @@
             behaviors: [AjaxBehavior],
 
             properties: {
-                userBackend: Object,
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"
+                },
                 _proveedoresColumns: {
                     type: Array,
                     value: function() {
@@ -96,6 +100,10 @@
                     form.proveedor = prov
                 }
                 form.open();
+            },
+
+            _perfilActualChanged: function() {
+                this.$.proveedoresList.refreshItems();
             }
         });
     </script>

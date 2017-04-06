@@ -13,7 +13,8 @@
             columns="[[_articulosColumns]]"
             headers="[[_articulosHeaders]]"
             url="[[apiUrl]]/articulos/"
-            sort-order="[[_articulosSortOrder]]"></trineo-list>
+            sort-order="[[_articulosSortOrder]]"
+            empresa="[[perfilActual.empresa.id]]"></trineo-list>
     </template>
     <script>
         Polymer({
@@ -22,6 +23,10 @@
             behaviors: [AjaxBehavior, UtilsBehavior],
 
             properties: {
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"
+                },
                 _articulosColumns: {
                     type: Array,
                     value: function() {
@@ -135,6 +140,10 @@
                         ]
                     }
                 }
+            },
+
+            _perfilActualChanged: function() {
+                this.$.artgrid.refreshItems();
             }
         });
     </script>

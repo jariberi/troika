@@ -1,0 +1,82 @@
+<link rel="import" href="trineo-empresa-form.html">
+
+<dom-module id="trineo-seleccion-empresa">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-dropdown-menu {
+                --paper-input-container-label: {
+                    color: #fff;
+                    font-weight: bold;
+                    };
+                --paper-input-container-input: {
+                color: #fff;
+                };
+                /* no underline */
+                --paper-input-container-underline: {
+                display: none;
+                };
+            }
+        </style>
+        
+        <paper-dropdown-menu id="empresas" value="value" no-label-float>
+            <paper-listbox class="dropdown-content" selected="{{perfilSelected}}" attr-for-selected="value">
+                            <template is="dom-repeat" items={{userBackend.perfiles_empresa}} as=empresa>
+                                <template is="dom-if" if={{empresa.confirmado}}>
+                                    <paper-item value="[[empresa.empresa.id]]">[[empresa.empresa.razon_social]]</paper-item>
+                                </template>
+                            </template>
+                            <paper-icon-item on-tap="_addEmpresa"><iron-icon icon="add" item-icon></iron-icon>Nueva empresa</paper-icon-item>
+                            
+            </paper-listbox>
+        </paper-dropdown-menu>
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-seleccion-empresa',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                userBackend: Object,
+                perfilSelected: {
+                    type: String,
+                    observer: "_onPerfilSelectedChanged"
+                },
+                perfilActual: {
+                    type: Object,
+                    observer: "_onPerfilActualChanged"
+                }
+            },
+
+            _onPerfilSelectedChanged: function(val) {
+                if (this.userBackend) {
+                    for (i=0;i<this.userBackend.perfiles_empresa.length;i++) {
+                        if (Number(this.userBackend.perfiles_empresa[i].empresa.id) == Number(val)) {
+                            this.perfilActual = this.userBackend.perfiles_empresa[i]
+                        }
+                    }
+                }
+            },
+
+            _onPerfilActualChanged: function(v) {
+                if (v) {
+                    this.perfilSelected = v.empresa.id
+                    this.fire("trineo-perfil-changed", {perfil: this.perfilActual})
+                }
+            },
+
+            _addEmpresa: function(e) {
+                e.stopPropagation();
+                this.$.empresas.close();
+                var form = document.createElement("trineo-empresa-form");
+                Polymer.dom(document.querySelector("trineo-core").root).appendChild(form);
+                form.open();
+            }
+        });
+    </script>
+</dom-module>

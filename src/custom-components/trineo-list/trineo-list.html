@@ -45,6 +45,7 @@
             }
             
         </style>
+        
         <paper-card elevation="1" animated-shadow="false">
             <div class="card-content">
                 <div class="layout horizontal center">
@@ -82,7 +83,8 @@
                 columns: Array,
                 headers: Array,
                 url: String,
-                sortOrder: Array
+                sortOrder: Array,
+                empresa: Number //Empresa a la que pertenece esta lista, mas alla de lo que haya dentro
             },
 
             refreshItems: function() {
@@ -121,6 +123,7 @@
                     var xhr = new XMLHttpRequest();
                     xhr.open('GET', url, true);
                     xhr.setRequestHeader("Authorization", "Token " + that.getToken())
+                    xhr.setRequestHeader("trineo-empresa", String(that.empresa))
                     xhr.onreadystatechange = function() {
                         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                         var response = JSON.parse(xhr.responseText);

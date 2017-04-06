@@ -1,0 +1,90 @@
+
+<dom-module id="trineo-usuarios-form">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                width: 20vw;
+            }
+        </style>
+        
+        <iron-ajax
+            id="saveInvitacionAjax"
+            handle-as="json"
+            on-response="handleResponse"
+            headers="[[getAuthorizationHeader()]]"
+            content-type="application/json"></iron-ajax>
+        
+        <div class="trineo-dialogs">
+            <h2>Nuevo usuario</h2>
+                    <div class="layout vertical">
+                        <gold-email-input id="mail" required label="Email" error-message="Ingrese un mail válido" value="{{mail}}"></gold-email-input>
+                        <paper-dropdown-menu label="Rol" id="rol" required>
+                            <paper-listbox attr-for-selected="value" selected="{{rol}}" class="dropdown-content">
+                                <paper-item value="0">Administrador</paper-item>
+                                <paper-item value="1">Operador</paper-item>
+                                <paper-item value="2">Contable</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+            <div class="buttons">
+                <paper-button raised autofocus on-tap="_close">Cancelar</paper-button>
+                <paper-button raised on-tap="_saveInvitacion">Aceptar</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-usuarios-form',
+
+            behaviors: [AjaxBehavior, Polymer.IronOverlayBehavior, Polymer.IronValidatableBehavior],
+
+            properties: {
+                empresa: Object,
+                mail: String,
+                rol: Number
+            },
+
+            ready: function() {
+                this.withBackdrop=true
+                this.noCancelOnEscKey = true
+                this.noCancelOnOutsideClick = true
+                this.alwaysOnTop = true
+            },
+
+            _getValidity: function() {
+                var valid = true
+                valid &= this.$.mail.validate();
+                valid &= this.$.rol.validate();
+                return valid
+            },
+
+            _saveInvitacion: function() {
+                if(this.validate()){
+                    this.$.saveInvitacionAjax.url = this.empresa.url+"add_user/"
+                    this.$.saveInvitacionAjax.method = "POST"
+                    obj = {mail:this.mail, rol:this.rol}
+                    this.$.saveInvitacionAjax.body = JSON.stringify(obj)
+                    this.$.saveInvitacionAjax.generateRequest();
+                }
+            },
+
+            handleResponse: function(e) {
+                if(e.detail.xhr.status==200 || e.detail.xhr.status==201) {
+                    //this.parent.$.proveedoresList.refreshItems();
+                    this.fire("trineo-usuarios-form-sended");
+                    var toast = document.createElement("paper-toast");
+                    toast.text="Invitación enviada, esperando aprobación."
+                    Polymer.dom(document.querySelector("trineo-core").root).appendChild(toast);
+                    toast.open()
+                    this._close()
+                }
+            },
+
+            _close: function() {
+                this.close()
+                Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
+            }
+        });
+    </script>
+</dom-module>

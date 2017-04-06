@@ -38,24 +38,14 @@
 
         </style>
         
-        <paper-card elevation="1" animated-shadow="false">
-          <div class="card-content">
-              <div class="layout horizontal center">
-            <span>Búsqueda</span>
-            
-            <paper-input no-label-float value="{{search}}"></paper-input>
-            
-        </div>
-          </div>
-          
-        </paper-card>
         
-        <paper-material elevation="1">    
-        <vaadin-grid selection-mode="disabled" id="cligrid">
-            <table>
-            </table>
-        </vaadin-grid>
-        </paper-material>
+        <trineo-list id="clientesList"
+                    columns="[[_clientesColumns]]"
+                    headers="[[_clientesHeaders]]"
+                    url="[[apiUrl]]/clientes/"
+                    sort-order="[[_clientesSortOrder]]"
+                    empresa="[[perfilActual.empresa.id]]"></trineo-list>
+
             
     </template>
     <script>
@@ -65,79 +55,49 @@
             behaviors: [AjaxBehavior],
 
             properties: {
-                userBackend: {
+                perfilActual: {
                     type: Object,
-                    reflectToAttribute: true
+                    observer: "_perfilActualChanged"
                 },
-                search: {
-                    type: String,
-                    observer: "_onSearchChanged"
+                _clientesColumns: {
+                    type: Array,
+                    value: function() {
+                        var that = this
+                        var editButtonRenderer = function(cell) {
+                            cell.element.innerHTML = '';
+                            var editButton = document.createElement('trineo-cliente-edit');
+                            editButton.set('cliente', cell.row.data);
+                            cell.element.appendChild(editButton);
+                        };
+
+                        return [
+                            {name: "numero_identificacion", sortable: true, width: 150},
+                            {name: "razon_social", sortable: true, maxWidth: 267-17},
+                            {name: "direccion", maxWidth: 220},
+                            {name: "localidad", maxWidth: 180},
+                            {name: "cond_iva_display", maxWidth: 200},
+                            {name: "edit", renderer: editButtonRenderer} //88px
+                        ]
+                    }
+                },
+                _clientesHeaders: {
+                    type: Array,
+                    value: function() {
+                        return ["IDENTIFICACIOÓN", "RAZÓN SOCIAL", "DIRECCIÓN", "CIUDAD", "COND. IVA", ""]
+                    }
+                },
+                _clientesSortOrder: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {column: 1, direction: "asc"}
+                        ]
+                    }
                 }
             },
 
-            _onSearchChanged: function(val) {
-                this.$.cligrid.refreshItems();
-            },
-
-            ready: function() {
-                var editButtonRenderer = function(cell) {
-                    cell.element.innerHTML = '';
-                    var editButton = document.createElement('trineo-cliente-edit');
-                    editButton.set('cliente', cell.row.data);
-                    cell.element.appendChild(editButton);
-                };
-                
-                this.$.cligrid.columns = [
-                    {name: "numero_identificacion", sortable: true, width: 150},
-                    {name: "razon_social", sortable: true, maxWidth: 267},
-                    {name: "direccion", maxWidth: 220},
-                    {name: "localidad", maxWidth: 180},
-                    {name: "cond_iva_display", maxWidth: 200},
-                    {name: "edit", renderer: editButtonRenderer} //88px
-                ]
-
-                this.$.cligrid.sortOrder = [
-                    {column: 1, direction: "asc"}
-                ]
-                
-                this.$.cligrid.header.getCell(0,0).content="IDENTIFICACIÓN"
-                this.$.cligrid.header.getCell(0,1).content="RAZÓN SOCIAL"
-                this.$.cligrid.header.getCell(0,2).content="DIRECCIÓN"
-                this.$.cligrid.header.getCell(0,3).content="CIUDAD"
-                this.$.cligrid.header.getCell(0,4).content="COND. IVA"
-                this.$.cligrid.header.getCell(0,5).content=""
-                
-
-                var that = this
-                this.$.cligrid.items = function(params, callback) {
-                    var sorting = ""
-                    if (params.sortOrder) {
-                        sorting = "&ordering="
-                        for (i=0;i<params.sortOrder.length;i++) {
-                            var column = that.$.cligrid.columns[params.sortOrder[i].column].name
-                            if (params.sortOrder[i].direction=="desc") {
-                                column = "-"+column
-                            }
-                            sorting += column+","
-                        }
-                    }
-                    var search = ""
-                    if (that.search) {
-                        search = '&search='+that.search
-                    }
-                    var url = that.apiUrl+'/clientes/?index=' + params.index + '&count=' + params.count + search + sorting;
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET', url, true);
-                    xhr.setRequestHeader("Authorization", "Token " + that.userBackend.auth_token)
-                    xhr.onreadystatechange = function() {
-                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                        var response = JSON.parse(xhr.responseText);
-                        callback(response.results);
-                        that.$.cligrid.size = response.count
-                    }
-                    };
-                    xhr.send();
-                };
+            _perfilActualChanged: function() {
+                this.$.clientesList.refreshItems();
             }
         });
     </script>

@@ -1,0 +1,254 @@
+
+<dom-module id="trineo-auth-panel">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment iron-positioning">
+            :host {
+                display: block;
+                max-width: 400px;
+                width: 400px;
+                max-height: 100vh;
+            }
+
+
+            paper-material {
+                background-color: var(--primary-background-color);
+                padding: 10px 25px;
+            }
+
+            paper-material h2 {
+                color: var(--accent-color);
+            }
+
+            paper-material paper-button {
+                background-color: var(--accent-color);
+                color: var(--primary-text-color);
+            }
+        </style>
+
+        <iron-localstorage on-iron-localstorage-load="_trineolambdaLoaded" id="lsuser" name="trineolambda" value="{{userBackend}}"></iron-localstorage>
+        <iron-localstorage on-iron-localstorage-load="_trineolambdapaLoaded" id="lsuserpa" name="trineolambdapa" value="{{perfilActual}}"></iron-localstorage>
+
+        <iron-ajax
+             id="updateUserAjax"
+             url="[[userBackend.url]]"
+             handle-as="json"
+             on-response="_onResponse"></iron-ajax>
+
+        <iron-ajax id="loginAjax" url="[[apiUrl]]/utils/login/" handle-as="json" method="POST" content-type="application/x-www-form-urlencoded" 
+            body="username=[[username]]&password=[[password]]" last-response="{{userBackend}}" on-error="_loginError" on-response="_loginResponse"></iron-ajax>
+        <iron-ajax id="createUserAjax" url="[[createUrl]]" content-type="application/x-www-form-urlencoded" handle-as="json" method="POST" 
+            body="username=[[username]]&password=[[password]]&razon_social=[[razon_social]]&cuit=[[cuit]]&categoria_iva=[[categoriaIva]]" last-response="{{userBackend}}"
+            on-error="_createError" on-response="_createResponse"></iron-ajax>
+        
+        
+        
+        <paper-material elevation="4">
+        
+        
+        <iron-pages selected="[[actionSelected]]">
+            <section>
+                <div class="layout vertical">
+                    <h2>Login</h2>
+                    <paper-button style="margin: auto;" id="usunue" on-tap="_toggleLogin">Soy un usuario nuevo</paper-button>
+                    <gold-email-input id="loginmail" required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
+                    <paper-input id="loginpass" required error-message="Ingrese contraseña" label="Contraseña" type="password" value="{{password}}"></paper-input>
+                    <appline-error-msg hidden$="[[!errorLoginMsg]]" message="[[errorLoginMsg]]" id="errorLogin"></appline-error-msg>
+                    <paper-button style="margin-left: auto;" id="loginbutton" on-tap="_login" raised><span id="logspa">Login!</span><paper-spinner id="logspi"></paper-spinner></paper-button>
+                </div>
+            </section>
+            <section>
+                <h2>Nuevo usuario</h2>
+                <div class="layout vertical centered">
+                    <paper-button id="usuvie" style="margin: auto;" class="link" on-tap="_toggleLogin">Ya estoy registrado</paper-button>
+                    <gold-email-input required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
+                    <appline-password-input id="passin" password={{password}} required></appline-password-input>
+                    <appline-idfiscal-input required only-cuit id="cuitDni" label="Cuit" value="{{cuit}}" error-message="Ingrese CUIT válido"></appline-idfiscal-input>
+                    <paper-input required label="Razon Social" value="{{razon_social}}" error-message="Ingrese razón social"></paper-input>
+                    <paper-dropdown-menu name="categoria-iva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
+                        <paper-listbox class="dropdown-content" selected="{{categoriaIva}}" attr-for-selected="value">
+                            <paper-item value="0">Responsable Inscripto</paper-item>
+                            <paper-item value="1">Monotributo</paper-item>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <appline-error-msg hidden$=[[!errorCreateMsg]] message="[[errorCreateMsg]]" id="errorCreate"></appline-error-msg>
+                    <paper-button style="margin-left: auto;" id="crebtn" on-tap="_createUser" raised><span id="crespa">Crear!</span><paper-spinner id="crespi"></paper-spinner></paper-button>
+                </div>
+            </section>
+        </iron-pages>
+        </paper-material>
+    
+
+    </template>
+    <script>
+            Polymer({
+                is: 'trineo-auth-panel',
+                
+                ready: function() {
+                    //this.$.updateUserAjax.generateRequest()
+                },
+
+                behaviors: [AjaxBehavior, Polymer.IronValidatableBehavior, Polymer.IronFitBehavior],
+
+                properties: {
+                    /**
+                    * Inform if the user is logged in 
+                    *
+                    * @type {Boolean}
+                    */
+                    loggedIn: {
+                        type: Boolean,
+                        notify: true,
+                        computed: "_loggedInCompute(userBackend)"
+                    },
+                    /**
+                    * userBackend
+                    *
+                    * @type {Object}
+                    */
+                    userBackend: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    perfilActual: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    perfiles: {
+                        type: Array,
+                        computed: "perfilesCompute(userBackend)",
+                        observer: "_onPerfilesChanged"
+                    },
+                    actionSelected: {
+                        type: Number,
+                        value: 0
+                    },
+                    loginUrl: String,
+                    createUrl: String,
+                    username: String,
+                    password: String,
+                    razon_social: String,
+                    cuit: String,
+                    urlAuth: String,
+                    errorCreateMsg: String,
+                    errorLoginMsg: String,
+                    _userCacheLoaded: Boolean,
+                    _perfilActualCacheLoaded: Boolean,
+                    _cacheLoaded: {
+                        type: Boolean,
+                        computed: "_cacheLoadedCompute(_userCacheLoaded, _perfilActualCacheLoaded)",
+                        observer: "_cacheLoadedChanged"}
+                    },
+
+                _trineolambdaLoaded: function(e) {
+                    this._userCacheLoaded=true
+                },
+
+                _trineolambdapaLoaded: function(e) {
+                    this._perfilActualCacheLoaded=true
+                },
+
+                _cacheLoadedCompute: function(u,p) {
+                    if (u && p) {
+                        return true
+                    }
+                    return false
+                },
+
+                _cacheLoadedChanged: function(v) {
+                    if (v) {
+                        this.$.updateUserAjax.headers=this.getAuthorizationHeader()
+                        this.$.updateUserAjax.generateRequest();
+                    }
+                },
+
+                _loggedInCompute: function(user) {
+                    return !!user
+                },
+
+                perfilesCompute: function(userBackend) {
+                    if(userBackend) {
+                        return userBackend.perfiles_empresa
+                    }
+                    return undefined
+                },
+
+                _onPerfilesChanged: function(perfiles) {
+                    if (!this.perfilActual && perfiles) {
+                        this.set("perfilActual" ,perfiles[0])
+                    }
+                    //Actualizo el perfil seleccionado
+                    else if (this.perfilActual && perfiles) {
+                        var that = this
+                        var index = perfiles.findIndex(function(x) {return x.empresa.id === that.perfilActual.empresa.id})
+                        this.set("perfilActual", perfiles[index])
+                    }
+                },
+                reloadUser: function() {
+                    this.$.updateUserAjax.generateRequest();
+                },
+                //Cada dos horas actualizo la info del usuario, por las dudas que haya cambios en el backend: siguientes dos metodos
+                _updateUserData: function() {
+                    this.async(function() {
+                        this.$.updateUserAjax.generateRequest();
+                    }, 7200000);
+                },
+                _onResponse: function(e) {
+                    if (e.detail.xhr.status==200) {
+                        this.set('userBackend', e.detail.xhr.response)
+                    }
+                    this._updateUserData();
+                },
+
+                logout: function() {
+                    this.set("userBackend", undefined);
+                    this.set("perfilActual", undefined);
+                },
+
+                _toggleLogin: function() {
+                if (this.actionSelected==0) {
+                    this.actionSelected = 1
+                }
+                else {
+                    this.actionSelected = 0
+                }
+                },
+
+                _login: function (e) {
+                    var valid = true
+                    valid &= this.$.loginmail.validate();
+                    valid &= this.$.loginpass.validate();
+                    if(valid) {
+                        this.$.logspi.active=true
+                        this.$.logspa.setAttribute("hidden", true)
+                        this.$.loginAjax.generateRequest();
+                        this.$.usunue.disabled=true
+                        this.$.loginbutton.disabled=true
+                    }
+                },
+
+                _loginError: function(e,r) {
+                    var status = r.request.xhr.status
+                    if (status == 401) {
+                        this.errorLoginMsg = "Usuario o contraseña incorrectos."
+                    } else {
+                        this.errorLoginMsg = "Error general. Reintente en unos minutos."
+                    }
+                    this.$.logspi.active=false
+                    this.$.logspa.removeAttribute("hidden")
+                    this.$.usunue.disabled=false
+                    this.$.loginbutton.disabled=false
+                },
+
+                _loginResponse: function() {
+                    this.username = ""
+                    this.password = ""
+                    this.$.usunue.disabled=false
+                    this.$.loginbutton.disabled=false
+                    this.$.logspi.active=false
+                    this.$.logspa.removeAttribute("hidden")
+                }
+            });
+    </script>
+</dom-module>

@@ -44,10 +44,11 @@
             columns="[[_comprasColumns]]"
             headers="[[_comprasHeaders]]"
             url="[[apiUrl]]/compras/"
-            sort-order="[[_comprasSortOrder]]"></trineo-list>
+            sort-order="[[_comprasSortOrder]]"
+            empresa="[[perfilActual.empresa.id]]"></trineo-list>
             </section>
             <section>
-                <trineo-compras-nuevo id="comprasNuevo" user-backend="[[userBackend]]"></trineo-compras-nuevo>
+                <trineo-compras-nuevo id="comprasNuevo" perfil-actual="[[perfilActual]]"></trineo-compras-nuevo>
             </section>
         </iron-pages>
     
@@ -91,7 +92,9 @@
                     type: Number,
                     computed: "_selectedCompute(routeData.nuevo)"
                 },
-                userBackend: Object,
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"},
                 _comprasColumns: {
                     type: Array,
                     value: function() {
@@ -163,6 +166,11 @@
 
             listeners: {
                 "trineo-compras-ver-comprobante": "_verComprobante",
+            },
+
+            _perfilActualChanged: function(v) {
+                this.$.comprasList.refreshItems();
+                this.$.comprasNuevo.clear();
             },            
 
             _delComprobante: function(e) {

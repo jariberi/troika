@@ -8,17 +8,27 @@
                 value: "http://127.0.0.1:8000"
             },
         },
-        getAuthHeader: function(token) {
-            return {Authorization: "Token "+token}
-        },
 
-        getAuthorizationHeader: function() {
-            token = JSON.parse(localStorage.getItem("trineolambda")).auth_token
-            return {Authorization: "Token "+token}
+        getAuthorizationHeader: function() { //El perfilActual lo manejo con binding, para actualizar antes cambios y no tener que esperar a que escriba en el localStorage
+            if (localStorage.getItem("trineolambda")) {
+                token = JSON.parse(localStorage.getItem("trineolambda")).auth_token
+                if (this.perfilActual) {
+                    empresa_id = String(this.perfilActual.empresa.id)
+                    return {Authorization: "Token "+token, "trineo-empresa": empresa_id}
+                }
+                else {
+                    return {Authorization: "Token "+token}
+                }
+            }
+            return null
         },
 
         getToken: function() {
             return JSON.parse(localStorage.getItem("trineolambda")).auth_token
+        },
+
+        getEmpresa: function() {
+            return JSON.parse(localStorage.getItem("trineolambdapa")).empresa.id
         }
 
     }

@@ -22,6 +22,7 @@
             behaviors: [AjaxBehavior, UtilsBehavior, Polymer.IronValidatableBehavior],
 
             properties: {
+                perfilActual: Object,
                 periodoSelected: {
                     type: String, //URL
                     notify: true
@@ -30,10 +31,15 @@
             },
 
             ready: function() {
+                this.refreshPeriodos();
+            },
+
+            refreshPeriodos: function() {
                 var url = this.apiUrl+'/periodos/?index=0&count=6&ordering=-ano,-mes'; //Los ultimos 6 periodos
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                xhr.setRequestHeader("trineo-empresa", this.perfilActual.empresa.id)
                 var that = this
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {

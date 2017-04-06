@@ -1,0 +1,106 @@
+<link rel="import" href="../../../bower_components/gold-email-input/gold-email-input.html">
+<link rel="import" href="../appline-password-input/appline-password-input.html">
+
+<dom-module id="trineo-login-form">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+                background-color: var(--primary-color);
+                width: 100vw;
+                height: 100vh;
+            }
+            paper-input, paper-dropdown-menu {
+                width: 100%;
+            }
+
+            paper-dialog {
+                width: 300px;
+                padding: 20px;
+            }
+            paper-button {
+                width: 90%;
+                margin: 5%;
+            }
+            paper-button.link {
+                width: 80%;
+                margin: 10%;
+                color: #3F51B5;
+            }
+            paper-button.link:hover {
+                background-color: rgba(48,63,159,0.1);
+                color: #303F9F;
+            }
+            paper-button.link:disabled {
+                color: rgba(48,63,159,0.1);
+                background: none;
+            }
+
+            
+        </style>
+
+        
+        
+        
+
+    </template>
+<script>
+        Polymer({
+            is: 'trineo-login-form',
+
+            properties: {
+                
+            },
+
+            behaviors: [AjaxBehavior],
+
+            _loggedInChanged: function (val, old) {
+                if(val==false) {
+                    this.open();
+                }
+                else {
+                    if (this.$.loginDialog.opened) {this.$.loginDialog.close();}
+                    if (this.$.newUserDialog.opened) {this.$.newUserDialog.close();}
+                }
+            },
+
+            open: function() {
+                this.$.loginDialog.open();
+            },
+
+            
+
+            _createUser: function() {
+                if(this.$.createUserForm.validate()) {
+                    this.$.crespi.active=true
+                    this.$.crespa.setAttribute("hidden", true)
+                    this.$.createUserAjax.generateRequest();
+                    this.$.usuvie.disabled=true
+                    this.$.crebtn.disabled=true
+                }
+            },
+
+            _createError: function(e,r) {
+                var status = r.request.xhr.status
+                if (status == 409) {
+                    this.errorCreateMsg = "El email o el CUIT ya existen."
+                } else {
+                    this.errorCreateMsg = "Error general. Reintente en unos minutos."
+                }
+                this.$.crespi.active=false
+                this.$.crespa.removeAttribute("hidden")
+                this.$.usuvie.disabled=false
+                this.$.crebtn.disabled=false
+            },
+            _createResponse: function() {
+                this.password = this.razon_social = this.cuit = this.username = ""
+                this.categoriaIva = undefined
+                this.$.passin.clear()
+                this.$.usuvie.disabled=false
+                this.$.crebtn.disabled=false
+                this.$.crespi.active=false
+                this.$.crespa.removeAttribute("hidden")
+            }
+        });
+    </script>
+</dom-module>

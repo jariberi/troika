@@ -43,7 +43,8 @@
                     columns="[[_ventasColumns]]"
                     headers="[[_ventasHeaders]]"
                     url="[[apiUrl]]/ventas/"
-                    sort-order="[[_ventasSortOrder]]"></trineo-list>
+                    sort-order="[[_ventasSortOrder]]"
+                    empresa="[[perfilActual.empresa.id]]"></trineo-list>
             </section>
             <section>
                 <paper-card>
@@ -105,7 +106,9 @@
                 route: Object,
                 routeData: Object,
                 comprobante: Object,
-                userBackend: Object,
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"},
                 comp: {
                     type: String,
                     computed: "_compCompute(comprobante.tipo)"
@@ -220,6 +223,10 @@
                 else {
                     this.$.getcompajax.auto=false
                 }
+            },
+
+            _perfilActualChanged: function(v) {
+                this.$.comprobantesList.refreshItems();
             },
 
             _compCompute: function(tipo) {

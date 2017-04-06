@@ -13,7 +13,8 @@
             columns="[[_rubrosColumns]]"
             headers="[[_rubrosHeaders]]"
             url="[[apiUrl]]/rubros/"
-            sort-order="[[_rubrosSortOrder]]"></trineo-list>
+            sort-order="[[_rubrosSortOrder]]"
+            empresa="[[perfilActual.empresa.id]]"></trineo-list>
     </template>
     <script>
         Polymer({
@@ -22,6 +23,10 @@
             behaviors: [AjaxBehavior],
 
             properties: {
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"
+                },
                 _rubrosColumns: {
                     type: Array,
                     value: function() {
@@ -65,6 +70,10 @@
                         ]
                     }
                 }
+            },
+
+            _perfilActualChanged: function() {
+                this.$.rubgrid.refreshItems();
             }
         });
     </script>

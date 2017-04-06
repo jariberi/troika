@@ -13,7 +13,8 @@
             columns="[[_lineasColumns]]"
             headers="[[_lineasHeaders]]"
             url="[[apiUrl]]/lineas/"
-            sort-order="[[_lineasSortOrder]]"></trineo-list>
+            sort-order="[[_lineasSortOrder]]"
+            empresa="[[perfilActual.empresa.id]]"></trineo-list>
     </template>
     <script>
         Polymer({
@@ -22,6 +23,10 @@
             behaviors: [AjaxBehavior],
 
             properties: {
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"
+                },
                 _lineasColumns: {
                     type: Array,
                     value: function() {
@@ -64,6 +69,10 @@
                         ]
                     }
                 }
+            },
+
+            _perfilActualChanged: function() {
+                this.$.lingrid.refreshItems();
             }
         });
     </script>

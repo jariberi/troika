@@ -6,7 +6,6 @@
 <link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../../bower_components/app-route/app-location.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
-<!--<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">-->
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
@@ -19,6 +18,7 @@
 
 <link rel="import" href="trineo-dashboard.html">
 <link rel="import" href="trineo-totales-comprobante.html">
+<link rel="import" href="../custom-components/trineo-auth-panel/trineo-seleccion-empresa.html">
 
 
 
@@ -27,6 +27,9 @@
         <style include="shared-styles iron-flex iron-flex-alignment">
             :host {
                 display: block;
+                min-width: 100vw;
+                min-height: 100vh;
+                background-color: #EEEEEE;
 
                 --paper-menu-selected-item: {
                     color: var(--accent-color);
@@ -128,12 +131,14 @@
             }
 
         </style>
-        <app-location route="{{route}}"></app-location>
-        <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+        <!--<app-location route="{{route}}"></app-location>
+        <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>-->
 
         <app-drawer-layout fullbleed>
           <app-drawer>
-            <app-toolbar>[[userBackend.perfil_user.empresa.nombre_fantasia]]</app-toolbar>
+            <app-toolbar>
+              <trineo-seleccion-empresa perfil-actual="{{perfilActual}}" user-backend="[[userBackend]]"></trineo-seleccion-empresa>
+            </app-toolbar>
             <paper-menu class="drawer-list">
               <paper-submenu>
                 <paper-item class="menu-trigger">
@@ -198,6 +203,12 @@
               <a class="item" href="/settings/" tabindex="-1">
                 <iron-icon icon="settings" item-icon></iron-icon>
                 <span>Configuración</span>
+              </a>
+            </paper-item>
+            <paper-item>
+              <a class="item" href="/user/" tabindex="-1">
+                <iron-icon icon="face" item-icon></iron-icon>
+                <span>Usuario</span>
               </a>
             </paper-item>
             <paper-item>
@@ -333,18 +344,19 @@
           </app-header>
 
           <iron-pages id="content" selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
-            <trineo-factv id="factv" pro-settings="{{proSettings}}" user-backend=[[userBackend]] name="factv"></trineo-factv>
-            <trineo-settings pro-settings="{{proSettings}}" name="settings" user-backend="{{userBackend}}"></trineo-settings>
-            <trineo-comprobante route="{{subroute}}" name="comprobante" user-backend=[[userBackend]]></trineo-comprobante>
-            <trineo-clientes id="clientes" name="clientes" user-backend=[[userBackend]]></trineo-clientes>
-            <trineo-proveedores id="proveedores" name="proveedores" user-backend=[[userBackend]]></trineo-proveedores>
-            <trineo-articulos name="articulos" id="articulos"></trineo-articulos>
-            <trineo-lineas name="lineas" id="lineas"></trineo-lineas>
-            <trineo-rubros name="rubros" id="rubros"></trineo-rubros>
-            <trineo-subrubros name="subrubros" id="subrubros"></trineo-subrubros>
-            <trineo-compras route="{{subroute}}" name="compras" id="compras" user-backend=[[userBackend]]></trineo-compras>
+            <trineo-factv id="factv" pro-settings="{{proSettings}}" perfil-actual=[[perfilActual]] name="factv"></trineo-factv>
+            <trineo-settings pro-settings="{{proSettings}}" name="settings" perfil-actual="{{perfilActual}}"></trineo-settings>
+            <trineo-comprobante route="{{subroute}}" name="comprobante" perfil-actual=[[perfilActual]]></trineo-comprobante>
+            <trineo-clientes id="clientes" name="clientes" perfil-actual=[[perfilActual]]></trineo-clientes>
+            <trineo-proveedores id="proveedores" name="proveedores" perfil-actual=[[perfilActual]]></trineo-proveedores>
+            <trineo-articulos name="articulos" id="articulos" perfil-actual=[[perfilActual]]></trineo-articulos>
+            <trineo-lineas name="lineas" id="lineas" perfil-actual=[[perfilActual]]></trineo-lineas>
+            <trineo-rubros name="rubros" id="rubros" perfil-actual=[[perfilActual]]></trineo-rubros>
+            <trineo-subrubros name="subrubros" id="subrubros" perfil-actual=[[perfilActual]]></trineo-subrubros>
+            <trineo-compras route="{{subroute}}" name="compras" id="compras" perfil-actual=[[perfilActual]]></trineo-compras>
             <trineo-subdiario-iva-ventas name="subdiario-iva-ventas" id="subdiarioIvaVentas"></trineo-subdiario-iva-ventas>
-            <trineo-subdiario-iva-compras name="subdiario-iva-compras" id="subdiarioIvaCompras"></trineo-subdiario-iva-ventas>
+            <trineo-subdiario-iva-compras name="subdiario-iva-compras" id="subdiarioIvaCompras"></trineo-subdiario-iva-compras>
+            <trineo-user name="user" user-backend="{{userBackend}}"></trineo-user>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
         </app-header-layout>
@@ -364,7 +376,8 @@
               route: Object,
               routeData: Object,
               subroute: Object,
-              userBackend: Object
+              //userBackend: Object,
+              perfilActual: Object
             },
 
             behaviors: [SettingsBehavior],
@@ -424,6 +437,9 @@
                   break;
                 case "subdiario-iva-compras":
                   this.displayTitle = "Subdiario Iva Compras"
+                  break;
+                case "user":
+                  this.displayTitle = "Configuración de usuario"
                   break;
                 default:
                   this.displayTitle = "Página no encontrada"

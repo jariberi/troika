@@ -1,0 +1,48 @@
+
+<dom-module id="trineo-invitaciones">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+        </style>
+
+        
+        <iron-ajax
+             auto
+             url="[[empresa.url]]users/"
+             handle-as="json"
+             last-response="{{usuarios}}"></iron-ajax>
+        
+        
+
+        
+        <template is="dom-repeat" items={{usuarios}} as=usuario>
+            <template is="dom-if" if={{!usuario.confirmado}}>
+                <div class="layout horizontal justified center">
+                    <span>[[usuario.username]]</span>
+                    <iron-pages selected="[[usuario.rol]]">
+                        <span>Administrador</span>
+                        <span>Operador</span>
+                        <span>Contable</span>
+                    </iron-pages>
+                </template>
+            </div>
+        </template>
+        
+        
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-invitaciones',
+
+            behaviors: [AjaxBehavior],
+
+            properties: {
+                empresa: Object,
+                usuarios: Array
+            }
+        });
+    </script>
+</dom-module>

@@ -13,7 +13,8 @@
             columns="[[_subrubrosColumns]]"
             headers="[[_subrubrosHeaders]]"
             url="[[apiUrl]]/subrubros/"
-            sort-order="[[_subrubrosSortOrder]]"></trineo-list>
+            sort-order="[[_subrubrosSortOrder]]"
+            empresa="[[perfilActual.empresa.id]]"></trineo-list>
     </template>
     <script>
         Polymer({
@@ -22,6 +23,10 @@
             behaviors: [AjaxBehavior],
 
             properties: {
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilActualChanged"
+                },
                 _subrubrosColumns: {
                     type: Array,
                     value: function() {
@@ -65,6 +70,10 @@
                         ]
                     }
                 }
+            },
+
+            _perfilActualChanged: function() {
+                this.$.subgrid.refreshItems();
             }
         });
     </script>

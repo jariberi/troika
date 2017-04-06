@@ -1,15 +1,13 @@
 <link rel="import" href="../custom-components/appline-ptovta-input/appline-ptovta-input.html">
 <link rel="import" href="../custom-components/trineo-plan/trineo-plan.html">
+<link rel="import" href="../custom-components/trineo-usuarios/trineo-usuarios.html">
+<link rel="import" href="../custom-components/trineo-usuarios/trineo-invitaciones.html">
 
 <dom-module id="trineo-settings">
   <template>
-    <style include="iron-flex iron-flex-alignment">
+    <style include="shared-styles iron-flex iron-flex-alignment">
       :host {
         display: block;
-      }
-
-      paper-card {
-        width: 100%;
       }
 
       @media (max-width: 768px) {
@@ -24,14 +22,6 @@
 
             
         }
-
-      paper-input, paper-dropdown-menu, vaadin-date-picker {
-        min-width: 270px;
-      }
-
-      appline-ptovta-input {
-        min-width: 500px;
-      }
 
       div.spacer {
         border-bottom: lightgray solid 1px;
@@ -55,133 +45,171 @@
       }
     </style>
 
-    <iron-ajax id="updateSettingsAjax" headers="[[getAuthHeader(userBackend.auth_token)]]" content-type="application/json" id="iaUpdateSettings" method="PATCH" url="[[userBackend.perfil_user.empresa.url]]" handle-as="json" debounce-duration="3000"></iron-ajax>
+    <iron-ajax id="updateSettingsAjax" headers="[[getAuthorizationHeader()]]" content-type="application/json" id="iaUpdateSettings" method="PATCH" url="[[perfilActual.empresa.url]]" handle-as="json" debounce-duration="3000"></iron-ajax>
 
-    <iron-ajax id="pvAddAjax" headers="[[getAuthHeader(userBackend.auth_token)]]" url="[[apiUrl]]/puntos-venta/"  method="POST" content-type="application/json" handle-as="json" last-response="{{_pvAddedObject}}"></iron-ajax>
+    <iron-ajax id="pvAddAjax" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/puntos-venta/"  method="POST" content-type="application/json" handle-as="json" last-response="{{_pvAddedObject}}"></iron-ajax>
     
-    <iron-ajax id="pvRemoveAjax" headers="[[getAuthHeader(userBackend.auth_token)]]" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
+    <iron-ajax id="pvRemoveAjax" headers="[[getAuthorizationHeader()]]" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
 
-    <iron-ajax loading="{{loadingAfipStatus}}" headers="[[getAuthHeader(userBackend.auth_token)]]" id="afipStatus" url="[[apiUrl]]/utils/afip-status/" handle-as="json" last-response="{{afipStatus}}"></iron-ajax>
-
-      <paper-card heading="General">
-        <div class="card-content layout vertical">
-          <paper-input label="Razon Social" value="{{userBackend.perfil_user.empresa.razon_social}}"></paper-input>
-          <paper-input label="Nombre de fantasía" value="{{userBackend.perfil_user.empresa.nombre_fantasia}}"></paper-input>
-          <div class="spacer"></div>
-          <div class="layout horizontal justified wrap">
-            <appline-idfiscal-input value="{{userBackend.perfil_user.empresa.cuit}}" label="CUIT"></appline-idfiscal-input>
-            <paper-dropdown-menu label="Categoría IVA">
-              <paper-listbox attr-for-selected="value" selected="{{userBackend.perfil_user.empresa.categoria_iva}}" class="dropdown-content">
-                <paper-item value="0">Responsable Inscripto</paper-item>
-                <paper-item value="1">Responsable Monotributo</paper-item>
-              </paper-listbox>
-            </paper-dropdown-menu>
-            <paper-input label="Ingresos Brutos" value="{{userBackend.perfil_user.empresa.ingresos_brutos}}"></paper-input>
+    <iron-ajax loading="{{loadingAfipStatus}}" headers="[[getAuthorizationHeader()]]" id="afipStatus" url="[[apiUrl]]/utils/afip-status/" handle-as="json" last-response="{{afipStatus}}"></iron-ajax>
+    
+    <div class="layout vertical">
+      <div class="layout horizontal">
+        <paper-card style="width: 60%;" heading="General">
+          <div class="card-content layout vertical">
+            <paper-input label="Razon Social" value="{{perfilActual.empresa.razon_social}}"></paper-input>
+            <paper-input label="Nombre de fantasía" value="{{perfilActual.empresa.nombre_fantasia}}"></paper-input>
+            <div class="spacer"></div>
+            <div class="layout horizontal form-row">
+              <div class="form-field col-3">
+                <appline-idfiscal-input value="{{perfilActual.empresa.cuit}}" label="CUIT"></appline-idfiscal-input>
+              </div>
+              <div class="form-field col-4">
+                <paper-input label="Ingresos Brutos" value="{{perfilActual.empresa.ingresos_brutos}}"></paper-input>
+              </div>
+              <div class="form-field col-5">
+                <paper-dropdown-menu label="Categoría IVA">
+                  <paper-listbox attr-for-selected="value" selected="{{perfilActual.empresa.categoria_iva}}" class="dropdown-content">
+                    <paper-item value="0">Responsable Inscripto</paper-item>
+                    <paper-item value="1">Responsable Monotributo</paper-item>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+              </div>
+            </div>
+            <div class="layout horizontal form-row">
+              <div class="form-field col-4">
+                <vaadin-date-picker id="fechaInicioAct" value={{perfilActual.empresa.inicio_actividades}} label="Fecha Inicio Actividades"></vaadin-date-picker>
+              </div>
+              <div class="form-field col-8">
+                <appline-ptovta-input on-pv-added="_pvAddedHandler" on-pv-removed="_pvRemovedHandler" puntos-venta="{{perfilActual.empresa.puntos_venta}}"></appline-ptovta-input>
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div class="layout horizontal form-row">
+              <div class="form-field col-6">
+                <paper-input label="Dirección" value="{{perfilActual.empresa.direccion}}"></paper-input>
+              </div>
+              <div class="form-field col-3">
+                <paper-input label="Cuidad" value="{{perfilActual.empresa.ciudad}}"></paper-input>
+              </div>
+              <div class="form-field col-3">
+                <paper-dropdown-menu label="Provincia">
+                    <paper-listbox attr-for-selected="value" selected="{{perfilActual.empresa.provincia}}" class="dropdown-content">
+                      <paper-item value="0">Ciudad autonoma de Buenos Aires</paper-item>
+                      <paper-item value="1">Buenos Aires</paper-item>
+                      <paper-item value="2">Catamarca</paper-item>
+                      <paper-item value="3">Córdoba</paper-item>
+                      <paper-item value="4">Corrientes</paper-item>
+                      <paper-item value="5">Entre Ríos</paper-item>
+                      <paper-item value="6">Jujuy</paper-item>
+                      <paper-item value="7">Mendoza</paper-item>
+                      <paper-item value="8">La Rioja</paper-item>
+                      <paper-item value="9">Salta</paper-item>
+                      <paper-item value="10">San Juan</paper-item>
+                      <paper-item value="11">San Luis</paper-item>
+                      <paper-item value="12">Santa Fe</paper-item>
+                      <paper-item value="13">Santiago del Estero</paper-item>
+                      <paper-item value="14">Tucuman</paper-item>
+                      <paper-item value="15">Chaco</paper-item>
+                      <paper-item value="16">Chubut</paper-item>
+                      <paper-item value="17">Formosa</paper-item>
+                      <paper-item value="18">Misiones</paper-item>
+                      <paper-item value="19">Neuquén</paper-item>
+                      <paper-item value="20">La Pampa</paper-item>
+                      <paper-item value="21">Río Negro</paper-item>
+                      <paper-item value="22">Santa Cruz</paper-item>
+                      <paper-item value="23">Tierra del Fuego</paper-item>
+                    </paper-listbox>
+                  </paper-dropdown-menu>
+              </div>
+            </div>
+            <div class="layout horizontal form-row">
+              <div class="form-field col-4">
+                <paper-input label="Telefono" value="{{perfilActual.empresa.telefono}}"></paper-input>
+              </div>
+              <div class="form-field col-3">
+                <paper-input label="Codigo Postal" value="{{perfilActual.empresa.codigo_postal}}"></paper-input>
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div class="layout vertical">
+              <div>
+                <span>Delegación:</span>
+                <span style="margin-left: 20px;">[[estadoDelegacion]] 
+                  <span style="color: #607D8B; cursor: pointer;" id="delegacionInfo" hidden$="[[perfilActual.empresa.delegacion_iniciada]]" on-tap="_openInfoDelegacion">Mas información.</span>
+                  <paper-button style="height: 10px;" disabled="[[perfilActual.empresa.delegacion_iniciada]]" hidden$="[[perfilActual.empresa.delegacion_aceptada]]" on-tap="_notificarDelegacion" raised>Notificar</paper-button>
+                </span>
+              </div>
+              <div>
+                <span>Estado de servicios AFIP:</span>
+                <span hidden$="[[loadingAfipStatus]]" style="margin-left: 20px;">[[afipStatus.AppServer]]</span>
+                <span hidden$="[[!loadingAfipStatus]]" style="margin-left: 20px;">Chequeando...</span>
+                <paper-icon-button on-tap="_refreshAfipStatus" disabled="[[!perfilActual.empresa.delegacion_iniciada]]" raised icon="refresh"></paper-icon-button>
+              </div>
+            </div>
           </div>
-          <div class="layout horizontal justified wrap">
-            <vaadin-date-picker id="fechaInicioAct" value={{userBackend.perfil_user.empresa.inicio_actividades}} label="Fecha Inicio Actividades"></vaadin-date-picker>
-            <appline-ptovta-input on-pv-added="_pvAddedHandler" on-pv-removed="_pvRemovedHandler" puntos-venta="{{userBackend.perfil_user.empresa.puntos_venta}}"></appline-ptovta-input>
-          </div>
-          <div class="spacer"></div>
-          <div class="layout horizontal justified wrap">
-          <paper-input label="Dirección" value="{{userBackend.perfil_user.empresa.direccion}}"></paper-input>
-          <paper-input label="Cuidad" value="{{userBackend.perfil_user.empresa.ciudad}}"></paper-input>
-          <paper-dropdown-menu label="Provincia">
-              <paper-listbox attr-for-selected="value" selected="{{userBackend.perfil_user.empresa.provincia}}" class="dropdown-content">
-                <paper-item value="0">Ciudad autonoma de Buenos Aires</paper-item>
-                <paper-item value="1">Buenos Aires</paper-item>
-                <paper-item value="2">Catamarca</paper-item>
-                <paper-item value="3">Córdoba</paper-item>
-                <paper-item value="4">Corrientes</paper-item>
-                <paper-item value="5">Entre Ríos</paper-item>
-                <paper-item value="6">Jujuy</paper-item>
-                <paper-item value="7">Mendoza</paper-item>
-                <paper-item value="8">La Rioja</paper-item>
-                <paper-item value="9">Salta</paper-item>
-                <paper-item value="10">San Juan</paper-item>
-                <paper-item value="11">San Luis</paper-item>
-                <paper-item value="12">Santa Fe</paper-item>
-                <paper-item value="13">Santiago del Estero</paper-item>
-                <paper-item value="14">Tucuman</paper-item>
-                <paper-item value="15">Chaco</paper-item>
-                <paper-item value="16">Chubut</paper-item>
-                <paper-item value="17">Formosa</paper-item>
-                <paper-item value="18">Misiones</paper-item>
-                <paper-item value="19">Neuquén</paper-item>
-                <paper-item value="20">La Pampa</paper-item>
-                <paper-item value="21">Río Negro</paper-item>
-                <paper-item value="22">Santa Cruz</paper-item>
-                <paper-item value="23">Tierra del Fuego</paper-item>
-              </paper-listbox>
-            </paper-dropdown-menu>
-          </div>
-          <div class="layout horizontal justified wrap">
-          <paper-input label="Telefono" value="{{userBackend.perfil_user.empresa.telefono}}"></paper-input>
-          <paper-input label="Codigo Postal" value="{{userBackend.perfil_user.empresa.codigo_postal}}"></paper-input>
-          <paper-input label="Username" readonly value="[[userBackend.username]]"></paper-input>
-          </div>
-          <div class="spacer"></div>
-          <div class="layout horizontal center wrap">
-            <span>Delegación:</span>
-            <span style="margin-left: 20px;">[[estadoDelegacion]] 
-              <span style="color: #607D8B; cursor: pointer;" id="delegacionInfo" hidden$="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" on-tap="_openInfoDelegacion">Mas información.</span>
-              <paper-button style="height: 10px;" disabled="[[userBackend.perfil_user.empresa.delegacion_iniciada]]" hidden$="[[userBackend.perfil_user.empresa.delegacion_aceptada]]" on-tap="_notificarDelegacion" raised>Notificar</paper-button>
-            </span>
-            <span style="margin-left: 50px;">Estado de servicios AFIP:</span>
-            <span hidden$="[[loadingAfipStatus]]" style="margin-left: 20px;">[[afipStatus.AppServer]]</span>
-            <span hidden$="[[!loadingAfipStatus]]" style="margin-left: 20px;">Chequeando...</span>
-            <paper-icon-button on-tap="_refreshAfipStatus" disabled="[[!userBackend.perfil_user.empresa.delegacion_iniciada]]" raised icon="refresh"></paper-icon-button>
-          </div>
-        </div>    
-  </paper-card>  
-
-  <div class="layout horizontal justified wrap">
-    <trineo-plan id="free" nombre-plan="Individuos" costo="GRATIS">
-      <iron-icon icon="device:signal-cellular-1-bar"></iron-icon>
-    <ul>
-      <li>Facturación en un solo paso</li>
-      <li>5 veces mas rapido que la página de AFIP</li>
-      <li>1 punto de venta</li>
-      <li>Sin gestión adicional</li>
-      <li>1 único usuario</li>
-      <li><b>SIN SOPORTE</b></li>
-    </ul>
-      
-    </trineo-plan>
-    <trineo-plan id="pem" nombre-plan="Pequeña Empresa" costo="$ 650">
-      <iron-icon icon="device:signal-cellular-2-bar"></iron-icon>
-    <ul>
-      <li>TODO LO ANTERIOR</li>
-      <li>Gestión de clientes, cobros, artículos y stock</li>
-      <li>Permite uso en smartphones</li>
-      <li>Personalización de la factura</li>
-      <li>Hasta 5 usuarios</li>
-      <li><b>SOPORTE POR MAIL</b></li>
-    </ul>
-    </trineo-plan>
-    <trineo-plan id="mem" nombre-plan="Mediana Empresa" costo="$ 1290">
-      <iron-icon icon="device:signal-cellular-3-bar"></iron-icon>
-    <ul>
-      <li>TODO LO ANTERIOR</li>
-      <li>Acceso al padron de AFIP</li>
-      <li>Gestion de proveedores, compras y pagos</li>
-      <li>Hasta 15 usuarios</li>
-      <li>Informes avanzados</li>
-      <li><b>SOPORTE TELEFONICO</b></li>
-    </ul>
-    </trineo-plan>
-    <trineo-plan disabled id="gem" nombre-plan="Gran Empresa" costo="PROXIMAMENTE">
-      <iron-icon icon="device:signal-cellular-4-bar"></iron-icon>
-    <ul>
-      <li>TODO LO ANTERIOR</li>
-      <li>Aviso automático de eventos por mail o SMS</li>
-      <li>Trazabilidad de operaciones</li>
-      <li>Campañas de marketing</li>
-      <li>Informes estadísticos</li>
-      <li><b>SOPORTE TELEFONICO</b></li>
-    </ul>
-    </trineo-plan>
-  </div>
+        </paper-card>
+        <div class="layout vertical" style="width: calc(40% - 20px);margin-left: 20px">
+          <paper-card heading="Usuarios" style="height: calc(50% - 10px);margin-bottom: 20px;">
+            <div class="card-content">
+              <trineo-usuarios empresa="[[perfilActual.empresa]]"></trineo-usuarios>
+            </div>
+          </paper-card>
+          <paper-card heading="Invitaciones enviadas" elevation="1" animated-shadow="false" style="height: calc(50% - 10px);">
+            <div class="card-content">
+              <trineo-invitaciones empresa="[[perfilActual.empresa]]"></trineo-invitaciones>
+            </div>
+          </paper-card>
+        </div>
+      </div>
+      <div class="layout horizontal justified">
+        <trineo-plan id="free" nombre-plan="Individuos" costo="GRATIS">
+          <iron-icon icon="device:signal-cellular-1-bar"></iron-icon>
+          <ul>
+            <li>Facturación en un solo paso</li>
+            <li>5 veces mas rapido que la página de AFIP</li>
+            <li>1 punto de venta</li>
+            <li>Sin gestión adicional</li>
+            <li>1 único usuario</li>
+            <li><b>SIN SOPORTE</b></li>
+          </ul>
+        </trineo-plan>
+        <trineo-plan id="pem" nombre-plan="Pequeña Empresa" costo="$ 650">
+          <iron-icon icon="device:signal-cellular-2-bar"></iron-icon>
+          <ul>
+            <li>TODO LO ANTERIOR</li>
+            <li>Gestión de clientes, cobros, artículos y stock</li>
+            <li>Permite uso en smartphones</li>
+            <li>Personalización de la factura</li>
+            <li>Hasta 5 usuarios</li>
+            <li><b>SOPORTE POR MAIL</b></li>
+          </ul>
+        </trineo-plan>
+        <trineo-plan id="mem" nombre-plan="Mediana Empresa" costo="$ 1290">
+          <iron-icon icon="device:signal-cellular-3-bar"></iron-icon>
+          <ul>
+            <li>TODO LO ANTERIOR</li>
+            <li>Acceso al padron de AFIP</li>
+            <li>Gestion de proveedores, compras y pagos</li>
+            <li>Hasta 15 usuarios</li>
+            <li>Informes avanzados</li>
+            <li><b>SOPORTE TELEFONICO</b></li>
+          </ul>
+        </trineo-plan>
+        <trineo-plan disabled id="gem" nombre-plan="Gran Empresa" costo="PROXIMAMENTE">
+          <iron-icon icon="device:signal-cellular-4-bar"></iron-icon>
+          <ul>
+            <li>TODO LO ANTERIOR</li>
+            <li>Aviso automático de eventos por mail o SMS</li>
+            <li>Trazabilidad de operaciones</li>
+            <li>Campañas de marketing</li>
+            <li>Informes estadísticos</li>
+            <li><b>SOPORTE TELEFONICO</b></li>
+          </ul>
+        </trineo-plan>
+      </div>
+    </div>
+  
   </template>
 
   <script>
@@ -192,13 +220,13 @@
 
       ready: function() {
         this.$.fechaInicioAct.i18n = this.get_i18n() //From DatesBehavior
-        if (this.userBackend) {
+        if (this.perfilActual) {
           this.$.afipStatus.generateRequest()
         }
       },
 
       properties: {
-        userBackend: {
+        perfilActual: {
           type: Object,
           notify: true
         },
@@ -209,7 +237,7 @@
         },
         estadoDelegacion: {
           type: String,
-          computed: "_estadoDelegacionCompute(userBackend.perfil_user.empresa.delegacion_iniciada, userBackend.perfil_user.empresa.delegacion_aceptada)"
+          computed: "_estadoDelegacionCompute(perfilActual.empresa.delegacion_iniciada, perfilActual.empresa.delegacion_aceptada)"
         },
         afipStatus: Object,
       },
@@ -227,9 +255,9 @@
       },
 
       observers: [
-        "_onEmpresaChanged(userBackend.perfil_user.empresa.*)",
-        "_onAuthTokenChanged(userBackend.auth_token)",
-        "_onPlanContratadoChange(userBackend.perfil_user.empresa.plan_contratado)"
+        "_onEmpresaChanged(perfilActual.empresa.*)",
+        //"_onAuthTokenChanged(userBackend.auth_token)",
+        "_onPlanContratadoChange(perfilActual.empresa.plan_contratado)"
       ],
 
       _onPlanContratadoChange: function(val) {
@@ -254,7 +282,7 @@
       },
 
       _onEmpresaChanged: function(ch) {
-        if (!(ch.path=="userBackend.perfil_user.empresa")) {
+        if (!(ch.path=="perfilActual.empresa")) {
           var c = ch.path.split(".")
           var prop = c[c.length-1]
           var obj = {}
@@ -271,22 +299,22 @@
       },
 
       _pvAddedObjectChanged: function (val) {
-        var index = this.userBackend.perfil_user.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
-        this.splice('userBackend.perfil_user.empresa.puntos_venta',index,1,val)
+        var index = this.perfilActual.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
+        this.splice('perfilActual.empresa.puntos_venta',index,1,val)
       },
 
       _pvAddedHandler: function(e, det) {
-        this.$.pvAddAjax.body = {"punto_venta":det.punto_venta,"empresa":this.userBackend.perfil_user.empresa.url}
+        this.$.pvAddAjax.body = {"punto_venta":det.punto_venta,"empresa":this.perfilActual.empresa.url}
         this.$.pvAddAjax.generateRequest()
 
       },
 
       _pvRemovedHandler: function (e, det) {
-        var index = this.userBackend.perfil_user.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
-        var url = this.get(['userBackend.perfil_user.empresa.puntos_venta',index,'url'])
+        var index = this.perfilActual.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
+        var url = this.get(['perfilActual.empresa.puntos_venta',index,'url'])
         this.$.pvRemoveAjax.url = url
         this.$.pvRemoveAjax.generateRequest();
-        this.splice('userBackend.perfil_user.empresa.puntos_venta',index,1)
+        this.splice('perfilActual.empresa.puntos_venta',index,1)
       },
 
       _refreshAfipStatus: function() {
@@ -295,7 +323,7 @@
       _notificarDelegacion: function() {
         var d = document.createElement("iron-ajax")
         d.url = this.apiUrl+"/utils/notificar-delegacion/"
-        d.headers = this.getAuthHeader(this.userBackend.auth_token)
+        d.headers = this.getAuthorizationHeader()
         d.generateRequest()
       },
 
