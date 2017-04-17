@@ -60,11 +60,11 @@
 
     </style>
 
-<iron-ajax id="ajaxas" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/utils/ultimo-comprobante/" params="[[ultimoComprobanteParams]]" handle-as="json"
+<iron-ajax id="ajaxas" url="[[apiUrl]]/utils/ultimo-comprobante/" params="[[ultimoComprobanteParams]]" handle-as="json"
   last-response="{{ultimoComprobante}}"></iron-ajax>
 
-<iron-ajax id="submitComprobanteAjax" method="POST" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
-<iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" headers="[[getAuthorizationHeader()]]" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
+<iron-ajax id="submitComprobanteAjax" method="POST" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
+<iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
 
 
 <paper-card id="datos-comprobante">
@@ -107,7 +107,7 @@
       </div>
     </div>
     <div class="layout horizontal wrap center justified">
-        <trineo-cliente id="cliente" cliente={{cliente}} razon-social="{{cliente.razon_social}}"></trineo-cliente>  
+        <trineo-cliente perfil-actual="{{perfilActual}}" id="cliente" cliente={{cliente}} razon-social="{{cliente.razon_social}}"></trineo-cliente>  
     </div>
     <div class="layout horizontal wrap center justified">
     <trineo-servicio-dates id="fechasServicio" fecha-c="[[fecha]]" 
@@ -123,7 +123,7 @@
 <paper-card heading="Detalles">
   <div id="detalle" class="card-content">
     <trineo-item-head></trineo-item-head>
-    <trineo-factv-item asigna-iva="[[_asignaIva]]" discrimina-iva="[[_discriminaIva]]"></trineo-factv-item>
+    <trineo-factv-item asigna-iva="[[_asignaIva]]" discrimina-iva="[[_discriminaIva]]" perfil-actual="[[perfilActual]]"></trineo-factv-item>
     <paper-icon-button id="botonAgregarItem" icon="add" on-tap="agregarItem"></paper-icon-button>
     <paper-tooltip
       for="botonAgregarItem"
@@ -206,14 +206,18 @@
           type: Boolean,
           value: false
         },
-        total: {
-          type: Number,
-          observer: "_totalChanged"
-        },
+        total: Number,
         puntoVentaSelected: String,
         clienteAjaxFlight: Boolean,
         netoTotal: Number,
-
+        esFacturaElectronica: {
+          type: Boolean,
+          computed: "_esFacturaElectronicaCompute(puntoVentaSelected, perfilActual.empresa.puntos_venta)"
+        },
+        soloRegistra: {
+          type: Boolean,
+          computed: "_soloRegistraCompute(puntoVentaSelected, perfilActual.empresa.puntos_venta)"
+        }
       },
 
       listeners: {
@@ -228,30 +232,13 @@
 
       _encabezadoChanged: function (puntoVentaSelected, tipoComprobante, letraComprobante) {
         if (puntoVentaSelected != undefined && tipoComprobante != undefined && letraComprobante!= undefined) {
-          //this.$.ajaxas.headers = {Authorization: "Token "+this.userBackend.auth_token}
+          this.$.ajaxas.headers=this.getAuthorizationHeader();
           this.$.ajaxas.auto=true
           this.headerShowed = true
         }
         else {
           this.headerShowed = false
         }
-      },
-
-      _totalChanged: function(val) {
-          //if (this.userBackend && this.perfilActual.empresa.categoria_iva == 1 && val<1000) {
-            //this.$.direccion.disabled=true
-            //this.$.direccion.required=false
-            //this.$.direccion.value="No es necesario"
-          //}
-          //else {
-            //this.$.direccion.disabled=false
-            //this.$.direccion.required=true
-            //if (this.cliente) {
-            //  this.$.direccion.value=this.cliente.domicilio.direccion
-            //}
-            //else {this.$.direccion.value=""}
-          //}
-        
       },
 
       _discriminaIvaChanged: function(val) {
@@ -341,12 +328,27 @@
         return false
       },
 
+      _esFacturaElectronicaCompute: function(puntoVentaSelected, puntosVenta) {
+        if (puntoVentaSelected && puntosVenta) {
+          var index = puntosVenta.findIndex(function(x) {return Number(x.punto_venta) === Number(puntoVentaSelected)})
+          return puntosVenta[index].es_factura_electronica
+        }
+      },
+
+      _soloRegistraCompute: function(puntoVentaSelected, puntosVenta) {
+        if (puntoVentaSelected && puntosVenta) {
+          var index = puntosVenta.findIndex(function(x) {return Number(x.punto_venta) === Number(puntoVentaSelected)})
+          return puntosVenta[index].solo_registra
+        }
+      },
+
       _parseInt: function (val) {
         return parseInt(val);
       },
 
       agregarItem: function () {
         var el = document.createElement('trineo-factv-item');
+        el.perfilActual = this.perfilActual
         el.discriminaIva = this._discriminaIva
         el.asignaIva = this._asignaIva
         this.$.detalle.insertBefore(el, this.$.botonAgregarItem);
@@ -419,7 +421,12 @@
             alert("No se permite en facturas mayores a $1000 que el cliente no sea identificado.")
           }
           else {
-            this.fire("open-wait", {mensaje: "Aprobando..."})
+            if (this.esFacturaElectronica) {
+              this.fire("open-wait", {mensaje: "Grabando... No cierre esta ventana"})
+            }
+            else{
+              this.fire("open-wait", {mensaje: "Aprobando... No cierre esta ventana"})
+            }
             //Armar el objeto para hacer el post
             var fact = {}
             fact['tipo']=this.tipoComprobante+this.letraComprobante
@@ -434,7 +441,6 @@
             }           
             fact['cliente'] = this.cliente
             fact['items']=[]
-            //var items = Polymer.dom(this.root).querySelectorAll('trineo-item-factv')
             var items = Polymer.dom(this.root).querySelectorAll('trineo-factv-item')
             for (i=0; i<items.length; i++) {
               var obj = {cantidad:items[i].cantidad(), tipo: items[i].tipo}
@@ -467,16 +473,38 @@
               }   
               fact['items'].push(obj)
             }
-            this.$.submitComprobanteAjax.body = fact
-            this.$.submitComprobanteAjax.generateRequest()
+            this.$.submitComprobanteAjax.body = fact;
+            this.$.submitComprobanteAjax.headers=this.getAuthorizationHeader();
+            this.$.submitComprobanteAjax.generateRequest();
           }
         }
       },
 
       _onSubmitResponse: function(ev) {
-        var id = ev.detail.xhr.response.id
-        this.$.aprobarComprobanteAjax.body = {comprobante:id}
-        this.$.aprobarComprobanteAjax.generateRequest()
+        if (this.esFacturaElectronica) {
+          var id = ev.detail.xhr.response.id;
+          this.$.aprobarComprobanteAjax.body = {comprobante:id};
+          this.$.aprobarComprobanteAjax.headers=this.getAuthorizationHeader();
+          this.$.aprobarComprobanteAjax.generateRequest();
+        }
+        else {
+          this.fire("close-wait");
+          var resp = ev.detail.xhr.response
+          if (!this.soloRegistra) {
+            this.clear();
+            this.fire("comprobante-aprobado", {data:resp.data});
+          }
+          else {
+            var toast = document.createElement("paper-toast");
+            toast.text = "Comprobante registrado"
+            Polymer.dom(document.querySelector("trineo-core").root).appendChild(toast)
+            toast.addEventListener("iron-overlay-closed", function(e) {
+                Polymer.dom(e.target).parentNode.removeChild(e.target)
+            })
+            toast.show();
+            this.clear();
+          }
+        }
       },
 
       _onSubmitError: function(ev) {

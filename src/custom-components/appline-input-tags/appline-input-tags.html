@@ -1,5 +1,3 @@
-<!--<link rel="import" href="../../../bower_components/paper-input/paper-input-container.html">
-<link rel="import" href="../../../bower_components/paper-badge/paper-badge.html">-->
 <link rel="import" href="appline-tag-item.html">
 
 <dom-module id="appline-input-tags">
@@ -44,11 +42,32 @@
 	Polymer({
 	  is: 'appline-input-tags',
 	  properties: {
+			/**
+			* Key of the object to inform about events (add, remove, edit, etc)
+			*
+			* @type {Boolean}
+			*/
+			key: String,
+			/**
+			* Max quantity of tags allowed
+			*
+			* @type {Number}
+			*/
 			maxTags: {
 				type: Number,
 				reflectToAttribute: true
 			},
+			/**
+			* Allowed pattern in tags
+			*
+			* @type {String}
+			*/
 			allowedPattern: String,
+			/**
+			* Allowed pattern in tags
+			*
+			* @type {Number}
+			*/
 			padWithZeroes: {
 				type: Number,
 				value: 0,

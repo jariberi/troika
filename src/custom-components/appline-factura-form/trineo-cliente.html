@@ -15,9 +15,8 @@
             }
         </style>
 
-        <iron-ajax id="cliFCuitAjax" loading="{{clienteAjaxFlight}}" headers="[[getAuthorizationHeader()]]" handle-as="json" on-response="_handleCliFCuitAjaxResponse" on-error="_handleCliFCuitAjaxError"></iron-ajax>
-        <iron-ajax id="getCliente" headers="[[getAuthorizationHeader()]]" handle-as="json" last-response="{{cliente}}"></iron-ajax>
-        <!--<iron-ajax id="cliFRazonSocialAjax" url="[[apiUrl]]/utils/get-cliente-from-razon-social/" headers="[[getTokenAuthorizationHeader]]" content-type="application/json" handle-as="json" on-response="_onBuscarPorRazonSocialResponse" on-error="_onBuscarPorRazonSocialError"></iron-ajax>-->
+        <iron-ajax id="cliFCuitAjax" loading="{{clienteAjaxFlight}}" handle-as="json" on-response="_handleCliFCuitAjaxResponse" on-error="_handleCliFCuitAjaxError"></iron-ajax>
+        <iron-ajax id="getCliente" handle-as="json" last-response="{{cliente}}"></iron-ajax>
 
         <div id="all" class="layout vertical center">
             <div class="layout horizontal form-row">
@@ -98,6 +97,7 @@
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                xhr.setRequestHeader("trineo-empresa", String(this.getEmpresa()))
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                     var response = JSON.parse(xhr.responseText).results;
@@ -109,6 +109,7 @@
 
             _onAutocompleteSelected: function(e) {
                 this.$.getCliente.url = this.apiUrl+'/clientes/' + e.detail.value + '/';
+                this.$.getCliente.headers=this.getAuthorizationHeader();
                 this.$.getCliente.generateRequest();
             },
 
@@ -122,6 +123,7 @@
 
              _searchClienteFId: function(id) {
                 this.$.cliFCuitAjax.url = this.apiUrl + "/utils/get-cliente-from-id/" + id + "/";
+                this.$.cliFCuitAjax.headers=this.getAuthorizationHeader();
                 this.$.cliFCuitAjax.generateRequest();
             },
 

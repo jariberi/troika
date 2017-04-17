@@ -49,7 +49,7 @@
                             <paper-input required label="Código" value="{{articulo.codigo}}" error-message="Ingrese código"></paper-input>
                         </div>
                         <div class="form-field col-3">
-                            <paper-input label="Código Fábrica" value="{{articulo.codigo_fabrica}}"></paper-input>
+                            <paper-input disabled="[[articulo.para_registracion]]" label="Código Fábrica" value="{{articulo.codigo_fabrica}}"></paper-input>
                         </div>
                         <div class="form-field col-3">
                             <paper-dropdown-menu required label="Unidad de medida" error-message="Seleccione unidad de medida">
@@ -62,7 +62,7 @@
                             </paper-dropdown-menu>
                         </div>
                         <div class="form-field col-3">
-                            <trineo-decimal-input required label="Stock Mínimo" value="{{articulo.stock_minimo}}"></trineo-decimal-input>
+                            <trineo-decimal-input disabled="[[articulo.para_registracion]]" required label="Stock Mínimo" value="{{articulo.stock_minimo}}"></trineo-decimal-input>
                         </div>
                     </div>
                     <div class="layout horizontal center form-row">
@@ -93,24 +93,27 @@
                             <paper-textarea label="Información adicional" value="{{articulo.informacion_adicional}}"></paper-textarea>
                         </div>
                         <div class="form-field col-2">
-                            <paper-checkbox checked="{{articulo.lleva_stock}}">Llevar stock</paper-checkbox>
+                            <paper-checkbox disabled="[[articulo.para_registracion]]" checked="{{articulo.lleva_stock}}">Llevar stock</paper-checkbox>
                         </div>
                     </div>
                     <div class="layout horizontal center form-row">
-                        <div class="form-field col-3">
-                            <paper-checkbox checked="{{articulo.actualizar_precio_compra}}">Act. precio al comprar</paper-checkbox>
+                        <div class="form-field col-2">
+                            <paper-checkbox checked="{{articulo.para_registracion}}">Solo registro</paper-checkbox>
                         </div>
                         <div class="form-field col-2">
-                            <trineo-decimal-input required label="Costo de compra" value="{{articulo.costo_compra}}" error-message="Ingrese precio de compra"></trineo-decimal-input>
+                            <paper-checkbox disabled="[[articulo.para_registracion]]" checked="{{articulo.actualizar_precio_compra}}">Act. precio al comprar</paper-checkbox>
                         </div>
-                        <div class="form-field long-2">
-                            <trineo-decimal-input required label="Descuento de compra" value="{{articulo.descuento_compra}}" error-message="Ingrese descuento, 0 si no tiene descuento"></trineo-decimal-input>
+                        <div class="form-field col-2">
+                            <trineo-decimal-input disabled="[[articulo.para_registracion]]" required label="Costo de compra" value="{{articulo.costo_compra}}" error-message="Ingrese precio de compra"></trineo-decimal-input>
                         </div>
-                        <div class="form-field long-2">
-                            <trineo-decimal-input required label="Ganancia" value="{{articulo.ganancia_venta}}" error-message="Ingrese la ganancia deseada"></trineo-decimal-input>
+                        <div class="form-field col-2">
+                            <trineo-decimal-input disabled="[[articulo.para_registracion]]" required label="Descuento de compra" value="{{articulo.descuento_compra}}" error-message="Ingrese descuento, 0 si no tiene descuento"></trineo-decimal-input>
                         </div>
-                        <div class="form-field long-3">
-                            <h3 style="margin-top: 25px;">Precio de venta: [[_precioVenta]]</h3>
+                        <div class="form-field col-2">
+                            <trineo-decimal-input disabled="[[articulo.para_registracion]]" required label="Ganancia" value="{{articulo.ganancia_venta}}" error-message="Ingrese la ganancia deseada"></trineo-decimal-input>
+                        </div>
+                        <div class="form-field col-2">
+                            <h3 style="margin-top: 25px;">Precio: [[_precioVenta]]</h3>
                         </div>
                     </div>
                 </div>
@@ -132,7 +135,7 @@
                 articulo: {
                     type: Object,
                     value: function(){ 
-                        return {costo_compra: "", descuento_compra:"", ganancia_venta:"", actualizar_precio_compra: true, lleva_stock: true}
+                        return {costo_compra: "", descuento_compra:"", ganancia_venta:"", actualizar_precio_compra: true, lleva_stock: true, para_registracion: false}
                     }},
                 accion: Number,//0: Nuevo, 1: Edición
                 titulo: {
@@ -148,6 +151,10 @@
                 }
             },
 
+            observers: [
+                "_soloRegistra(articulo.para_registracion)"
+            ],
+
             //Computes
             _tituloCompute: function(accion) {
                 if (accion==0) {return "Nuevo articulo"}
@@ -160,6 +167,18 @@
                 gv = Number(gv)
                 var cd = (cc - (cc * dc / 100))
                 return (cd * (1 + gv / 100)).toFixed(2);
+            },
+
+            _soloRegistra: function(v) {
+                if (v) {
+                    this.set("articulo.lleva_stock", false)
+                    this.set("articulo.costo_compra", "")
+                    this.set("articulo.descuento_compra", "")
+                    this.set("articulo.ganancia_venta", "")
+                    this.set("articulo.actualizar_precio_compra", false)
+                    this.set("articulo.codigo_fabrica", "")
+                    this.set("articulo.stock_minimo", "")
+                }
             },
 
             open: function() {

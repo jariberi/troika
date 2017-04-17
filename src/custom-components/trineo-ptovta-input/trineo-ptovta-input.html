@@ -1,0 +1,216 @@
+<dom-module id="trineo-pv-form">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                width: 20vw;
+            }
+        </style>
+
+        <iron-ajax id="pvAddAjax" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/puntos-venta/" method="POST" content-type="application/json" handle-as="json" on-response="_onPvAddAjaxResponse" on-error="_onPvAddAjaxError"></iron-ajax>
+        
+        <div class="trineo-dialogs">
+            <h2>Nuevo Punto de Venta</h2>
+            <div class="layout vertical">
+                <paper-input style="margin-bottom: 20px;" required id="puntoVenta" label="Punto de Venta" value="{{puntoVenta.punto_venta}}" error-message="Ingrese punto de venta"></paper-input>
+                <paper-checkbox style="margin-bottom: 15px;" checked="{{puntoVenta.solo_registra}}">Solo registra</paper-checkbox>
+                <paper-checkbox disabled="[[puntoVenta.solo_registra]]" checked="{{puntoVenta.es_factura_electronica}}">Es factura electrónica</paper-checkbox>
+                <appline-error-msg id="errorMessage"></appline-error-msg>
+            </div>
+            <div class="buttons">
+                <paper-button raised autofocus on-tap="_close">Cancelar</paper-button>
+                <paper-button raised on-tap="_savePV">Aceptar</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-pv-form',
+
+            behaviors: [AjaxBehavior, Polymer.IronOverlayBehavior, Polymer.IronValidatableBehavior],
+
+            properties: {
+                perfilActual: {
+                    type: Object,
+                    notifies: true
+                },
+                _pvAddedObject: {
+                    type: Object,
+                },
+                puntoVenta: {
+                    type: Object,
+                    value: function() {
+                        return {punto_venta: "", es_factura_electronica: true, solo_registra:false}
+                    }
+                }
+            },
+
+            observers: [
+                "_soloRegistraChanged(puntoVenta.solo_registra)"
+            ],
+
+            _soloRegistraChanged: function(sr) {
+                console.log(sr)
+                if (sr) {
+                    this.set("puntoVenta.es_factura_electronica", false)
+                }
+            },
+
+            ready: function() {
+                this.withBackdrop=true
+                this.noCancelOnEscKey = true
+                this.noCancelOnOutsideClick = true
+                this.alwaysOnTop = true
+            },
+
+            _getValidity: function() {
+                return this.$.puntoVenta.validate();
+            },
+
+            _savePV: function() {
+                if(this.validate()){
+                    var pv = this.puntoVenta
+                    pv.empresa = this.perfilActual.empresa.url
+                    this.$.pvAddAjax.body = JSON.stringify(pv)
+                    this.$.pvAddAjax.generateRequest()
+                }
+            },
+
+            _close: function() {
+                this.close()
+                Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
+            },
+
+            _onPvAddAjaxResponse: function(e) {
+                this.fire("trineo-pv-form-added", {pv: e.detail.response})
+                this._close();
+            },
+
+            _onPvAddAjaxError: function(e) {
+                var status = e.detail.request.status
+                var response = e.detail.request.response
+                if (status == 400 && response.non_field_errors) {
+                    this.$.errorMessage.message="Ya existe este punto de venta en esta empresa"
+                }
+            }
+        });
+    </script>
+</dom-module>
+
+
+
+<dom-module id="trineo-tag-item">
+
+  <style include="iron-flex iron-flex-alignment">
+      :host {
+          padding: 0 4px;
+          font-family: 'Roboto', 'Noto', sans-serif;
+          border: 1px solid #03A9F4;
+          border-radius: 4px;
+      }
+
+      paper-icon-button {
+        --paper-icon-button: {
+          height: 20px;
+          width: 20px;
+          padding: 2px;
+        }
+      }
+
+  </style>
+
+  <template>
+      <div class="layout horizontal center">
+        <span>[[value]]</span>
+        <paper-icon-button icon="icons:close" on-tap="_removeTag"></paper-icon-button>
+      </div>
+  </template>
+
+
+<script>
+  Polymer({
+    is: 'trineo-tag-item',
+    properties: {
+      value: String,
+      index: Number
+    },
+
+    _removeTag: function() {
+      this.fire("trineo-tag-removed", {index: this.index})
+    }
+  });
+</script>
+</dom-module>
+
+<dom-module id="trineo-ptovta-input">
+    <template>
+        <style include="shared-styles iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+            }
+        </style>
+    
+        <iron-ajax id="pvRemoveAjax" headers="[[getAuthorizationHeader()]]" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
+            
+        <paper-input-container id="input-tags" always-float-label="[[floatLabel]]">
+            <label>Puntos de Venta</label>
+			<div class="layout horizontal">
+                <template id="pvrep" is="dom-repeat" items="{{perfilActual.empresa.puntos_venta}}" as="puntoVenta" index-as="index">
+                    <trineo-tag-item index="{{index}}" tags="{{tags}}" value="[[pad_with_zeroes(puntoVenta.punto_venta, 4)]]"></trineo-tag-item>
+                </template>
+			<input is="iron-input" allowed-pattern="[]" on-tap="_tap">
+		</div>
+		</paper-input-container>
+        
+    </template>
+    <script>
+        Polymer({
+            is: 'trineo-ptovta-input',
+
+            behaviors: [AjaxBehavior, UtilsBehavior],
+
+            properties: {
+                perfilActual: {
+                    type: Object,
+                    notify: true,
+                },
+                maxTags: {
+                    type: Number,
+                    reflectToAttribute: true
+                },
+                floatLabel: {
+                    type: Boolean,
+                    computed: "_floatLabelCompute(perfilActual.empresa.puntos_venta)"
+			    }
+            },
+
+            listeners: {
+                "trineo-tag-removed": "_pvRemoved"
+            },
+
+            _floatLabelCompute: function(pvs) {
+                if (pvs && pvs.length > 0) {
+                    return true
+                }
+                return false
+            },
+
+            _tap: function() {
+                var form = document.createElement("trineo-pv-form");
+                form.set("perfilActual", this.perfilActual);
+                Polymer.dom(document.querySelector("trineo-core").root).appendChild(form);
+                form.open();
+            },
+
+            _pvRemoved: function(e) {
+                //var index = this.perfilActual.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
+                var index = e.detail.index
+                console.log("pv remo", index)
+                var url = this.get(['perfilActual.empresa.puntos_venta',index,'url'])
+                this.$.pvRemoveAjax.url = url
+                this.$.pvRemoveAjax.generateRequest();
+                this.splice('perfilActual.empresa.puntos_venta',index,1)
+            },
+        });
+    </script>
+</dom-module>

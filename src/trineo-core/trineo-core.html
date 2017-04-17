@@ -169,6 +169,7 @@
         "trineo-reload-auth-perfil": "__reloadAuthPerfil",
         "trineo-usuarios-form-sended": "__onUserAdd",
         "trineo-perfil-changed": "_onPerfilChanged",
+        "trineo-pv-form-added": "_onPVAdded",
         "open-wait": "_lanzarWaitDialog",
         "close-wait": "_cerrarWaitDialog",
         "logout": "_logout",
@@ -200,6 +201,10 @@
 
       _onPerfilChanged: function(e) {
         this.$.auth.set("perfilActual", e.detail.perfil)
+      },
+
+      _onPVAdded: function(e) {
+        this.$.auth.push("perfilActual.empresa.puntos_venta", e.detail.pv)
       },
 
       _userLoggedInChanged: function(val) {

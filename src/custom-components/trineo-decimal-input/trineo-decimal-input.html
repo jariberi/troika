@@ -10,7 +10,7 @@
         <paper-input id="input" 
                      readonly="[[readonly]]" no-label-float="[[noLabelFloat]]" hidden$="[[hidden]]" 
                      allowed-pattern="[0-9\.]" required="[[required]]" label="[[label]]" 
-                     value="{{value}}" error-message="[[errorMessage]]" invalid="{{invalid}}"></paper-input>
+                     value="{{value}}" error-message="[[errorMessage]]" invalid="{{invalid}}" disabled="{{disabled}}"></paper-input>
     </template>
     <script>
         Polymer({
@@ -58,7 +58,8 @@
                     value: false
                 },
                 readonly: Boolean,
-                invalid: Boolean
+                invalid: Boolean,
+                disabled: Boolean
             },
 
             behaviors: [Polymer.IronValidatableBehavior],

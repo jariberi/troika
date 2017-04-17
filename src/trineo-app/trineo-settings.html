@@ -1,4 +1,4 @@
-<link rel="import" href="../custom-components/appline-ptovta-input/appline-ptovta-input.html">
+<link rel="import" href="../custom-components/trineo-ptovta-input/trineo-ptovta-input.html">
 <link rel="import" href="../custom-components/trineo-plan/trineo-plan.html">
 <link rel="import" href="../custom-components/trineo-usuarios/trineo-usuarios.html">
 <link rel="import" href="../custom-components/trineo-usuarios/trineo-invitaciones.html">
@@ -47,11 +47,7 @@
 
     <iron-ajax id="updateSettingsAjax" headers="[[getAuthorizationHeader()]]" content-type="application/json" id="iaUpdateSettings" method="PATCH" url="[[perfilActual.empresa.url]]" handle-as="json" debounce-duration="3000"></iron-ajax>
 
-    <iron-ajax id="pvAddAjax" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/puntos-venta/"  method="POST" content-type="application/json" handle-as="json" last-response="{{_pvAddedObject}}"></iron-ajax>
-    
-    <iron-ajax id="pvRemoveAjax" headers="[[getAuthorizationHeader()]]" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
-
-    <iron-ajax loading="{{loadingAfipStatus}}" headers="[[getAuthorizationHeader()]]" id="afipStatus" url="[[apiUrl]]/utils/afip-status/" handle-as="json" last-response="{{afipStatus}}"></iron-ajax>
+    <iron-ajax loading="{{loadingAfipStatus}}" id="afipStatus" url="[[apiUrl]]/utils/afip-status/" handle-as="json" last-response="{{afipStatus}}"></iron-ajax>
     
     <div class="layout vertical">
       <div class="layout horizontal">
@@ -81,7 +77,7 @@
                 <vaadin-date-picker id="fechaInicioAct" value={{perfilActual.empresa.inicio_actividades}} label="Fecha Inicio Actividades"></vaadin-date-picker>
               </div>
               <div class="form-field col-8">
-                <appline-ptovta-input on-pv-added="_pvAddedHandler" on-pv-removed="_pvRemovedHandler" puntos-venta="{{perfilActual.empresa.puntos_venta}}"></appline-ptovta-input>
+                <trineo-ptovta-input perfil-actual="{{perfilActual}}"></trineo-ptovta-input>
               </div>
             </div>
             <div class="spacer"></div>
@@ -231,10 +227,6 @@
           notify: true
         },
         proSettings: Object,
-        _pvAddedObject: {
-          type: Object,
-          observer: "_pvAddedObjectChanged"
-        },
         estadoDelegacion: {
           type: String,
           computed: "_estadoDelegacionCompute(perfilActual.empresa.delegacion_iniciada, perfilActual.empresa.delegacion_aceptada)"
@@ -256,7 +248,7 @@
 
       observers: [
         "_onEmpresaChanged(perfilActual.empresa.*)",
-        //"_onAuthTokenChanged(userBackend.auth_token)",
+        "_onPerfilChanged(perfilActual)",
         "_onPlanContratadoChange(perfilActual.empresa.plan_contratado)"
       ],
 
@@ -292,34 +284,17 @@
         }
       },
 
-      _onAuthTokenChanged: function(token) {
-        if (token) {
+      _onPerfilChanged: function(pa) {
+        if (pa) {
+          this.$.afipStatus.headers=this.getAuthorizationHeader();
           this.$.afipStatus.generateRequest();
         }
-      },
-
-      _pvAddedObjectChanged: function (val) {
-        var index = this.perfilActual.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
-        this.splice('perfilActual.empresa.puntos_venta',index,1,val)
-      },
-
-      _pvAddedHandler: function(e, det) {
-        this.$.pvAddAjax.body = {"punto_venta":det.punto_venta,"empresa":this.perfilActual.empresa.url}
-        this.$.pvAddAjax.generateRequest()
-
-      },
-
-      _pvRemovedHandler: function (e, det) {
-        var index = this.perfilActual.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
-        var url = this.get(['perfilActual.empresa.puntos_venta',index,'url'])
-        this.$.pvRemoveAjax.url = url
-        this.$.pvRemoveAjax.generateRequest();
-        this.splice('perfilActual.empresa.puntos_venta',index,1)
       },
 
       _refreshAfipStatus: function() {
         this.$.afipStatus.generateRequest();
       },
+
       _notificarDelegacion: function() {
         var d = document.createElement("iron-ajax")
         d.url = this.apiUrl+"/utils/notificar-delegacion/"

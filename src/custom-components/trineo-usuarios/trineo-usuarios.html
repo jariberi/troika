@@ -12,9 +12,8 @@
 
         
         <iron-ajax
-             auto
+             id="usersAjax"
              url="[[empresa.url]]users/"
-             headers="[[getAuthorizationHeader()]]"
              handle-as="json"
              last-response="{{usuarios}}"></iron-ajax>
         
@@ -67,6 +66,12 @@
             is: 'trineo-usuarios',
 
             behaviors: [AjaxBehavior],
+
+            ready: function() {
+                this.$.usersAjax.headers=this.getAuthorizationHeader();
+                console.log(this.$.usersAjax.headers)
+                this.$.usersAjax.generateRequest();
+            },
 
             properties: {
                 empresa: Object,

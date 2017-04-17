@@ -106,10 +106,10 @@
                 },
             },
 
-            _onNumeroIdentificacionChanged: function(v) {
+            _onNumeroIdentificacionChanged: function(newval, oldval) {
                 var patt = new RegExp("\\d{2}-\\d{8}-\\d{1}");
-                if (patt.test(v)) {
-                    this.fire("combifiscal-cuit-ingresed", {value: v});
+                if (oldval && oldval.length==11 && patt.test(newval)) { //Para evitar que lanze el evento si es ingresado programaticamente
+                    this.fire("combifiscal-cuit-ingresed", {value: newval});
                 }
             },
 

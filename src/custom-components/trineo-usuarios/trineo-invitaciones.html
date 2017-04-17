@@ -9,26 +9,27 @@
 
         
         <iron-ajax
-             auto
-             url="[[empresa.url]]users/"
+             id="usersAjax"
+             url="[[empresa.url]]invitaciones/"
              handle-as="json"
-             last-response="{{usuarios}}"></iron-ajax>
-        
-        
+             last-response="{{invitaciones}}"></iron-ajax>
 
-        
-        <template is="dom-repeat" items={{usuarios}} as=usuario>
-            <template is="dom-if" if={{!usuario.confirmado}}>
+        <template is="dom-if" if={{invitaciones}}>
+            <template is="dom-repeat" items={{invitaciones}} as=invitacion rendered-item-count="{{invitacionesCount}}">
                 <div class="layout horizontal justified center">
-                    <span>[[usuario.username]]</span>
-                    <iron-pages selected="[[usuario.rol]]">
+                    <span>[[invitacion.username]]</span>
+                    <iron-pages selected="[[invitacion.rol]]">
                         <span>Administrador</span>
                         <span>Operador</span>
                         <span>Contable</span>
                     </iron-pages>
-                </template>
-            </div>
+                </div>
+            </template>
         </template>
+        count: [[invitacionesCount]]
+        <template is="dom-if" if={{!invitacionesCount}}>
+              <span>No hay invitaciones enviadas</span>
+          </template>
         
         
         
@@ -39,9 +40,15 @@
 
             behaviors: [AjaxBehavior],
 
+            ready: function() {  
+                this.$.usersAjax.headers=this.getAuthorizationHeader();
+                console.log(this.$.usersAjax.headers)
+                this.$.usersAjax.generateRequest();
+            },
+
             properties: {
                 empresa: Object,
-                usuarios: Array
+                invitaciones: Array
             }
         });
     </script>

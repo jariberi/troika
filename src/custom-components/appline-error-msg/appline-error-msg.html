@@ -4,10 +4,17 @@
         <style>
             :host {
                 display: block;
+                margin: 5px 0;
+            }
+
+            span {
                 color: #dd2c00;
             }
         </style>
-        [[message]]
+        
+        <template is="dom-if" if={{message}}>
+            <span>[[message]]</span>
+        </template>
     </template>
     <script>
         Polymer({
