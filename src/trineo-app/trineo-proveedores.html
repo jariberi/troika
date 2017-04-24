@@ -95,6 +95,7 @@
                 Polymer.dom(document.querySelector("trineo-core").root).appendChild(form)
                 form.accion=0
                 form.parent = this
+                form.set("perfilActual",this.perfilActual);
                 if (prov) {
                     form.accion=1
                     form.proveedor = prov

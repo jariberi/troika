@@ -21,22 +21,19 @@
             id="saveArticuloAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
 
         <iron-ajax
-            auto
+            id="lineasAjax"
             url="[[apiUrl]]/lineas/"
             handle-as="json"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"
             last-response="{{_lineas}}"></iron-ajax>
         
         <iron-ajax
-            auto
+            id="subrubrosAjax"
             url="[[apiUrl]]/subrubros/"
             handle-as="json"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"
             last-response="{{_subrubros}}"></iron-ajax>
         
@@ -52,7 +49,7 @@
                             <paper-input disabled="[[articulo.para_registracion]]" label="Código Fábrica" value="{{articulo.codigo_fabrica}}"></paper-input>
                         </div>
                         <div class="form-field col-3">
-                            <paper-dropdown-menu required label="Unidad de medida" error-message="Seleccione unidad de medida">
+                            <paper-dropdown-menu required disabled="[[articulo.para_registracion]]" label="Unidad de medida" error-message="Seleccione unidad de medida">
                                 <paper-listbox attr-for-selected="value" selected="{{articulo.unidad_medida}}" class="dropdown-content">
                                     <paper-item value="0">Unidades</paper-item>
                                     <paper-item value="1">Kilogramos</paper-item>
@@ -70,7 +67,7 @@
                             <paper-input required label="Denominación" value="{{articulo.denominacion}}" error-message="Ingrese denominación"></paper-input>
                         </div>
                         <div class="form-field col-3">
-                            <paper-dropdown-menu required label="Línea" error-message="Seleccione línea">
+                            <paper-dropdown-menu disabled="[[articulo.para_registracion]]" required label="Línea" error-message="Seleccione línea">
                                 <paper-listbox attr-for-selected="value" selected="{{articulo.linea}}" class="dropdown-content">
                                     <template is="dom-repeat" items={{_lineas.results}} as=item>
                                         <paper-item value="[[item.url]]">[[item.nombre]]</paper-item>
@@ -79,7 +76,7 @@
                             </paper-dropdown-menu>
                         </div>
                         <div class="form-field col-3">
-                            <paper-dropdown-menu required label="Subrubro" error-message="Seleccione subrubro">
+                            <paper-dropdown-menu disabled="[[articulo.para_registracion]]" required label="Subrubro" error-message="Seleccione subrubro">
                                 <paper-listbox attr-for-selected="value" selected="{{articulo.subrubro}}" class="dropdown-content">
                                     <template is="dom-repeat" items={{_subrubros.results}} as=item>
                                         <paper-item value="[[item.url]]">[[item.nombre]]</paper-item>
@@ -89,8 +86,18 @@
                         </div>
                     </div>
                     <div class="layout horizontal center form-row">
-                        <div class="form-field col-10">
+                        <div class="form-field col-8">
                             <paper-textarea label="Información adicional" value="{{articulo.informacion_adicional}}"></paper-textarea>
+                        </div>
+                        <div class="form-field col-2">
+                            <paper-dropdown-menu required="[[articulo.para_registracion]]" label="IVA" error-message="Seleccione IVA">
+                                <paper-listbox attr-for-selected="value" selected="{{articulo.iva}}" class="dropdown-content">
+                                    <paper-item value="IVA00">Exento</paper-item>
+                                    <paper-item value="IV105">IVA 10.5%</paper-item>
+                                    <paper-item value="IVA21">IVA 21%</paper-item>
+                                    <paper-item value="IVA27">IVA 27%</paper-item>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
                         </div>
                         <div class="form-field col-2">
                             <paper-checkbox disabled="[[articulo.para_registracion]]" checked="{{articulo.lleva_stock}}">Llevar stock</paper-checkbox>
@@ -132,6 +139,7 @@
             behaviors: [AjaxBehavior],
 
             properties: {
+                perfilActual: Object,
                 articulo: {
                     type: Object,
                     value: function(){ 
@@ -161,6 +169,13 @@
                 return "Modificar articulo"
             },
 
+            getAjax: function() {
+                this.$.lineasAjax.headers=this.getAuthorizationHeader();
+                this.$.subrubrosAjax.headers=this.getAuthorizationHeader();
+                this.$.lineasAjax.generateRequest();
+                this.$.subrubrosAjax.generateRequest();
+            },
+
             _precioVentaCompute: function(cc, dc, gv) {
                 cc = Number(cc)
                 dc = Number(dc)
@@ -171,13 +186,16 @@
 
             _soloRegistra: function(v) {
                 if (v) {
-                    this.set("articulo.lleva_stock", false)
-                    this.set("articulo.costo_compra", "")
-                    this.set("articulo.descuento_compra", "")
-                    this.set("articulo.ganancia_venta", "")
+                    this.set("articulo.lleva_stock",false)
                     this.set("articulo.actualizar_precio_compra", false)
-                    this.set("articulo.codigo_fabrica", "")
-                    this.set("articulo.stock_minimo", "")
+                    delete this.articulo.costo_compra
+                    delete this.articulo.descuento_compra
+                    delete this.articulo.ganancia_venta
+                    delete this.articulo.codigo_fabrica
+                    delete this.articulo.stock_minimo
+                    delete this.articulo.linea
+                    delete this.articulo.subrubro
+                    delete this.articulo.unidad_medida
                 }
             },
 
@@ -191,12 +209,14 @@
                         this.$.saveArticuloAjax.url = this.articulo.url
                         this.$.saveArticuloAjax.method = "PUT"
                         this.$.saveArticuloAjax.body = JSON.stringify(this.articulo)
+                        this.$.saveArticuloAjax.headers=this.getAuthorizationHeader()
                         this.$.saveArticuloAjax.generateRequest();
                     }
                     else {
                         this.$.saveArticuloAjax.url = this.apiUrl+"/articulos/"
                         this.$.saveArticuloAjax.method = "POST"
                         this.$.saveArticuloAjax.body = JSON.stringify(this.articulo)
+                        this.$.saveArticuloAjax.headers=this.getAuthorizationHeader()
                         this.$.saveArticuloAjax.generateRequest();
                     }
                 }

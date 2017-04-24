@@ -64,32 +64,33 @@
   last-response="{{ultimoComprobante}}"></iron-ajax>
 
 <iron-ajax id="submitComprobanteAjax" method="POST" url="[[apiUrl]]/ventas/" content-type="application/json" handle-as="json" on-response="_onSubmitResponse" on-error="_onSubmitError"></iron-ajax>
-<iron-ajax id="aprobarComprobanteAjax" method="POST" url="[[apiUrl]]/utils/aprobar/" content-type="application/json" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
+<iron-ajax id="aprobarComprobanteAjax" handle-as="json" on-response="_onAprobarResponse" on-error="_onAprobarError"></iron-ajax>
 
 
 <paper-card id="datos-comprobante">
   <div class="card-content">
     <div class="datos-header">Datos Comprobante
         <div class="datos-location">
-          <span hidden$="[[!headerShowed]]"><b>Comprobante [[letraComprobante]]   --    N° [[pad_with_zeroes(ultimoComprobante.numero,8)]]</b></span>
+          <span>[[_descripcionPuntoVenta]]</span>
+          <span style="margin-left: 30px;" hidden$="[[!headerShowed]]"><b>Comprobante [[letraComprobante]]   --    N° [[pad_with_zeroes(ultimoComprobante.numero,8)]]</b></span>
         </div>
       </div>
     <div class="layout horizontal wrap center form-row">
-      <div class="form-field col-3">
-        <paper-dropdown-menu id="tipoVenta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
-          <paper-listbox class="dropdown-content" selected="{{tipoVenta}}" attr-for-selected="value">
-            <paper-item value="0">Productos</paper-item>
-            <paper-item value="1">Servicios</paper-item>
-            <paper-item value="2">Productos y Servicios</paper-item>
-          </paper-listbox>
-        </paper-dropdown-menu>
-      </div>
       <div class="form-field col-3">
         <paper-dropdown-menu required id="puntoVenta" label="Punto de Venta" error-message="Seleccione un punto de venta">
           <paper-listbox id="puntoVentaSel" attr-for-selected="value" selected="{{puntoVentaSelected}}" class="dropdown-content">
             <template is="dom-repeat" items=[[perfilActual.empresa.puntos_venta]] as=item>
               <paper-item value="[[item.punto_venta]]">[[pad_with_zeroes(item.punto_venta,4)]]</paper-item>
             </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="form-field col-3">
+        <paper-dropdown-menu disabled="[[_soloRegistro]]" id="tipoVenta" value="value" required label="Tipo de Venta" error-message="Seleccione un tipo de venta">
+          <paper-listbox class="dropdown-content" selected="{{tipoVenta}}" attr-for-selected="value">
+            <paper-item value="0">Productos</paper-item>
+            <paper-item value="1">Servicios</paper-item>
+            <paper-item value="2">Productos y Servicios</paper-item>
           </paper-listbox>
         </paper-dropdown-menu>
       </div>
@@ -214,9 +215,14 @@
           type: Boolean,
           computed: "_esFacturaElectronicaCompute(puntoVentaSelected, perfilActual.empresa.puntos_venta)"
         },
-        soloRegistra: {
+        _soloRegistro: {
           type: Boolean,
-          computed: "_soloRegistraCompute(puntoVentaSelected, perfilActual.empresa.puntos_venta)"
+          computed: "_soloRegistroCompute(puntoVentaSelected, perfilActual.empresa.puntos_venta)",
+          observer: "_soloRegistroChanged"
+        },
+        _descripcionPuntoVenta: {
+          type: String,
+          computed: "_descripcionPuntoVentaCompute(esFacturaElectronica, _soloRegistro)"
         }
       },
 
@@ -264,6 +270,18 @@
 
       _onPerfilActualChanged: function() {
         this.clear();
+      },
+
+      _soloRegistroChanged: function(v) {
+        if (v) {
+          //Pongo el tipo en undefined
+          this.tipoVenta = undefined
+          var items=Polymer.dom(this.root).querySelectorAll('trineo-factv-item')
+          for (i = 0; i < items.length; i++) {
+            Polymer.dom(items[i].parentNode).removeChild(items[i]);
+          }
+          this.agregarItem();
+          }
       },
 
       //Compute's
@@ -333,13 +351,28 @@
           var index = puntosVenta.findIndex(function(x) {return Number(x.punto_venta) === Number(puntoVentaSelected)})
           return puntosVenta[index].es_factura_electronica
         }
+        return null
       },
 
-      _soloRegistraCompute: function(puntoVentaSelected, puntosVenta) {
+      _soloRegistroCompute: function(puntoVentaSelected, puntosVenta) {
         if (puntoVentaSelected && puntosVenta) {
           var index = puntosVenta.findIndex(function(x) {return Number(x.punto_venta) === Number(puntoVentaSelected)})
-          return puntosVenta[index].solo_registra
+          return puntosVenta[index].solo_registro
         }
+        return false
+      },
+
+      _descripcionPuntoVentaCompute: function(esfe, sr) {   
+        if (esfe == null || sr == null) {
+          return ""
+        }
+        else if (sr) {
+            return "Solo registración contable"
+        }
+        else if (esfe) {
+            return "Facturación electrónica"
+        }
+        return "Facturación NO electrónica"
       },
 
       _parseInt: function (val) {
@@ -351,6 +384,7 @@
         el.perfilActual = this.perfilActual
         el.discriminaIva = this._discriminaIva
         el.asignaIva = this._asignaIva
+        el.soloRegistro = this._soloRegistro
         this.$.detalle.insertBefore(el, this.$.botonAgregarItem);
       },
 
@@ -422,10 +456,10 @@
           }
           else {
             if (this.esFacturaElectronica) {
-              this.fire("open-wait", {mensaje: "Grabando... No cierre esta ventana"})
-            }
-            else{
               this.fire("open-wait", {mensaje: "Aprobando... No cierre esta ventana"})
+            }
+            else if (!this.esFacturaElectronica && !this._soloRegistro) {
+              this.fire("open-wait", {mensaje: "Grabando... No cierre esta ventana"})
             }
             //Armar el objeto para hacer el post
             var fact = {}
@@ -447,6 +481,9 @@
               switch (items[i].tipo) {
                 case 0: //almacenado
                   obj['articulo'] = items[i].articulo().url
+                  if (this._soloRegistro) {
+                    obj['precio_unitario'] = items[i]._precioUnitario()
+                  }
                   break;
                 case 1: //personalizado
                   obj['descripcion']= items[i].descripcion();
@@ -482,15 +519,15 @@
 
       _onSubmitResponse: function(ev) {
         if (this.esFacturaElectronica) {
-          var id = ev.detail.xhr.response.id;
-          this.$.aprobarComprobanteAjax.body = {comprobante:id};
+          var url = ev.detail.xhr.response.url;
+          this.$.aprobarComprobanteAjax.url = url+"aprobar/";
           this.$.aprobarComprobanteAjax.headers=this.getAuthorizationHeader();
           this.$.aprobarComprobanteAjax.generateRequest();
         }
         else {
           this.fire("close-wait");
           var resp = ev.detail.xhr.response
-          if (!this.soloRegistra) {
+          if (!this._soloRegistro) {
             this.clear();
             this.fire("comprobante-aprobado", {data:resp.data});
           }

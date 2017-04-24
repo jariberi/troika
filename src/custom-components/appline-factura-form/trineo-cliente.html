@@ -26,8 +26,8 @@
                 cond-fiscal="{{cliente.cond_iva}}"
                 ></trineo-combinacion-fiscal>
             </div>
-            <div class="layout horizontal form-row">
-                <div class="form-field col-6">
+            <div class="layout horizontal center form-row">
+                <div class="form-field col-8">
                     <div>
                         <div class="layout horizontal">
                             <paper-input style="width: calc(100% - 40px);" hidden="[[planMayor0()]]" required readonly="[[!manual]]" id="cliente" label="Cliente" value="{{cliente.razon_social}}" error-message="El cliente no es válido"></paper-input>
@@ -53,9 +53,9 @@
                         <paper-spinner active="[[clienteAjaxFlight]]"></paper-spinner>
                     </div>
                 </div>
-                <div class="form-field col-6">
+                <div class="form-field col-4" style="margin-top: 8px;">
                     <div>
-                        <paper-input readonly="[[!manual]]" required id="direccion" label="Direccion" value="{{cliente.direccion}}" error-message="Ingrese una dirección"></paper-input>      
+                        <span id="direccion">{{cliente.direccion}}</span>      
                         <paper-spinner active="[[clienteAjaxFlight]]"></paper-spinner>
                     </div>
                 </div>
@@ -160,7 +160,6 @@
             _getValidity: function() {
                 var valid = true
                 valid &= this.$.combifi.validate()
-                valid &= this.$.direccion.validate()
                 valid &= this.$.cliente.validate()
                 valid &= this.$.clienteautocomplete.validate()
                 return valid

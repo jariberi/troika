@@ -9,8 +9,8 @@
 
         
         <iron-ajax
-             id="usersAjax"
-             url="[[empresa.url]]invitaciones/"
+             id="invitacionesAjax"
+             url="[[perfilActual.empresa.url]]invitaciones/"
              handle-as="json"
              last-response="{{invitaciones}}"></iron-ajax>
 
@@ -26,7 +26,6 @@
                 </div>
             </template>
         </template>
-        count: [[invitacionesCount]]
         <template is="dom-if" if={{!invitacionesCount}}>
               <span>No hay invitaciones enviadas</span>
           </template>
@@ -40,15 +39,17 @@
 
             behaviors: [AjaxBehavior],
 
-            ready: function() {  
-                this.$.usersAjax.headers=this.getAuthorizationHeader();
-                console.log(this.$.usersAjax.headers)
-                this.$.usersAjax.generateRequest();
+            properties: {
+                perfilActual: {
+                    type: Object,
+                    observer: "_perfilChanged"
+                },
+                invitaciones: Array
             },
 
-            properties: {
-                empresa: Object,
-                invitaciones: Array
+            _perfilChanged: function(v) {
+                this.$.invitacionesAjax.headers=this.getAuthorizationHeader();
+                this.$.invitacionesAjax.generateRequest();
             }
         });
     </script>

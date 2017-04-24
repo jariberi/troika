@@ -5,6 +5,9 @@
                 display: block;
                 width: 20vw;
             }
+            td > input {
+                width: 100%;
+            }
         </style>
 
         <iron-ajax id="pvAddAjax" headers="[[getAuthorizationHeader()]]" url="[[apiUrl]]/puntos-venta/" method="POST" content-type="application/json" handle-as="json" on-response="_onPvAddAjaxResponse" on-error="_onPvAddAjaxError"></iron-ajax>
@@ -13,8 +16,42 @@
             <h2>Nuevo Punto de Venta</h2>
             <div class="layout vertical">
                 <paper-input style="margin-bottom: 20px;" required id="puntoVenta" label="Punto de Venta" value="{{puntoVenta.punto_venta}}" error-message="Ingrese punto de venta"></paper-input>
-                <paper-checkbox style="margin-bottom: 15px;" checked="{{puntoVenta.solo_registra}}">Solo registra</paper-checkbox>
-                <paper-checkbox disabled="[[puntoVenta.solo_registra]]" checked="{{puntoVenta.es_factura_electronica}}">Es factura electrónica</paper-checkbox>
+                Ultima numeración
+                <table style="width: 100%;margin-bottom: 20px;">
+                    <tr>
+                        <td style="text-align: center;">Factura A</td>
+                        <td style="text-align: center;">Factura B</td>
+                        <td style="text-align: center;">Factura C</td>
+                    </tr>
+                    <tr>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_faa}}"></td>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_fab}}"></td>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_fac}}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">Nota Crédito A</td>
+                        <td style="text-align: center;">Nota Crédito B</td>
+                        <td style="text-align: center;">Nota Crédito C</td>
+                    </tr>
+                    <tr>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_nca}}"></td>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_ncb}}"></td>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_ncc}}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">Nota Débito A</td>
+                        <td style="text-align: center;">Nota Débito B</td>
+                        <td style="text-align: center;">Nota Débito C</td>
+                    </tr>
+                    <tr>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_nda}}"></td>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_ndb}}"></td>
+                        <td><input is="iron-input" bind-value="{{puntoVenta.ultimo_comprobante_ndc}}"></td>
+                    </tr>
+                </table>
+                
+                <paper-checkbox style="margin-bottom: 15px;" checked="{{puntoVenta.solo_registro}}">Solo registro</paper-checkbox>
+                <paper-checkbox disabled="[[puntoVenta.solo_registro]]" checked="{{puntoVenta.es_factura_electronica}}">Es factura electrónica</paper-checkbox>
                 <appline-error-msg id="errorMessage"></appline-error-msg>
             </div>
             <div class="buttons">
@@ -40,17 +77,17 @@
                 puntoVenta: {
                     type: Object,
                     value: function() {
-                        return {punto_venta: "", es_factura_electronica: true, solo_registra:false}
+                        return {punto_venta: "", es_factura_electronica: true, solo_registro:false, ultimo_comprobante_faa: 0, ultimo_comprobante_fab: 0, ultimo_comprobante_fac: 0,
+                        ultimo_comprobante_nca: 0, ultimo_comprobante_ncb: 0, ultimo_comprobante_ncc: 0,ultimo_comprobante_nda: 0, ultimo_comprobante_ndb: 0, ultimo_comprobante_ndc: 0}
                     }
                 }
             },
 
             observers: [
-                "_soloRegistraChanged(puntoVenta.solo_registra)"
+                "_soloRegistraChanged(puntoVenta.solo_registro)"
             ],
 
             _soloRegistraChanged: function(sr) {
-                console.log(sr)
                 if (sr) {
                     this.set("puntoVenta.es_factura_electronica", false)
                 }
@@ -120,19 +157,40 @@
   </style>
 
   <template>
-      <div class="layout horizontal center">
-        <span>[[value]]</span>
+      <div id="wrapper" class="layout horizontal center">
+        <span>[[pad_with_zeroes(puntoVenta.punto_venta, 4)]]</span>
         <paper-icon-button icon="icons:close" on-tap="_removeTag"></paper-icon-button>
       </div>
+
+      
+      <paper-tooltip for="wrapper" position="bottom" offset="14">
+        [[descripcion]]
+      </paper-tooltip>
+      
   </template>
 
 
 <script>
   Polymer({
     is: 'trineo-tag-item',
+    behaviors:[UtilsBehavior],
     properties: {
-      value: String,
-      index: Number
+      puntoVenta: Object,
+      index: Number,
+      descripcion: {
+          type: String,
+          computed: "_descripcionCompute(puntoVenta.solo_registro, puntoVenta.es_factura_electronica)"
+      }
+    },
+
+    _descripcionCompute: function(solo_registro, es_factura_electronica) {
+        if (solo_registro) {
+            return "Solo registración contable"
+        }
+        else if (es_factura_electronica) {
+            return "Facturación electrónica"
+        }
+        return "Facturación NO electrónica"
     },
 
     _removeTag: function() {
@@ -150,13 +208,13 @@
             }
         </style>
     
-        <iron-ajax id="pvRemoveAjax" headers="[[getAuthorizationHeader()]]" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
+        <iron-ajax id="pvRemoveAjax" method="DELETE" content-type="application/json" handle-as="json"></iron-ajax>
             
         <paper-input-container id="input-tags" always-float-label="[[floatLabel]]">
             <label>Puntos de Venta</label>
 			<div class="layout horizontal">
                 <template id="pvrep" is="dom-repeat" items="{{perfilActual.empresa.puntos_venta}}" as="puntoVenta" index-as="index">
-                    <trineo-tag-item index="{{index}}" tags="{{tags}}" value="[[pad_with_zeroes(puntoVenta.punto_venta, 4)]]"></trineo-tag-item>
+                    <trineo-tag-item index="{{index}}" punto-venta="{{puntoVenta}}"></trineo-tag-item>
                 </template>
 			<input is="iron-input" allowed-pattern="[]" on-tap="_tap">
 		</div>
@@ -167,7 +225,7 @@
         Polymer({
             is: 'trineo-ptovta-input',
 
-            behaviors: [AjaxBehavior, UtilsBehavior],
+            behaviors: [AjaxBehavior],
 
             properties: {
                 perfilActual: {
@@ -203,11 +261,10 @@
             },
 
             _pvRemoved: function(e) {
-                //var index = this.perfilActual.empresa.puntos_venta.findIndex(function(x) {return x.punto_venta === val.punto_venta})
                 var index = e.detail.index
-                console.log("pv remo", index)
                 var url = this.get(['perfilActual.empresa.puntos_venta',index,'url'])
                 this.$.pvRemoveAjax.url = url
+                this.$.pvRemoveAjax.headers=this.getAuthorizationHeader();
                 this.$.pvRemoveAjax.generateRequest();
                 this.splice('perfilActual.empresa.puntos_venta',index,1)
             },

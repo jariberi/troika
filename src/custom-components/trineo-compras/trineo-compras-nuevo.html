@@ -99,7 +99,7 @@
 <paper-card heading="Detalles">
   <div id="detalle" class="card-content">
     <trineo-compras-item-head></trineo-compras-item-head>
-    <trineo-compras-item asigna-iva="[[_asignaIva]]"></trineo-compras-item>
+    <trineo-compras-item asigna-iva="[[_asignaIva]]" perfil-actual="[[perfilActual]]"></trineo-compras-item>
     <paper-icon-button id="botonAgregarItem" icon="add" on-tap="agregarItem"></paper-icon-button>
     <paper-tooltip
       for="botonAgregarItem"
@@ -233,6 +233,7 @@
         var el = document.createElement('trineo-compras-item');
         el.discriminaIva = this._discriminaIva
         el.asignaIva = this._asignaIva
+        el.perfilActual=this.perfilActual
         this.$.detalle.insertBefore(el, this.$.botonAgregarItem);
       },
 
@@ -348,30 +349,17 @@
       },
 
       _onSubmitResponse: function(ev) {
-        var id = ev.detail.xhr.response.id
-        this.$.aprobarComprobanteAjax.body = {comprobante:id}
-        this.$.aprobarComprobanteAjax.generateRequest()
+        var toast = document.createElement("paper-toast");
+        toast.text = "Comprobante registrado"
+        Polymer.dom(document.querySelector("trineo-core").root).appendChild(toast)
+        toast.addEventListener("iron-overlay-closed", function(e) {
+            Polymer.dom(e.target).parentNode.removeChild(e.target)
+        })
+        toast.show();
+        this.clear();
       },
 
       _onSubmitError: function(ev) {
-        this.fire("close-wait")
-        this.fire("error-general")
-      },
-
-      _onAprobarResponse: function(ev) {
-        this.fire("close-wait")
-        var resp = ev.detail.xhr.response
-        if (resp.aprobado) {
-          this.clear();
-          this.fire("comprobante-aprobado", {data:resp.data});
-        }
-        else {
-          this.fire("comprobante-no-aprobado", {data:resp.data})
-        }
-      },
-
-      _onAprobarError: function(ev) {
-        this.fire("close-wait")
         this.fire("error-general")
       }
     });

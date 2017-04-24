@@ -16,7 +16,7 @@
         </style>
         
         <iron-ajax
-            id="saveEmpresaAjax"
+            id="savePerfilAjax"
             handle-as="json"
             on-response="handleResponse"
             headers="[[getAuthorizationHeader()]]"
@@ -70,18 +70,19 @@
 
             _saveEmpresa: function() {
                 if(this.validate()){
-                    this.$.saveEmpresaAjax.url = this.apiUrl+"/perfiles-user/"
-                    this.$.saveEmpresaAjax.method = "POST"
-                    obj = {razon_social:this.razonSocial, cuit:this.cuit, categoria_iva: this.categoriaIva}
-                    this.$.saveEmpresaAjax.body = JSON.stringify(obj)
-                    this.$.saveEmpresaAjax.generateRequest();
+                    this.$.savePerfilAjax.url = this.apiUrl+"/perfiles-user/"
+                    this.$.savePerfilAjax.method = "POST"
+                    var obj = {}
+                    var empresa = {razon_social:this.razonSocial, cuit:this.cuit, categoria_iva: this.categoriaIva}
+                    obj['empresa'] = empresa
+                    this.$.savePerfilAjax.body = JSON.stringify(obj)
+                    this.$.savePerfilAjax.generateRequest();
                 }
             },
 
             handleResponse: function(e) {
-                if(e.detail.xhr.status==200 || e.detail.xhr.status==201) {
-                    //this.parent.$.proveedoresList.refreshItems();
-                    this.fire("trineo-empresa-form-added", {perfil:e.detail});
+                if(e.detail.xhr.status==201) {
+                    this.fire("trineo-empresa-form-added", {perfil:e.detail.xhr.response});
                     this._close()
                 }
             },

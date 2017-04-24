@@ -7,7 +7,7 @@
             }
         </style>
 
-        <iron-ajax id="getArticulo" headers="[[getAuthorizationHeader()]]" handle-as="json" last-response="{{_articulo}}"></iron-ajax>
+        <iron-ajax id="getArticulo" handle-as="json" last-response="{{_articulo}}"></iron-ajax>
 
 
         <div class="layout horizontal form-row">
@@ -132,6 +132,7 @@
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.setRequestHeader("Authorization", "Token " + this.getToken())
+                xhr.setRequestHeader("trineo-empresa", this.getEmpresa())
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                     var response = JSON.parse(xhr.responseText).results;
@@ -143,6 +144,7 @@
 
             _onAutocompleteSelected: function(e) {
                 this.$.getArticulo.url = e.detail.value;
+                this.$.getArticulo.headers=this.getAuthorizationHeader();
                 this.$.getArticulo.generateRequest();
             },
 

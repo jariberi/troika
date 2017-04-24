@@ -24,7 +24,6 @@
             id="saveRubroAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
 
         
@@ -85,12 +84,14 @@
                 if(this.$.form.validate()){
                     if (this.accion == 1) {
                         this.$.saveRubroAjax.url = this.rubro.url
+                        this.$.saveRubroAjax.headers=this.getAuthorizationHeader();
                         this.$.saveRubroAjax.method = "PUT"
                         this.$.saveRubroAjax.body = JSON.stringify(this.rubro)
                         this.$.saveRubroAjax.generateRequest();
                     }
                     else {
                         this.$.saveRubroAjax.url = this.apiUrl+"/rubros/"
+                        this.$.saveRubroAjax.headers=this.getAuthorizationHeader();
                         this.$.saveRubroAjax.method = "POST"
                         this.$.saveRubroAjax.body = JSON.stringify(this.rubro)
                         this.$.saveRubroAjax.generateRequest();

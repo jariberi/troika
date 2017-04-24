@@ -15,6 +15,7 @@
         
         <iron-ajax
              auto
+             headers="[[getAuthorizationHeader()]]"
              url="[[contribuyente.url]]"
              handle-as="json"
              loading="{{loading}}"
@@ -27,6 +28,8 @@
     <script>
         Polymer({
             is: 'trineo-busca-xrz-details',
+
+            behaviors: [AjaxBehavior],
 
             properties: {
                 contribuyente: Object,

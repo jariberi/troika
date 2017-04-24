@@ -19,7 +19,6 @@
             id="saveClienteAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
         
         
@@ -142,12 +141,14 @@
                 if(this.$.form.validate()){
                     if (this.accion == 1) {
                         this.$.saveClienteAjax.url = this.cliente.url
+                        this.$.saveClienteAjax.headers=this.getAuthorizationHeader();
                         this.$.saveClienteAjax.method = "PUT"
                         this.$.saveClienteAjax.body = JSON.stringify(this.cliente)
                         this.$.saveClienteAjax.generateRequest();
                     }
                     else {
                         this.$.saveClienteAjax.url = this.apiUrl+"/clientes/"
+                        this.$.saveClienteAjax.headers=this.getAuthorizationHeader();
                         this.$.saveClienteAjax.method = "POST"
                         this.$.saveClienteAjax.body = JSON.stringify(this.cliente)
                         this.$.saveClienteAjax.generateRequest();

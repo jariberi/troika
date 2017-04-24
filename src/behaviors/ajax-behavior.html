@@ -29,6 +29,9 @@
 
         getEmpresa: function() {
             return JSON.parse(localStorage.getItem("trineolambdapa")).empresa.id
+        },
+        getEmpresaUrl: function() {
+            return JSON.parse(localStorage.getItem("trineolambdapa")).empresa.url
         }
 
     }

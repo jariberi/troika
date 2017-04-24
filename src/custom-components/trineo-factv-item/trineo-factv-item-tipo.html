@@ -17,8 +17,8 @@
         <iron-dropdown id="dropd" class="div">
              <paper-listbox selected="{{tipo}}" class="dropdown-content">
                         <paper-item on-tap="_onSelected">Almacenado</paper-item>
-                        <paper-item on-tap="_onSelected">Personalizado</paper-item>
-                        <paper-item on-tap="_onSelected">Compuesto</paper-item>
+                        <paper-item disabled="[[soloRegistro]]" on-tap="_onSelected">Personalizado</paper-item>
+                        <paper-item disabled="[[soloRegistro]]" on-tap="_onSelected">Compuesto</paper-item>
                     </paper-listbox>
         </iron-dropdown>
     </template>

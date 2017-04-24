@@ -5,6 +5,7 @@
 <link rel="import" href="../behaviors/utils-behavior.html">
 <link rel="import" href="../behaviors/settings-behavior.html">
 
+<!--IRON ELEMENTS -->
 
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -15,21 +16,26 @@
 <link rel="import" href="../../bower_components/iron-icons/communication-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/device-icons.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
+<link rel="import" href="../../bower_components/iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../../bower_components/iron-dropdown/iron-dropdown.html">
+<link rel="import" href="../../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
+
+<!-- PAPER ELEMENTS -->
+
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
-<link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
-<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
-<link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
-<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-autocomplete/paper-autocomplete.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
@@ -38,20 +44,22 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
-<link rel="import" href="../../bower_components/iron-form-element-behavior/iron-form-element-behavior.html">
-<link rel="import" href="../../bower_components/iron-dropdown/iron-dropdown.html">
-<link rel="import" href="../../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
 
+<!-- GOLS ELEMENTS -->
 
+<link rel="import" href="../../bower_components/gold-email-input/gold-email-input.html">
+
+<!-- 3RD ELEMENTS -->
+
+<link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<script src="../../bower_components/moment/min/moment.min.js"></script>
+
+<!-- MY ELEMENTS -->
 
 <link rel="import" href="../shared-styles.html">
 <link rel="import" href="../trineo-app/trineo-app.html">
-
-<script src="../../bower_components/moment/min/moment.min.js"></script>
-
 <link rel="import" href="../custom-components/appline-idfiscal-input/appline-idfiscal-input.html">
-<link rel="import" href="../custom-components/trineo-auth-panel/trineo-login-form.html">
 <link rel="import" href="../custom-components/trineo-auth-panel/trineo-auth-panel.html">
 <link rel="import" href="../custom-components/appline-wait/appline-wait.html">
 <link rel="import" href="../custom-components/appline-error-msg/appline-error-msg.html">
@@ -59,6 +67,7 @@
 <link rel="import" href="../custom-components/trineo-combinacion-fiscal/trineo-combinacion-fiscal.html">
 <link rel="import" href="../custom-components/trineo-list/trineo-list.html">
 <link rel="import" href="../custom-components/trineo-decimal-input/trineo-decimal-input.html">
+<link rel="import" href="../custom-components/appline-password-input/appline-password-input.html">
 
 <dom-module id="trineo-core">
   <template>
@@ -92,7 +101,6 @@
 
     <iron-pages class="horizontal layout center-justified" selected="[[page]]" attr-for-selected="name">
       <trineo-auth-panel class="vertical layout center-justified" id="auth" name="auth" logged-in="{{userLoggedIn}}" perfil-actual="{{perfilActual}}" user-backend="{{userBackend}}"></trineo-auth-panel>
-      <!--<trineo-login-form name="login" user-backend="{{userBackend}}" login-url="[[apiUrl]]/utils/login/" create-url="[[apiUrl]]/utils/create-user/" id="loginForm"></trineo-login-form>-->
       <trineo-app route="{{route}}" route-data="{{routeData}}" subroute="{{subroute}}" id="app" perfil-actual="[[perfilActual]]" user-backend="[[userBackend]]" name="app"></trineo-app>
     </iron-pages>
 
@@ -170,6 +178,7 @@
         "trineo-usuarios-form-sended": "__onUserAdd",
         "trineo-perfil-changed": "_onPerfilChanged",
         "trineo-pv-form-added": "_onPVAdded",
+        "trineo-empresa-form-added": "_onEmpresaAdded",
         "open-wait": "_lanzarWaitDialog",
         "close-wait": "_cerrarWaitDialog",
         "logout": "_logout",
@@ -205,6 +214,13 @@
 
       _onPVAdded: function(e) {
         this.$.auth.push("perfilActual.empresa.puntos_venta", e.detail.pv)
+      },
+
+      _onEmpresaAdded: function(e) {
+        console.log(e.detail)
+        console.log(e)
+        this.$.auth.push("userBackend.perfiles_empresa", e.detail.perfil)
+        this.$.auth.set("perfilActual", e.detail.perfil)
       },
 
       _userLoggedInChanged: function(val) {
@@ -285,6 +301,7 @@
           var d = document.createElement('trineo-proveedor-form');
           d.accion = 0
           d.set("proveedor", e.detail.contribuyente)
+          d.set("perfilActual",this.perfilActual);
           Polymer.dom(this.root).appendChild(d);
           var that = this
           d.open();
@@ -295,6 +312,7 @@
       _lanzarTrineoClienteForm: function(e) {
         //HTML Ya fue importado cuando se cargo la lista de clientes
         var d = document.createElement('trineo-cliente-form');
+        d.perfilActual = this.perfilActual
         if (e.detail.accion==0) {//nuevo
           d.accion=0;
         }
@@ -315,7 +333,7 @@
         if (e.detail.accion==1) {t.text="Cliente Modificado"}
         else {t.text="Cliente Agregado"}
         Polymer.dom(this.root).appendChild(t);
-        this.$.app.$.clientes.$.cligrid.refreshItems();
+        this.$.app.$.clientes.$.clientesList.refreshItems();
         t.open();
       },
 
@@ -347,6 +365,8 @@
           d.set("articulo", e.detail.articulo);
           d.accion=1;
         }
+        d.perfilActual = this.perfilActual
+        d.getAjax();
         Polymer.dom(this.root).appendChild(d);
         var that = this
         d.addEventListener('trineo-articulo-form-ok', function(e){
@@ -367,6 +387,7 @@
       _lanzarTrineoLineaForm: function(e) {
         //HTML Ya fue importado cuando se cargo la lista de clientes
         var d = document.createElement('trineo-linea-form');
+        d.set("perfilActual", this.perfilActual);
         if (e.detail.accion==0) {//nuevo
           d.accion=0;
         }
@@ -394,6 +415,7 @@
       _lanzarTrineoRubroForm: function(e) {
         //HTML Ya fue importado cuando se cargo la lista de clientes
         var d = document.createElement('trineo-rubro-form');
+        d.set("perfilActual", this.perfilActual);
         if (e.detail.accion==0) {//nuevo
           d.accion=0;
         }
@@ -421,6 +443,7 @@
       _lanzarTrineoSubrubroForm: function(e) {
         //HTML Ya fue importado cuando se cargo la lista de clientes
         var d = document.createElement('trineo-subrubro-form');
+        d.set("perfilActual", this.perfilActual);
         if (e.detail.accion==0) {//nuevo
           d.accion=0;
         }
@@ -433,6 +456,7 @@
         d.addEventListener('trineo-subrubro-form-ok', function(e){
           Polymer.dom(that.root).removeChild(d);
         });
+        d.loadRubros();
         d.open();
       },
 

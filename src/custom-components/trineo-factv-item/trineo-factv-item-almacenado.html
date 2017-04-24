@@ -20,15 +20,17 @@
                     <paper-item style="padding: 10px 5px;" on-tap="_onSelect" id$="[[_getSuggestionId(index)]]" role="option" aria-selected="false">
                         <div style="width: 100%;">
                             <div>[[item.denominacion]]</div>
-                            <div hidden$="[[!discriminaIva]]" style="font-size:1em;color:#191919;float: right;">$ [[item.precio_venta]]</div>
-                            <div hidden$="[[discriminaIva]]" style="font-size:1em;color:#191919;float: right;">$ [[item.precio_venta_iva_inc]]</div>
-                            <div style="font-size:0.75em;color:#757575;">
-                                Stock: [[item.stock]]
-                                <iron-pages style="display: inline" selected="[[item.unidad_medida]]">
-                                    <span>Un.</span>
-                                    <span>Kgs.</span>
-                                    <span>Mts.</span>
-                                </iron-pages>
+                            <div hidden="[[soloRegistro]]">
+                                <div hidden$="[[!discriminaIva]]" style="font-size:1em;color:#191919;float: right;">$ [[item.precio_venta]]</div>
+                                <div hidden$="[[discriminaIva]]" style="font-size:1em;color:#191919;float: right;">$ [[item.precio_venta_iva_inc]]</div>
+                                <div style="font-size:0.75em;color:#757575;">
+                                    Stock: [[item.stock]]
+                                    <iron-pages style="display: inline" selected="[[item.unidad_medida]]">
+                                        <span>Un.</span>
+                                        <span>Kgs.</span>
+                                        <span>Mts.</span>
+                                    </iron-pages>
+                                </div>
                             </div>
                         </div>
                     </paper-item>
@@ -36,8 +38,8 @@
                 </paper-autocomplete>  
             </div>
             <div class="form-field col-2">
-                <trineo-decimal-input id="precioVenta" no-label-float hidden="[[!discriminaIva]]" required readonly allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
-                <trineo-decimal-input id="precioVentaIvaInc" no-label-float hidden="[[discriminaIva]]" required readonly allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta_iva_inc}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
+                <trineo-decimal-input id="precioVenta" no-label-float hidden="[[!discriminaIva]]" required readonly="[[!soloRegistro]]" allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
+                <trineo-decimal-input id="precioVentaIvaInc" no-label-float hidden="[[discriminaIva]]" required readonly="[[!soloRegistro]]" allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta_iva_inc}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
             </div>
             <div class="form-field col-2">
                 <paper-dropdown-menu no-label-float required="[[_asignaIva]]" disabled id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
@@ -152,7 +154,12 @@
             _onAutocompleteChanged: function(e) {
                 var search = e.detail.option.text 
                 var input = this.$.articuloautocomplete;
-                var url = this.apiUrl+'/articulos/?search=' + search;
+                if (this.soloRegistro) {
+                    var url = this.apiUrl+'/articulos/?search=' + search + "&para_registracion=True";
+                }
+                else {
+                    var url = this.apiUrl+'/articulos/?search=' + search + "&para_registracion=False";
+                }
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.setRequestHeader("Authorization", "Token " + this.getToken())
@@ -181,6 +188,10 @@
                 valid = valid & this.$.precioVentaIvaInc.validate()
                 valid = valid & this.$.alicIva.validate()
                 return valid
+            },
+
+            _precioUnitario: function() {
+                return this._precioUnitario;
             }
         });
     </script>

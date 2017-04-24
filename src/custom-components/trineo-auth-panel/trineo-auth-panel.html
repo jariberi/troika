@@ -36,7 +36,7 @@
 
         <iron-ajax id="loginAjax" url="[[apiUrl]]/utils/login/" handle-as="json" method="POST" content-type="application/x-www-form-urlencoded" 
             body="username=[[username]]&password=[[password]]" last-response="{{userBackend}}" on-error="_loginError" on-response="_loginResponse"></iron-ajax>
-        <iron-ajax id="createUserAjax" url="[[createUrl]]" content-type="application/x-www-form-urlencoded" handle-as="json" method="POST" 
+        <iron-ajax id="createUserAjax" url="[[apiUrl]]/utils/create-user/" content-type="application/x-www-form-urlencoded" handle-as="json" method="POST" 
             body="username=[[username]]&password=[[password]]&razon_social=[[razon_social]]&cuit=[[cuit]]&categoria_iva=[[categoriaIva]]" last-response="{{userBackend}}"
             on-error="_createError" on-response="_createResponse"></iron-ajax>
         
@@ -60,11 +60,11 @@
                 <h2>Nuevo usuario</h2>
                 <div class="layout vertical centered">
                     <paper-button id="usuvie" style="margin: auto;" class="link" on-tap="_toggleLogin">Ya estoy registrado</paper-button>
-                    <gold-email-input required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
+                    <gold-email-input id="createmail" required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
                     <appline-password-input id="passin" password={{password}} required></appline-password-input>
                     <appline-idfiscal-input required only-cuit id="cuitDni" label="Cuit" value="{{cuit}}" error-message="Ingrese CUIT válido"></appline-idfiscal-input>
-                    <paper-input required label="Razon Social" value="{{razon_social}}" error-message="Ingrese razón social"></paper-input>
-                    <paper-dropdown-menu name="categoria-iva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
+                    <paper-input id="razonSocial" required label="Razon Social" value="{{razon_social}}" error-message="Ingrese razón social"></paper-input>
+                    <paper-dropdown-menu id="catIva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
                         <paper-listbox class="dropdown-content" selected="{{categoriaIva}}" attr-for-selected="value">
                             <paper-item value="0">Responsable Inscripto</paper-item>
                             <paper-item value="1">Monotributo</paper-item>
@@ -248,6 +248,45 @@
                     this.$.loginbutton.disabled=false
                     this.$.logspi.active=false
                     this.$.logspa.removeAttribute("hidden")
+                },
+
+                _createUser: function() {
+                    var valid = true;
+                    valid &= this.$.createmail.validate();
+                    valid &= this.$.passin.validate();
+                    valid &= this.$.cuitDni.validate();
+                    valid &= this.$.razonSocial.validate();
+                    valid &= this.$.catIva.validate();
+                    if(valid) {
+                        this.$.crespi.active=true
+                        this.$.crespa.setAttribute("hidden", true)
+                        this.$.createUserAjax.generateRequest();
+                        this.$.usuvie.disabled=true
+                        this.$.crebtn.disabled=true
+                    }
+                },
+
+                _createError: function(e,r) {
+                    var status = r.request.xhr.status
+                    if (status == 409) {
+                        this.errorCreateMsg = "El email o el CUIT ya existen."
+                    } else {
+                        this.errorCreateMsg = "Error general. Reintente en unos minutos."
+                    }
+                    this.$.crespi.active=false
+                    this.$.crespa.removeAttribute("hidden")
+                    this.$.usuvie.disabled=false
+                    this.$.crebtn.disabled=false
+                },
+
+                _createResponse: function() {
+                    this.password = this.razon_social = this.cuit = this.username = ""
+                    this.categoriaIva = undefined
+                    this.$.passin.clear()
+                    this.$.usuvie.disabled=false
+                    this.$.crebtn.disabled=false
+                    this.$.crespi.active=false
+                    this.$.crespa.removeAttribute("hidden")
                 }
             });
     </script>

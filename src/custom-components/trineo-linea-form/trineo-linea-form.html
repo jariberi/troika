@@ -24,7 +24,6 @@
             id="saveLineaAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
 
         
@@ -77,12 +76,14 @@
                 if(this.$.form.validate()){
                     if (this.accion == 1) {
                         this.$.saveLineaAjax.url = this.linea.url
+                        this.$.saveLineaAjax.headers=this.getAuthorizationHeader();
                         this.$.saveLineaAjax.method = "PUT"
                         this.$.saveLineaAjax.body = JSON.stringify(this.linea)
                         this.$.saveLineaAjax.generateRequest();
                     }
                     else {
                         this.$.saveLineaAjax.url = this.apiUrl+"/lineas/"
+                        this.$.saveLineaAjax.headers=this.getAuthorizationHeader();
                         this.$.saveLineaAjax.method = "POST"
                         this.$.saveLineaAjax.body = JSON.stringify(this.linea)
                         this.$.saveLineaAjax.generateRequest();

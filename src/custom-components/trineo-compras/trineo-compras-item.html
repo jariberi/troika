@@ -23,7 +23,7 @@
             </div>
             <div class="col-9">
                 <iron-pages id="items" selected="[[tipo]]">
-                    <trineo-compras-item-almacenado asigna-iva="[[asignaIva]]" total="{{total}}"></trineo-compras-item-almacenado>
+                    <trineo-compras-item-almacenado asigna-iva="[[asignaIva]]" total="{{total}}" perfil-actual="[[perfilActual]]"></trineo-compras-item-almacenado>
                     <trineo-compras-item-personalizado asigna-iva="[[asignaIva]]" total="{{total}}"></trineo-compras-item-personalizado>
                 </iron-pages>
             </div>
@@ -53,7 +53,8 @@
                 fireTotalEvent: {
                     type: Boolean,
                     value: true
-                }
+                },
+                perfilActual: Object
             },
 
              _onTotalChanged: function(val) {

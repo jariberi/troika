@@ -157,7 +157,8 @@
                             var but = document.createElement("paper-icon-button");
                             but.style.padding = "0 4px"
                             but.icon= "print"
-                            var id = cell.row.data.id
+                            var spl = cell.row.data.url.split("/");
+                            var id = spl[spl.length-2];
                             but.addEventListener("tap", function(){
                                 that.fire("trineo-comprobante-ver-comprobante", {comprobante:id})    
                             })
@@ -170,9 +171,9 @@
                             but.style.padding = "0 4px"
                             but.icon= "delete"
                             if (!cell.row.data.aprobado) {
-                                var id = cell.row.data.id
+                                var url = cell.row.data.url
                                 but.addEventListener("tap", function(){
-                                    that.fire("trineo-comprobante-borrar", {comprobante: id})    
+                                    that.fire("trineo-comprobante-borrar", {comprobante: url})    
                                 })
                             }
                             else {
@@ -290,7 +291,7 @@
             },
 
             _delComprobante: function(e) {
-                this.$.delcompajax.url = this.apiUrl+"/ventas/"+String(e.detail.comprobante)+"/";
+                this.$.delcompajax.url = e.detail.comprobante;
                 this.$.delcompajax.headers=this.getAuthorizationHeader();
                 this.$.delcompajax.generateRequest();
             },

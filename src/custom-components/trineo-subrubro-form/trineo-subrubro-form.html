@@ -24,13 +24,11 @@
             id="saveSubrubroAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
 
         <iron-ajax
-            auto
+            id="rubrosAjax"
             handle-as="json"
-            headers="[[getAuthorizationHeader()]]"
             last-response="{{_rubros}}"
             url="[[apiUrl]]/rubros/"></iron-ajax>
         
@@ -90,6 +88,11 @@
                 return "Modificar subrubro"
             },
 
+            loadRubros: function() {
+                this.$.rubrosAjax.headers=this.getAuthorizationHeader();
+                this.$.rubrosAjax.generateRequest();
+            },
+
             open: function() {
                 this.$.d.open();
             },
@@ -98,12 +101,14 @@
                 if(this.$.form.validate()){
                     if (this.accion == 1) {
                         this.$.saveSubrubroAjax.url = this.subrubro.url
+                        this.$.saveSubrubroAjax.headers=this.getAuthorizationHeader();
                         this.$.saveSubrubroAjax.method = "PUT"
                         this.$.saveSubrubroAjax.body = JSON.stringify(this.subrubro)
                         this.$.saveSubrubroAjax.generateRequest();
                     }
                     else {
                         this.$.saveSubrubroAjax.url = this.apiUrl+"/subrubros/"
+                        this.$.saveSubrubroAjax.headers=this.getAuthorizationHeader();
                         this.$.saveSubrubroAjax.method = "POST"
                         this.$.saveSubrubroAjax.body = JSON.stringify(this.subrubro)
                         this.$.saveSubrubroAjax.generateRequest();

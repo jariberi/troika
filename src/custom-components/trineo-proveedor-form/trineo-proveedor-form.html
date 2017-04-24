@@ -15,7 +15,6 @@
             id="saveProveedorAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
         
         <div class="trineo-dialogs">
@@ -152,14 +151,19 @@
                 if(this.validate()){
                     if (this.accion == 1) {
                         this.$.saveProveedorAjax.url = this.proveedor.url
+                        this.$.saveProveedorAjax.headers=this.getAuthorizationHeader();
+                        console.log(this.$.saveProveedorAjax.headers)
                         this.$.saveProveedorAjax.method = "PUT"
                         this.$.saveProveedorAjax.body = JSON.stringify(this.proveedor)
                         this.$.saveProveedorAjax.generateRequest();
                     }
                     else {
+                        var prov = this.proveedor
+                        prov['empresa']=this.getEmpresaUrl();
                         this.$.saveProveedorAjax.url = this.apiUrl+"/proveedores/"
                         this.$.saveProveedorAjax.method = "POST"
-                        this.$.saveProveedorAjax.body = JSON.stringify(this.proveedor)
+                        console.log(prov)
+                        this.$.saveProveedorAjax.body = JSON.stringify(prov)
                         this.$.saveProveedorAjax.generateRequest();
                     }
                 }

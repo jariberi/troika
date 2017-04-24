@@ -21,11 +21,11 @@
         </style>
         <div class="form-row layout horizontal center">
             <div class="form-field col-1">
-                <trineo-factv-item-tipo tipo="{{tipo}}"></trineo-factv-item-tipo>
+                <trineo-factv-item-tipo solo-registro="[[soloRegistro]]" tipo="{{tipo}}"></trineo-factv-item-tipo>
             </div>
             <div class="col-9">
                 <iron-pages id="items" selected="[[tipo]]">
-                    <trineo-factv-item-almacenado perfil-actual="[[perfilActual]]" asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-almacenado>
+                    <trineo-factv-item-almacenado solo-registro="[[soloRegistro]]" perfil-actual="[[perfilActual]]" asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-almacenado>
                     <trineo-factv-item-personalizado asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-personalizado>
                     <trineo-factv-item-compuesto perfil-actual="[[perfilActual]]" asigna-iva="[[asignaIva]]" discrimina-iva="[[discriminaIva]]" total="{{total}}"></trineo-factv-item-compuesto>
                 </iron-pages>
@@ -49,6 +49,7 @@
                 discriminaIva: {
                     type: Boolean
                 },
+                soloRegistra: Boolean,
                 tipo: {
                     type: Number,
                     value: 0
