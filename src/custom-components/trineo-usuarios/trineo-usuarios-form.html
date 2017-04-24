@@ -12,7 +12,6 @@
             id="saveInvitacionAjax"
             handle-as="json"
             on-response="handleResponse"
-            headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
         
         <div class="trineo-dialogs">
@@ -61,7 +60,8 @@
 
             _saveInvitacion: function() {
                 if(this.validate()){
-                    this.$.saveInvitacionAjax.url = this.empresa.url+"add_user/"
+                    this.$.saveInvitacionAjax.url = this.perfilActual.empresa.url+"add_user/"
+                    this.$.saveInvitacionAjax.headers=this.getAuthorizationHeader();
                     this.$.saveInvitacionAjax.method = "POST"
                     obj = {mail:this.mail, rol:this.rol}
                     this.$.saveInvitacionAjax.body = JSON.stringify(obj)

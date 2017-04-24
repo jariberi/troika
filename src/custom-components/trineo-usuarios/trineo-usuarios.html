@@ -84,7 +84,7 @@
 
             _addUser: function() {
                 var form = document.createElement("trineo-usuarios-form");
-                form.set("empresa", this.perfilActual.empresa);
+                form.set("perfilActual", this.perfilActual);
                 Polymer.dom(document.querySelector("trineo-core").root).appendChild(form);
                 form.open();
             }
