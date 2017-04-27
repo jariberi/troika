@@ -45,7 +45,7 @@
       }
     </style>
 
-    <iron-ajax id="updateSettingsAjax" headers="[[getAuthorizationHeader()]]" content-type="application/json" id="iaUpdateSettings" method="PATCH" url="[[perfilActual.empresa.url]]" handle-as="json" debounce-duration="3000"></iron-ajax>
+    <iron-ajax id="updateSettingsAjax" content-type="application/json" id="iaUpdateSettings" method="PATCH" url="[[perfilActual.empresa.url]]" handle-as="json" debounce-duration="2000"></iron-ajax>
 
     <iron-ajax loading="{{loadingAfipStatus}}" id="afipStatus" url="[[apiUrl]]/utils/afip-status/" handle-as="json" last-response="{{afipStatus}}"></iron-ajax>
     
@@ -280,7 +280,9 @@
           var obj = {}
           obj[prop]=ch.value
           this.$.updateSettingsAjax.body=obj
-          this.$.updateSettingsAjax.generateRequest()
+          this.$.updateSettingsAjax.headers=this.getAuthorizationHeader();
+          this.$.updateSettingsAjax.auto=true
+          //this.$.updateSettingsAjax.generateRequest()
         }
       },
 
