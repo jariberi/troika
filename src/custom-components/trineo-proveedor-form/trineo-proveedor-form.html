@@ -152,7 +152,6 @@
                     if (this.accion == 1) {
                         this.$.saveProveedorAjax.url = this.proveedor.url
                         this.$.saveProveedorAjax.headers=this.getAuthorizationHeader();
-                        console.log(this.$.saveProveedorAjax.headers)
                         this.$.saveProveedorAjax.method = "PUT"
                         this.$.saveProveedorAjax.body = JSON.stringify(this.proveedor)
                         this.$.saveProveedorAjax.generateRequest();
@@ -162,7 +161,7 @@
                         prov['empresa']=this.getEmpresaUrl();
                         this.$.saveProveedorAjax.url = this.apiUrl+"/proveedores/"
                         this.$.saveProveedorAjax.method = "POST"
-                        console.log(prov)
+                        this.$.saveProveedorAjax.headers=this.getAuthorizationHeader();
                         this.$.saveProveedorAjax.body = JSON.stringify(prov)
                         this.$.saveProveedorAjax.generateRequest();
                     }
