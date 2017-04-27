@@ -4,25 +4,98 @@
         <style include="shared-styles iron-flex iron-flex-alignment iron-positioning">
             :host {
                 display: block;
-                max-width: 400px;
-                width: 400px;
-                max-height: 100vh;
             }
-
-
-            paper-material {
+            /*all*/ 
+            div#auth-wrapper {
                 background-color: var(--primary-background-color);
-                padding: 10px 25px;
             }
 
-            paper-material h2 {
-                color: var(--accent-color);
+            p#usunue, p#usuvie {
+                text-decoration:underline;
+                cursor: pointer;
+                color: blue;
+                width: 100%;
+                text-align: center;
             }
 
-            paper-material paper-button {
+            div#right-panel iron-pages {
+                padding: 20px;
+            }
+
+            paper-button {
                 background-color: var(--accent-color);
-                color: var(--primary-text-color);
+                color: white;
+                width: 100%;
+                margin-top: 10px;
             }
+
+            /*smartphone*/
+            @media (max-width: 768px) {
+                div#auth-wrapper {
+                    height: 100vh;
+                    width: 100vw;
+                }
+
+                div#left-panel {
+                    display: none;
+                }
+
+                div#right-panel {
+                    width: 100%;
+                }
+            }
+            /*todo lo demas*/
+            @media (min-width: 769px) {
+                :host {
+                    width: 700px;
+                    height: 100vh;
+                }
+                div#auth-wrapper {
+                    -webkit-border-radius: 20px;
+                    -moz-border-radius: 20px;
+                    border-radius: 20px;
+                    -webkit-box-shadow: 20px 20px 61px 1px rgba(43,40,43,1);
+                    -moz-box-shadow: 20px 20px 61px 1px rgba(43,40,43,1);
+                    box-shadow: 20px 20px 61px 1px rgba(43,40,43,1);
+                }
+
+                div#left-panel {
+                    height: 500px;
+                    border-radius: 20px 0 0 20px;
+                    background: url("../../../images/auth/autumn0.jpg");
+                    width: 350px;
+                }
+
+                div#right-panel {
+                    width: 350px;
+                }
+
+                div#right-panel paper-toolbar {
+                    display: none;
+                }
+
+                div#title-wrapper {
+                    margin-left: 40px;
+                    margin-top: 60px;
+                }
+
+                div#title-wrapper > span {
+                    line-height: 1;
+                    display: block;
+                    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+                    color: #330C0C;
+                    font-size: 4em;
+                }
+
+                div#title-wrapper > p {
+                    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+                    color: #FCF7D1;
+                    font-size: 1.2em;
+                }
+
+
+            }
+
         </style>
 
         <iron-localstorage on-iron-localstorage-load="_trineolambdaLoaded" id="lsuser" name="trineolambda" value="{{userBackend}}"></iron-localstorage>
@@ -41,41 +114,74 @@
             on-error="_createError" on-response="_createResponse"></iron-ajax>
         
         
+        <iron-a11y-keys target="\{\{}}" keys="up down left right" on-keys-pressed="_login"></iron-a11y-keys>
         
-        <paper-material elevation="4">
         
         
-        <iron-pages selected="[[actionSelected]]">
-            <section>
-                <div class="layout vertical">
-                    <h2>Login</h2>
-                    <paper-button style="margin: auto;" id="usunue" on-tap="_toggleLogin">Soy un usuario nuevo</paper-button>
-                    <gold-email-input id="loginmail" required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
-                    <paper-input id="loginpass" required error-message="Ingrese contraseña" label="Contraseña" type="password" value="{{password}}"></paper-input>
-                    <appline-error-msg hidden$="[[!errorLoginMsg]]" message="[[errorLoginMsg]]" id="errorLogin"></appline-error-msg>
-                    <paper-button style="margin-left: auto;" id="loginbutton" on-tap="_login" raised><span id="logspa">Login!</span><paper-spinner id="logspi"></paper-spinner></paper-button>
+        <div id="auth-wrapper" class="layout horizontal">
+            <div id="left-panel">
+                <div id="title-wrapper">
+                    <span>Facturo</span>
+                    <span>Facil</span>
+                    <p>Hacemos las cosas fácil para VOS.</p>
                 </div>
-            </section>
-            <section>
-                <h2>Nuevo usuario</h2>
-                <div class="layout vertical centered">
-                    <paper-button id="usuvie" style="margin: auto;" class="link" on-tap="_toggleLogin">Ya estoy registrado</paper-button>
-                    <gold-email-input id="createmail" required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
-                    <appline-password-input id="passin" password={{password}} required></appline-password-input>
-                    <appline-idfiscal-input required only-cuit id="cuitDni" label="Cuit" value="{{cuit}}" error-message="Ingrese CUIT válido"></appline-idfiscal-input>
-                    <paper-input id="razonSocial" required label="Razon Social" value="{{razon_social}}" error-message="Ingrese razón social"></paper-input>
-                    <paper-dropdown-menu id="catIva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
-                        <paper-listbox class="dropdown-content" selected="{{categoriaIva}}" attr-for-selected="value">
-                            <paper-item value="0">Responsable Inscripto</paper-item>
-                            <paper-item value="1">Monotributo</paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    <appline-error-msg hidden$=[[!errorCreateMsg]] message="[[errorCreateMsg]]" id="errorCreate"></appline-error-msg>
-                    <paper-button style="margin-left: auto;" id="crebtn" on-tap="_createUser" raised><span id="crespa">Crear!</span><paper-spinner id="crespi"></paper-spinner></paper-button>
-                </div>
-            </section>
-        </iron-pages>
-        </paper-material>
+            </div>
+            <div id="right-panel">
+                <paper-toolbar>
+                    <span class="title">Facturo Facil</span>
+                </paper-toolbar>
+                <iron-pages selected="[[actionSelected]]">
+                    <section class="layout vertical" style="height: 460px;">
+                        <h1>Inicio</h1>
+                        <p style="font-size: 0.9em;">Bienvenido. Por favor inicie con sus datos</p>
+                        <div class="flex">
+                            <gold-email-input id="loginmail" required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
+                            <paper-input id="loginpass" required error-message="Ingrese contraseña" label="Contraseña" type="password" value="{{password}}"></paper-input>
+                            <appline-error-msg hidden$="[[!errorLoginMsg]]" message="[[errorLoginMsg]]" id="errorLogin"></appline-error-msg>
+                            <paper-button style="float: right;" id="loginbutton" on-tap="_login" raised>
+                                <template is="dom-if" if={{_isLogin}}>
+                                    <paper-spinner active></paper-spinner>
+                                </template>
+                                <template is="dom-if" if={{!_isLogin}}>
+                                    <span id="logspa">Login</span>
+                                </template>
+                            </paper-button>
+                        </div>
+                        <p id="usunue" on-tap="_toggleLogin">No tengo cuenta. Quiero registrarme.</p>
+                    </section>
+                    <section id="nuevo" class="layout vertical" style="height: 460px;">
+                        <h2>Nuevo usuario</h2>
+                        <div class="flex">
+                            <gold-email-input id="createmail" required label="Email" error-message="Ingrese un mail válido" value="{{username}}"></gold-email-input>
+                            <appline-password-input id="passin" password={{password}} required></appline-password-input>
+                            <paper-input id="razonSocial" required label="Razon Social" value="{{razon_social}}" error-message="Ingrese razón social"></paper-input>
+                            <div class="layout horizontal">
+                                <appline-idfiscal-input required only-cuit id="cuitDni" label="Cuit" value="{{cuit}}" error-message="Ingrese CUIT válido"></appline-idfiscal-input>
+                                <div style="width: 30px;"></div>
+                                <paper-dropdown-menu id="catIva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
+                                    <paper-listbox class="dropdown-content" selected="{{categoriaIva}}" attr-for-selected="value">
+                                        <paper-item value="0">Responsable Inscripto</paper-item>
+                                        <paper-item value="1">Monotributo</paper-item>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
+                            <appline-error-msg hidden$=[[!errorCreateMsg]] message="[[errorCreateMsg]]" id="errorCreate"></appline-error-msg>
+                            <paper-button id="crebtn" on-tap="_createUser" raised>
+                                <template is="dom-if" if={{_isCreating}}>
+                                    <paper-spinner active></paper-spinner>
+                                </template>
+                                <template is="dom-if" if={{!_isCreating}}>
+                                    <span id="crespa">Crear</span>
+                                </template>
+                                
+                            </paper-button>
+                        </div>
+                        <p id="usuvie" on-tap="_toggleLogin">Ya estoy registrado</p>
+                        
+                    </section>
+                </iron-pages>
+            </div>      
+        </div>
     
 
     </template>
@@ -87,7 +193,11 @@
                     //this.$.updateUserAjax.generateRequest()
                 },
 
-                behaviors: [AjaxBehavior, Polymer.IronValidatableBehavior, Polymer.IronFitBehavior],
+                behaviors: [AjaxBehavior, Polymer.IronValidatableBehavior, Polymer.IronFitBehavior, Polymer.IronA11yKeysBehavior],
+                
+                keyBindings: {
+                    "enter:keypress": "_onEnterPressed"
+                },
 
                 properties: {
                     /**
@@ -138,7 +248,16 @@
                     _cacheLoaded: {
                         type: Boolean,
                         computed: "_cacheLoadedCompute(_userCacheLoaded, _perfilActualCacheLoaded)",
-                        observer: "_cacheLoadedChanged"}
+                        observer: "_cacheLoadedChanged"
+                    }, 
+                    _isLogin: {
+                        type: Boolean,
+                        value: false
+                    }, 
+                    _isCreating: {
+                        type: Boolean,
+                        value: false
+                    }
                     },
 
                 _trineolambdaLoaded: function(e) {
@@ -206,6 +325,15 @@
                     this.set("perfilActual", undefined);
                 },
 
+                _onEnterPressed: function() {
+                    if(this.actionSelected==0) {
+                        this._login();
+                    }
+                    else {
+                        this._createUser();
+                    }
+                },
+
                 _toggleLogin: function() {
                 if (this.actionSelected==0) {
                     this.actionSelected = 1
@@ -220,8 +348,7 @@
                     valid &= this.$.loginmail.validate();
                     valid &= this.$.loginpass.validate();
                     if(valid) {
-                        this.$.logspi.active=true
-                        this.$.logspa.setAttribute("hidden", true)
+                        this.set("_isLogin", true);
                         this.$.loginAjax.generateRequest();
                         this.$.usunue.disabled=true
                         this.$.loginbutton.disabled=true
@@ -235,8 +362,7 @@
                     } else {
                         this.errorLoginMsg = "Error general. Reintente en unos minutos."
                     }
-                    this.$.logspi.active=false
-                    this.$.logspa.removeAttribute("hidden")
+                    this.set("_isLogin", false);
                     this.$.usunue.disabled=false
                     this.$.loginbutton.disabled=false
                 },
@@ -246,8 +372,7 @@
                     this.password = ""
                     this.$.usunue.disabled=false
                     this.$.loginbutton.disabled=false
-                    this.$.logspi.active=false
-                    this.$.logspa.removeAttribute("hidden")
+                    this.set("_isLogin", false);
                 },
 
                 _createUser: function() {
@@ -258,8 +383,7 @@
                     valid &= this.$.razonSocial.validate();
                     valid &= this.$.catIva.validate();
                     if(valid) {
-                        this.$.crespi.active=true
-                        this.$.crespa.setAttribute("hidden", true)
+                        this.set("_isCreating", true);
                         this.$.createUserAjax.generateRequest();
                         this.$.usuvie.disabled=true
                         this.$.crebtn.disabled=true
@@ -273,8 +397,7 @@
                     } else {
                         this.errorCreateMsg = "Error general. Reintente en unos minutos."
                     }
-                    this.$.crespi.active=false
-                    this.$.crespa.removeAttribute("hidden")
+                    this.set("_isCreating", false);
                     this.$.usuvie.disabled=false
                     this.$.crebtn.disabled=false
                 },
@@ -285,8 +408,7 @@
                     this.$.passin.clear()
                     this.$.usuvie.disabled=false
                     this.$.crebtn.disabled=false
-                    this.$.crespi.active=false
-                    this.$.crespa.removeAttribute("hidden")
+                    this.set("_isCreating", false);
                 }
             });
     </script>
