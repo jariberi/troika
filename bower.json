@@ -49,7 +49,8 @@
     "iron-dropdown": "PolymerElements/iron-dropdown#^1.5.5",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.4.2",
     "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.1",
-    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.2.6"
+    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.2.6",
+    "iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.1.9"
   },
   "devDependencies": {
     "web-component-tester": "^4.0.0"
