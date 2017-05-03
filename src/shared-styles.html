@@ -205,14 +205,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       div.trineo-dialogs {
         background: white;
         color: var(--primary-text-color);
-        padding: 24px;
+        padding: 24px 24px 0 24px;
         box-shadow: rgba(0, 0, 0, 0.24) -2px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         @apply(--layout-vertical)
+      }
+
+      div.trineo-dialogs h2 {
+        color: var(--accent-color);
+        margin: 0 0 20px 0;
+      }
+
+      div.trineo-dialogs div.trineo-dialog-content {
+        width: 100%;
+        padding: 0 0 24px 0;
+      }
+
+      div.trineo-dialog-content > * {
+        width: 100%;
+        max-width: none;
+      }
+
+      div.trineo-dialogs > .buttons {
+        height: 52px;
+        padding: 8px 0 8px 0;
+        margin-right: -16px;
       }
 
         div.trineo-dialogs .buttons * {
           position: relative;
           float: right;
+        }
+
+        div.trineo-dialogs .buttons paper-button {
+          color: var(--accent-color);
+        }
+
+        div.trineo-dialogs .buttons paper-button:hover {
+          border: 1px solid var(--accent-color);
         }
       
     </style>

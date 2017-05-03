@@ -4,7 +4,7 @@
         <style include="shared-styles iron-flex iron-flex-alignment iron-flex-factors">
             :host {
                 display: block;
-                width: 30vw;
+                width: 20vw;
             }
 
             paper-input, appline-idfiscal-input, paper-dropdown-menu {
@@ -19,24 +19,26 @@
             id="savePerfilAjax"
             handle-as="json"
             on-response="handleResponse"
+            on-error="handleError"
             headers="[[getAuthorizationHeader()]]"
             content-type="application/json"></iron-ajax>
         
         <div class="trineo-dialogs">
-            <h2>Nueva empresa: [[razon_social]]</h2>
-                    <div class="layout vertical">
-                        <appline-idfiscal-input required only-cuit id="cuit" label="Cuit" value="{{cuit}}" error-message="Ingrese CUIT válido"></appline-idfiscal-input>
-                        <paper-input id="razonSocial" required label="Razon Social" value="{{razonSocial}}" error-message="Ingrese razón social"></paper-input>
-                        <paper-dropdown-menu id="categoriaIva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
-                            <paper-listbox class="dropdown-content" selected="{{categoriaIva}}" attr-for-selected="value">
-                                <paper-item value="0">Responsable Inscripto</paper-item>
-                                <paper-item value="1">Monotributo</paper-item>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
+            <h2>Nueva empresa</h2>
+            <div class="trineo-dialog-content layout vertical">
+                <appline-idfiscal-input required only-cuit id="cuit" label="Cuit" value="{{cuit}}" error-message="Ingrese CUIT válido"></appline-idfiscal-input>
+                <paper-input id="razonSocial" required label="Razon Social" value="{{razonSocial}}" error-message="Ingrese razón social"></paper-input>
+                <paper-dropdown-menu id="categoriaIva" value="value" required label="Categoria IVA" error-message="Seleccione una categoria de IVA">
+                    <paper-listbox class="dropdown-content" selected="{{categoriaIva}}" attr-for-selected="value">
+                        <paper-item value="0">Responsable Inscripto</paper-item>
+                        <paper-item value="1">Monotributo</paper-item>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+                <appline-error-msg message=[[errorMessage]]></appline-error-msg>
+            </div>
             <div class="buttons">
-                <paper-button raised autofocus on-tap="_close">Cancelar</paper-button>
-                <paper-button raised on-tap="_saveEmpresa">Aceptar</paper-button>
+                <paper-button on-tap="_saveEmpresa">Aceptar</paper-button>
+                <paper-button autofocus on-tap="_close">Cancelar</paper-button>
             </div>
         </div>
         
@@ -84,6 +86,12 @@
                 if(e.detail.xhr.status==201) {
                     this.fire("trineo-empresa-form-added", {perfil:e.detail.xhr.response});
                     this._close()
+                }
+            },
+
+            handleError: function(e) {
+                if(e.detail.request.xhr.status==400) {//BAD REQUEST
+                    this.errorMessage = e.detail.request.xhr.response['empresa']['cuit'][0]
                 }
             },
 

@@ -278,7 +278,7 @@
       },
       clear: function() {
         this.tipoCompra = this.fecha = this.proveedor = this.puntoVenta = this.numero = this.periodo = null
-        this.exento = this.interno = this.ingBrutos = this.redondeo = this.percepIva = null
+        this.exento = this.interno = this.ingBrutos = this.redondeo = this.percepIva = ""
         var items=Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
         for (i = 0; i < items.length; i++) {
           Polymer.dom(items[i].parentNode).removeChild(items[i])  
