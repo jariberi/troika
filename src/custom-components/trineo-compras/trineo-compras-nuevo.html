@@ -317,7 +317,13 @@
             compra['items']=[]
             var items = Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
             for (i=0; i<items.length; i++) {
-              var obj = {cantidad:items[i].cantidad(), tipo: items[i].tipo, precio_unitario: items[i].precioUnitario(), iva: items[i].alicIva()}
+              var obj = {cantidad:items[i].cantidad(), tipo: items[i].tipo, precio_unitario: items[i].precioUnitario()}
+              if (items[i].alicIva()!="") {
+                obj['iva']= items[i].alicIva()
+              }
+              else {
+                obj['iva']= 'IVA00'
+              }
               switch (items[i].tipo) {
                 case 0: //almacenado
                   obj['articulo'] = items[i].articulo().url
