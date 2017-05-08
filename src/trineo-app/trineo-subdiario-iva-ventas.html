@@ -155,7 +155,9 @@
                     xhr.responseType = 'blob'; //so you can access the response like a normal URL
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                            window.open(URL.createObjectURL(xhr.response)); //create <object> with data set to the blob
+                            console.log(URL.createObjectURL(xhr.response))
+                            window.open(URL.createObjectURL(xhr.response), "_blank"); //create <object> with data set to the blob
+                            window.open(); //create <object> with data set to the blob
                             //var a = document.createElement("a");
                             //a.style = "display: none";
                             //document.body.appendChild(a);

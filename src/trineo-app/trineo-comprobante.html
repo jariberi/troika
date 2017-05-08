@@ -157,16 +157,20 @@
                             var but = document.createElement("paper-icon-button");
                             but.style.padding = "0 4px"
                             but.icon= "print"
-                            var spl = cell.row.data.url.split("/");
-                            var id = spl[spl.length-2];
-                            but.addEventListener("tap", function(){
-                                that.fire("trineo-comprobante-ver-comprobante", {comprobante:id})    
-                            })
+                            if (cell.row.data.aprobado && !cell.row.data.solo_registro) {
+                                var spl = cell.row.data.url.split("/");
+                                var id = spl[spl.length-2];
+                                but.addEventListener("tap", function(){
+                                    that.fire("trineo-comprobante-ver-comprobante", {comprobante:id})    
+                                })
+                            }
+                            else {
+                                but.disabled = true
+                            }
                             cell.element.appendChild(but);
                         };
 
                         var delComp = function(cell) {
-                            console.log("comp", cell.row.data)
                             cell.element.innerHTML = ''
                             var but = document.createElement("paper-icon-button");
                             but.style.padding = "0 4px"

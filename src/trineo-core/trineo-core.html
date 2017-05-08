@@ -291,6 +291,7 @@
           var d = document.createElement('trineo-cliente-form');
           d.accion = 0
           d.set("cliente", e.detail.contribuyente)
+          d.set("perfilActual", this.perfilActual)
           Polymer.dom(this.root).appendChild(d);
           var that = this
           d.addEventListener('trineo-cliente-form-ok', function(e){
