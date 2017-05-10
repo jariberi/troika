@@ -38,8 +38,7 @@
                 </paper-autocomplete>  
             </div>
             <div class="form-field col-2">
-                <trineo-decimal-input id="precioVenta" no-label-float hidden="[[!discriminaIva]]" required readonly="[[!soloRegistro]]" allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
-                <trineo-decimal-input id="precioVentaIvaInc" no-label-float hidden="[[discriminaIva]]" required readonly="[[!soloRegistro]]" allowed-pattern="[0-9\.]" value="{{_articulo.precio_venta_iva_inc}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
+                <trineo-decimal-input id="precioLista" no-label-float required allowed-pattern="[0-9\.]" value="{{precioLista}}" error-message="Ingrese el precio"></trineo-decimal-input>
             </div>
             <div class="form-field col-2">
                 <paper-dropdown-menu no-label-float required="[[_asignaIva]]" disabled id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
@@ -51,6 +50,9 @@
                     </paper-listbox>
                 </paper-dropdown-menu>
             </div>
+        </div>
+        <div>
+            cantidad: [[cantidad]] - preciolista: [[precioLista]] - precio_unitario: [[precioUnitario]] iva unitario: [[valorIvaUnitario]] - neto: [[neto]] - alic iva: [[alicIvaN]]
         </div>
     </template>
     <script>
@@ -66,45 +68,72 @@
                     type: Boolean,
                     value: false
                 },
-                cantidad: Number,
+                cantidad: String,
                 neto: {
                     type: Number,
                     readOnly: true,
-                    computed: "calcularNeto(cantidad, _precioUnitario)"
+                    computed: "calcularNeto(cantidad, precioUnitario)"
                 },
                 alicIvaN: {
                     type: Number,
                     value: 0,
-                    computed: "_alicIvaNCmpute(_articulo.alicuota_iva)"
+                    computed: "_alicIvaNCompute(_articulo.alicuota_iva)"
                 },
-                valorIva: {
+                valorIvaUnitario: {
                     type: Number,
                     readOnly: true,
-                    computed: "calcularIva(neto, alicIvaN)"
+                    computed: "calcularIvaUnitario(precioUnitario, discriminaIva, alicIvaN)"
                 },
                 total: {
                     type: Number,
-                    computed: "calcularTotal(neto, valorIva)",
+                    computed: "calcularTotal(cantidad, precioUnitario, valorIvaUnitario)",
                     notify: true
                 },
-                _precioUnitario: {
+                precioLista: {
+                    type: String,
+                    value: ""
+                },
+                precioUnitario: {
                     type: Number,
-                    computed: "_calcular_precioUnitario(_articulo.precio_venta, _articulo.precio_venta_iva_inc, discriminaIva)",
+                    computed: "calcularPrecioUnitario(precioLista, alicIvaN, discriminaIva)",
                     value: 0
                 },
-                _articulo: Object
+                _articulo: {
+                    type: Object,
+                    observer: "_on_articuloChanged"
+                }
+            },
+
+            _on_articuloChanged: function(newval) {
+                if (this.soloRegistro && newval) {
+                    this.set("_articulo.precio_venta", "")
+                    this.set("_articulo.precio_venta_iva_inc", "")
+                }
             },
 
             behaviors: [AjaxBehavior, Polymer.IronValidatableBehavior],
 
+            observers: [
+                "calcularPrecioLista(_articulo.precio_venta, _articulo.precio_venta_iva_inc, discriminaIva)"
+            ],
+
             listeners: {
                 "autocomplete-change": "_onAutocompleteChanged",
-                "autocomplete-selected": "_onAutocompleteSelected"
+                "autocomplete-selected": "_onAutocompleteSelected",
             },
 
             //COMPUTES
-            _alicIvaNCmpute: function(val) {
-                switch(val) {
+            calcularPrecioLista: function(psi, pci, dis) {
+                if (dis) {
+                    this.set("precioLista", psi)
+                }
+                else {
+                    this.set("precioLista", pci)
+                }
+            },
+
+            _alicIvaNCompute: function (alicIva) {
+                switch(alicIva) {
                     case "IVA21":
                         return 21;
                     case "IV105":
@@ -112,34 +141,42 @@
                     case "IVA27":
                         return 27
                     default:
-                        return 0
+                        return 0;
                 }
             },
 
-            _calcular_precioUnitario: function(precio, precioIva, discriminaIva) {
+            calcularPrecioUnitario: function(precioLista, alicIvaN, discriminaIva) {
+                if (precioLista=="") {
+                    return 0
+                }
                 if (!discriminaIva) {
-                    return Number(precioIva)
-                }
+                    pu = math.round(Number(precioLista / (1 + alicIvaN / 100)),2)
+                    iva = math.round(pu * this.alicIvaN / 100, 2)
+                    if (Number(precioLista) - pu - iva > 0) {
+                        return Number(precioLista) - iva
+                    }
+                    else {
+                        return pu
+                    }
+                    }
                 else {
-                    return Number(precio)
+                    return Number(precioLista)
                 }
             },
 
-
-            calcularNeto: function(cantidad, _precioUnitario) {
-                return Number(cantidad) * _precioUnitario
-            },
-
-            calcularIva: function(neto, alicIvaN) {
-                if(this.discriminaIva) {
-                    return neto * alicIvaN / 100
+            calcularIvaUnitario: function(precioUnitario, discriminaIva, alicIvaN) {
+                if (!discriminaIva) {
+                    return math.round(Number(this.precioLista) - precioUnitario,2)
                 }
-                else {
-                    return 0.00
-                }    
+                return math.round(precioUnitario * alicIvaN / 100, 2)
             },
-            calcularTotal: function(neto, valorIva) {
-                return (Number(neto) + Number(valorIva)).toFixed(2)
+
+            calcularTotal: function(cantidad, precioUnitario, valorIvaUnitario) {
+                return (Number(cantidad) * (precioUnitario + valorIvaUnitario)).toFixed(2)
+            },
+
+            calcularNeto: function(cantidad, precioUnitario) {
+                return math.round(Number(cantidad) * precioUnitario,2)
             },
 
             getAlicIva: function() {
@@ -175,23 +212,17 @@
 
             _onAutocompleteSelected: function(e) {
                 this.$.getArticulo.url = e.detail.value;
-                console.log(this.getAuthorizationHeader())
                 this.$.getArticulo.headers=this.getAuthorizationHeader();
                 this.$.getArticulo.generateRequest();
             },
 
             _getValidity: function() {
                 var valid = true;
-                valid = valid & this.$.cantidad.validate()
-                valid = valid & this.$.articuloautocomplete.validate()
-                valid = valid & this.$.precioVenta.validate()
-                valid = valid & this.$.precioVentaIvaInc.validate()
-                valid = valid & this.$.alicIva.validate()
+                valid &= this.$.cantidad.validate()
+                valid &= this.$.articuloautocomplete.validate()
+                valid &= this.$.precioLista.validate()
+                valid &= this.$.alicIva.validate()
                 return valid
-            },
-
-            _precioUnitario: function() {
-                return this._precioUnitario;
             }
         });
     </script>

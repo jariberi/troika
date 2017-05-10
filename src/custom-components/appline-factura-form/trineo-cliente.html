@@ -55,7 +55,11 @@
                 </div>
                 <div class="form-field col-4" style="margin-top: 8px;">
                     <div>
-                        <span id="direccion">{{cliente.direccion}}</span>      
+                        <span id="direccion">
+                        <template is="dom-if" if={{cliente}}>
+                            [[cliente.direccion]] - [[cliente.localidad]]
+                        </template>
+                        </span>      
                         <paper-spinner active="[[clienteAjaxFlight]]"></paper-spinner>
                     </div>
                 </div>

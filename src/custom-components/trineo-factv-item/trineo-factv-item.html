@@ -71,7 +71,10 @@
             },
 
             cantidad: function() {
-                return this.$.items.selectedItem.cantidad
+                if (this.$.items.selectedItem) {
+                    return this.$.items.selectedItem.cantidad
+                }
+                return 0
             },
 
             neto: function() {
@@ -84,30 +87,17 @@
                 }
             },
 
-            _neto: function() {
-                //Return valor neto real del item, personalizado
+            ivaUnitario: function() {
+                //Return valor neto del item
                 if (this.$.items.selectedItem) {
-                    var item=this.$.items.selectedItem;
-                    return Number(item._neto)
-                }
-                else {
-                    return 0
+                    return this.$.items.selectedItem.valorIvaUnitario
                 }
             },
 
-            iva: function() {
+            ivaTotal: function() {
                 //Return valor neto del item
                 if (this.$.items.selectedItem) {
-                    var item=this.$.items.selectedItem;
-                    return Number(item.valorIva)
-                }
-            },
-            
-            _iva: function() {
-                //Return valor iva real del item, personalizado
-                if (this.$.items.selectedItem) {
-                    var item=this.$.items.selectedItem;
-                    return Number(item._valorIva)
+                    return math.round(this.$.items.selectedItem.valorIvaUnitario * Number(this.$.items.selectedItem.cantidad),2)
                 }
             },
 
@@ -127,8 +117,15 @@
                 return this.$.items.selectedItem.descripcion
             },
 
-            _precioUnitario: function() {
-                return this.$.items.selectedItem._precioUnitario
+            precioUnitario: function() {
+                return this.$.items.selectedItem.precioUnitario
+            },
+
+            precioLista: function() {
+                if (this.$.items.selectedItem) {
+                    return Number(this.$.items.selectedItem.precioLista)
+                }
+                return 0
             },
 
             _getValidity: function() {

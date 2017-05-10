@@ -155,7 +155,6 @@
                     xhr.responseType = 'blob'; //so you can access the response like a normal URL
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                            console.log(xhr)
                             saveAs(xhr.response, "Ventas-"+that.mesPeriodo+"-"+that.anoPeriodo+".zip")
                         }
                     };

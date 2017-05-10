@@ -14,7 +14,7 @@
                 <paper-input no-label-float required id="descripcion" value="{{descripcion}}" error-message="Ingrese la descripcion"></paper-input>
             </div>
             <div class="form-field col-2">
-                <paper-input no-label-float required allowed-pattern="[0-9\.]" id="precioUnitario" value="{{precioUnitario}}" error-message="Ingrese el precio unitario"></paper-input>
+                <paper-input no-label-float required allowed-pattern="[0-9\.]" id="precioLista" value="{{precioLista}}" error-message="Ingrese el precio"></paper-input>
             </div>
             <div class="form-field col-2">
                 <paper-dropdown-menu no-label-float required="[[asignaIva]]" disabled="[[!asignaIva]]" id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
@@ -27,6 +27,7 @@
                 </paper-dropdown-menu>
             </div>
         </div>
+        cantidad: [[cantidad]] - preciolista: [[precioLista]] - precio_unitario: [[precioUnitario]] iva unitario: [[valorIvaUnitario]] - neto: [[neto]] - alic iva: [[alicIvaN]]
     </template>
     <script>
         Polymer({
@@ -42,14 +43,12 @@
                     type: Boolean,
                     value: false
                 },
-                cantidad: Number,
+                cantidad: String,
                 descripcion: String,
+                precioLista: String,
                 precioUnitario: {
-                    type: Number
-                },
-                _precioUnitario: {
                     type: Number,
-                    computed: "_calcular_precioUnitario(precioUnitario, alicIvaN, discriminaIva)",
+                    computed: "calcularPrecioUnitario(precioLista, alicIvaN, discriminaIva)",
                     value: 0
                 },
                 alicIva: {
@@ -60,28 +59,18 @@
                     readOnly: true,
                     computed: "calcularNeto(cantidad, precioUnitario)"
                 },
-                _neto: {
-                    type: Number,
-                    value: 0,
-                    computed: "_calcular_neto(cantidad, _precioUnitario)"
-                },
                 alicIvaN: {
                     type: Number,
                     value: 0,
                     computed: "_alicIvaNCompute(alicIva)"
                 },
-                valorIva: {
+                valorIvaUnitario: {
                     type: Number,
-                    computed: "calcularIva(neto, alicIvaN, discriminaIva)"
-                },
-                _valorIva: {
-                    type: Number,
-                    value: 0,
-                    computed: "_calcular_iva(_neto, alicIvaN)"
+                    computed: "calcularIvaUnitario(precioUnitario, discriminaIva, alicIvaN)"
                 },
                 total: {
                     type: Number,
-                    computed: "calcularTotal(neto, valorIva)",
+                    computed: "calcularTotal(cantidad, precioUnitario, valorIvaUnitario)",
                     notify: true
                 }
             },
@@ -99,44 +88,39 @@
                 }
             },
 
-            _calcular_precioUnitario: function(precioUnitario, alicIvaN, discriminaIva) {
-                if (precioUnitario=="") {
+            calcularPrecioUnitario: function(precioLista, alicIvaN, discriminaIva) {
+                if (precioLista=="") {
                     return 0
                 }
-                if (this.asignaIva && !discriminaIva) {
-                    return Number(precioUnitario / (1 + this.alicIvaN / 100))
-                }
+                if (!discriminaIva) {
+                    pu = math.round(Number(precioLista / (1 + alicIvaN / 100)),2)
+                    iva = math.round(pu * this.alicIvaN / 100, 2)
+                    if (Number(precioLista) - pu - iva > 0) {
+                        return math.round(Number(precioLista) - iva,2)
+                    }
+                    else {
+                        return pu
+                    }
+                    }
                 else {
-                    return Number(precioUnitario)
+                    return Number(precioLista)
                 }
             },
 
 
             calcularNeto: function(cantidad, precioUnitario) {
-                return (cantidad * precioUnitario).toFixed(2)
+                return math.round(Number(cantidad) * precioUnitario,2)
             },
 
-            _calcular_neto: function(cantidad, _precioUnitario) {
-                return (cantidad * _precioUnitario)
-            },
-
-            calcularIva: function(neto, alicIvaN, discriminaIva) {
-                var iva = (neto * alicIvaN / 100)
-                if(discriminaIva) {
-                    return iva.toFixed(2)
+            calcularIvaUnitario: function(precioUnitario, discriminaIva, alicIvaN) {
+                if (!discriminaIva) {
+                    return math.round(Number(this.precioLista) - precioUnitario,2)
                 }
-                else {
-                    return "0.00"
-                }
-                
-            },
-            _calcular_iva: function(_neto, alicIvaN) {
-                var iva = (_neto * alicIvaN / 100)
-                return iva                
+                return math.round(precioUnitario * alicIvaN / 100, 2)
             },
 
-            calcularTotal: function(neto, valorIva) {
-                return (Number(neto) + Number(valorIva)).toFixed(2)
+            calcularTotal: function(cantidad, precioUnitario, valorIvaUnitario) {
+                return (Number(cantidad) * (precioUnitario + valorIvaUnitario)).toFixed(2)
             },
 
             getAlicIva: function() {
@@ -148,10 +132,10 @@
 
             _getValidity: function() {
                 var valid = true;
-                valid = valid & this.$.cantidad.validate()
-                valid = valid & this.$.descripcion.validate()
-                valid = valid & this.$.precioUnitario.validate()
-                valid = valid & this.$.alicIva.validate()
+                valid &= this.$.cantidad.validate()
+                valid &= this.$.descripcion.validate()
+                valid &= this.$.precioLista.validate()
+                valid &= this.$.alicIva.validate()
                 return valid
             }
         });

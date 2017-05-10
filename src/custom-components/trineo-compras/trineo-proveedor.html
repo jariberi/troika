@@ -26,10 +26,10 @@
                 cond-fiscal="{{proveedor.cond_iva}}"
                 ></trineo-combinacion-fiscal>
             </div>
-            <div class="layout horizontal form-row">
+            <div class="layout horizontal form-row center">
                 <div class="form-field col-6">
                     <div>
-                        <div class="layout horizontal">
+                        <div class="layout horizontal center">
                             <paper-autocomplete disable-show-clear style="width: calc(100% - 40px);" hidden="[[!planMayor0()]]" required text-property="razon_social" value-property="id" name="proveedor" id="proveedorautocomplete" label="Razon Social" remote-source="true" min-length="3" text="{{proveedor.razon_social}}">
                                 <template autocomplete-custom-template>
                                 <paper-item style="padding: 10px 5px;" on-tap="_onSelect" id$="[[_getSuggestionId(index)]]" role="option" aria-selected="false">
@@ -53,10 +53,11 @@
                     </div>
                 </div>
                 <div class="form-field col-6">
-                    <div>
-                        <paper-input readonly="[[!manual]]" required id="direccion" label="Direccion" value="{{proveedor.direccion}}" error-message="Ingrese una dirección"></paper-input>      
-                        <paper-spinner active="[[proveedorAjaxFlight]]"></paper-spinner>
-                    </div>
+                    <span>
+                        <template is="dom-if" if={{proveedor}}>
+                        [[proveedor.direccion]] - [[proveedor.localidad]]    
+                        </template>
+                    </span>
                 </div>
             </div>
         </div>
@@ -160,7 +161,6 @@
             _getValidity: function() {
                 var valid = true
                 valid &= this.$.combifi.validate()
-                valid &= this.$.direccion.validate()
                 valid &= this.$.proveedorautocomplete.validate()
                 return valid
             }

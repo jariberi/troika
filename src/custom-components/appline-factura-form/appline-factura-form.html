@@ -399,19 +399,24 @@
         var iva27 = 0
         var items = Polymer.dom(this.$.detalle).querySelectorAll('trineo-factv-item')
         for (i = 0; i < items.length; i++) {
-          neto = neto + Number(items[i].neto())
-          switch (items[i].alicIva()) {
-            case "IV105":
-              iva105 = iva105 + Number(items[i].iva());
-              break;
-            case "IVA21":
-              iva21 = iva21 + Number(items[i].iva());
-              break;
-            case "IVA27":
-              iva27 = iva27 + Number(items[i].iva());
-              break;
-            default:
-              break;
+          if (!this._discriminaIva) {
+            neto += items[i].cantidad() * items[i].precioLista()
+          }
+          else {
+            neto = neto + Number(items[i].neto())
+            switch (items[i].alicIva()) {
+              case "IV105":
+                iva105 = iva105 + Number(items[i].ivaTotal());
+                break;
+              case "IVA21":
+                iva21 = iva21 + Number(items[i].ivaTotal());
+                break;
+              case "IVA27":
+                iva27 = iva27 + Number(items[i].ivaTotal());
+                break;
+              default:
+                break;
+            }
           }
         }
         this.total = (neto + iva105 + iva21 + iva27).toFixed(2)
@@ -430,19 +435,19 @@
 
       _getValidity: function() {
         var valid = true;
-        valid = valid & this.$.tipoVenta.validate()
-        valid = valid & this.$.puntoVenta.validate()
-        valid = valid & this.$.tipoComprobante.validate()
-        valid = valid & this.$.fechaDatePicker.validate()
-        valid = valid & this.$.cliente.validate()
-        valid = valid & this.$.cliente.validate()
-        valid = valid & this.$.cliente.validate()
+        valid &= this.$.tipoVenta.validate()
+        valid &= this.$.puntoVenta.validate()
+        valid &= this.$.tipoComprobante.validate()
+        valid &= this.$.fechaDatePicker.validate()
+        valid &= this.$.cliente.validate()
+        valid &= this.$.cliente.validate()
+        valid &= this.$.cliente.validate()
         if (this.tipoVenta == "1" || this.tipoVenta == "2") {
           this.$.fechasServicio.validate()
         }
         var items = Polymer.dom(this.root).querySelectorAll('trineo-factv-item');
         for (i=0;i<items.length;i++) {
-          valid = items[i].validate() && valid
+          valid &= items[i].validate()
         }
         return valid
       },
@@ -450,11 +455,13 @@
       submit: function() {
         //Submit del formulario, no tradicional, simplemente valida y hace una post al API rest
         if(this.validate()){
+          console.log("valid")
           var patt = new RegExp("(0+-0+-0+)|(0+)") //Validar que haya un cliente que no sea consumidor final si es B
           if (this.letraComprobante != 'C' && this.total > 1000 && patt.test(this.cuitDni)) {
             alert("No se permite en facturas mayores a $1000 que el cliente no sea identificado.")
           }
           else {
+            console.log("aasasaaa")
             if (this.esFacturaElectronica) {
               this.fire("open-wait", {mensaje: "Aprobando... No cierre esta ventana"})
             }
@@ -481,14 +488,14 @@
               switch (items[i].tipo) {
                 case 0: //almacenado
                   obj['articulo'] = items[i].articulo().url
-                  if (this._soloRegistro) {
-                    obj['precio_unitario'] = items[i]._precioUnitario()
-                  }
+                  obj['precio_unitario'] = items[i].precioUnitario()
+                  obj['valor_iva'] = items[i].ivaUnitario()
                   break;
                 case 1: //personalizado
                   obj['descripcion']= items[i].descripcion();
-                  obj['precio_unitario']=items[i]._precioUnitario();
+                  obj['precio_unitario']=items[i].precioUnitario();
                   obj['iva'] = items[i].alicIva();
+                  obj['valor_iva'] = items[i].ivaUnitario();
                   break;
                 case 2: //compuesto
                   obj['descripcion']= items[i].descripcion();
@@ -496,10 +503,9 @@
                   compuestos = []
                   var comp = Polymer.dom(items[i].$.items.selectedItem.$.detalle.$.detalleCompuesto).querySelectorAll("trineo-item-compuesto-item")
                   for (j=0;j<comp.length;j++) {
-                    c = {cantidad: comp[j].cantidad(), pers:comp[j].pers}
+                    c = {cantidad: comp[j].cantidad(), pers:comp[j].pers, valor_iva: comp[j].iva(), precio_unitario: comp[j].precioUnitario()}
                     if (comp[j].pers) {
                       c['descripcion']=comp[j].descripcion()
-                      c['precio_unitario']=comp[j].precioUnitario()
                     }
                     else {
                       c['articulo']=comp[j].articulo().url
@@ -510,6 +516,7 @@
               }   
               fact['items'].push(obj)
             }
+            console.log(fact)
             this.$.submitComprobanteAjax.body = fact;
             this.$.submitComprobanteAjax.headers=this.getAuthorizationHeader();
             this.$.submitComprobanteAjax.generateRequest();

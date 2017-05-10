@@ -155,20 +155,7 @@
                     xhr.responseType = 'blob'; //so you can access the response like a normal URL
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                            window.open(URL.createObjectURL(xhr.response)); //create <object> with data set to the blob
-                            //var a = document.createElement("a");
-                            //a.style = "display: none";
-                            //document.body.appendChild(a);
-                            //Create a DOMString representing the blob 
-                            //and point the link element towards it
-                            //var url = window.URL.createObjectURL(xhr.response);
-                            //a.href = url;
-                            //a.download = 'myFile.pdf';
-                            //programatically click the link to trigger the download
-                            //a.click();
-                            //release the reference to the file by revoking the Object URL
-                            //window.URL.revokeObjectURL(url);
-                            //document.body.removeChild(a);
+                            saveAs(xhr.response, "Compras-"+that.mesPeriodo+"-"+that.anoPeriodo+".zip")
                         }
                     };
                     xhr.open('GET', this.apiUrl+"/utils/rg3685-compras/"+this.params, true);
