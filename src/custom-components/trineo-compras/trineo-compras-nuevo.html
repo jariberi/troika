@@ -177,7 +177,12 @@
         },
         perfilActual: Object,
         tipoCompra: String,
-        fecha: String,
+        fecha: {
+          type: String,
+          value: function () {
+            return moment().format("YYYY-MM-DD")
+          }
+        },
         fechaMax: {
           type: String,
           value: function() {return moment().format("YYYY-MM-DD")}
@@ -277,8 +282,9 @@
         this.total = (neto + iva105 + iva21 + iva27 + exento + interno + ingBrutos + redondeo + percepIva).toFixed(2)
       },
       clear: function() {
-        this.tipoCompra = this.fecha = this.proveedor = this.puntoVenta = this.numero = this.periodo = null
+        this.tipoCompra = this.proveedor = this.puntoVenta = this.numero = this.periodo = null
         this.exento = this.interno = this.ingBrutos = this.redondeo = this.percepIva = ""
+        this.fecha = moment().format("YYYY-MM-DD")
         var items=Polymer.dom(this.root).querySelectorAll('trineo-compras-item')
         for (i = 0; i < items.length; i++) {
           Polymer.dom(items[i].parentNode).removeChild(items[i])  

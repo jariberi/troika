@@ -58,6 +58,7 @@
                 </div>
                 
                 <div id="subdiario"></div>
+                <div id="resumen"></div>
             </div>
         </paper-card>
     </template>
@@ -129,22 +130,39 @@
             _getPDF: function() {
                 if (this.validate()) {
                     var that = this
-                    var xhr = new XMLHttpRequest();
-                    xhr.responseType = 'blob'; //so you can access the response like a normal URL
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    var xhr_subdiario = new XMLHttpRequest();
+                    xhr_subdiario.responseType = 'blob'; //so you can access the response like a normal URL
+                    xhr_subdiario.onreadystatechange = function () {
+                        if (xhr_subdiario.readyState == XMLHttpRequest.DONE && xhr_subdiario.status == 200) {
                             //Borro lo que haya dentro de div#subdiario
                             Polymer.dom(that.$.subdiario).innerHTML = ''
                             var pdf = document.createElement("object");
-                            pdf.data = URL.createObjectURL(xhr.response); //create <object> with data set to the blob
+                            pdf.data = URL.createObjectURL(xhr_subdiario.response); //create <object> with data set to the blob
                             pdf.type = "application/pdf"
                             Polymer.dom(that.$.subdiario).appendChild(pdf);
                         }
                     };
-                    xhr.open('GET', this.apiUrl+"/utils/subdiario-iva-compras/"+this.params, true);
-                    xhr.setRequestHeader("Authorization", "Token " + this.getToken())
-                    xhr.setRequestHeader("trineo-empresa", this.getEmpresa())
-                    xhr.send();
+                    xhr_subdiario.open('GET', this.apiUrl+"/utils/subdiario-iva-compras/"+this.params, true);
+                    xhr_subdiario.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr_subdiario.setRequestHeader("trineo-empresa", String(this.getEmpresa()))
+                    xhr_subdiario.send();
+                    //Resumen
+                    var xhr_resumen = new XMLHttpRequest();
+                    xhr_resumen.responseType = 'blob'; //so you can access the response like a normal URL
+                    xhr_resumen.onreadystatechange = function () {
+                        if (xhr_resumen.readyState == XMLHttpRequest.DONE && xhr_resumen.status == 200) {
+                            //Borro lo que haya dentro de div#subdiario
+                            Polymer.dom(that.$.resumen).innerHTML = ''
+                            var pdf = document.createElement("object");
+                            pdf.data = URL.createObjectURL(xhr_resumen.response); //create <object> with data set to the blob
+                            pdf.type = "application/pdf"
+                            Polymer.dom(that.$.resumen).appendChild(pdf);
+                        }
+                    };
+                    xhr_resumen.open('GET', this.apiUrl+"/compras/resumen/"+this.params, true);
+                    xhr_resumen.setRequestHeader("Authorization", "Token " + this.getToken())
+                    xhr_resumen.setRequestHeader("trineo-empresa", String(this.getEmpresa()))
+                    xhr_resumen.send();
                 }
             },
 

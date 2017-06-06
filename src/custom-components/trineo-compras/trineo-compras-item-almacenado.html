@@ -30,8 +30,8 @@
                 <trineo-decimal-input id="precioVenta" no-label-float hidden="[[!discriminaIva]]" required allowed-pattern="[0-9\.]" value="{{precioUnitario}}" error-message="Ingrese el precio unitario"></trineo-decimal-input>
             </div>
             <div class="form-field col-2">
-                <paper-dropdown-menu no-label-float required="[[asignaIva]]" disabled="[[!asignaIva]]" id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
-                    <paper-listbox attr-for-selected="value" selected="{{alicIva}}" class="dropdown-content">
+                <paper-dropdown-menu no-label-float disabled id="alicIva" label="Alic. IVA" value="value" error-message="Ingrese IVA">
+                    <paper-listbox attr-for-selected="value" selected="{{_articulo.alicuota_iva}}" class="dropdown-content">
                         <paper-item value="IVA00">Exento</paper-item>
                         <paper-item value="IV105">10.5%</paper-item>
                         <paper-item value="IVA21">21%</paper-item>
@@ -57,11 +57,10 @@
                     readOnly: true,
                     computed: "calcularNeto(cantidad, precioUnitario)"
                 },
-                alicIva: String,
                 alicIvaN: {
                     type: Number,
                     value: 0,
-                    computed: "_alicIvaNCmpute(alicIva)"
+                    computed: "_alicIvaNCmpute(_articulo.alicuota_iva)"
                 },
                 valorIva: {
                     type: Number,
@@ -116,7 +115,7 @@
             },
 
             getAlicIva: function() {
-                return this.alicIva
+                return this._articulo.alicuota_iva
             },
 
             _onAsignaIvaChanged: function(v) {
