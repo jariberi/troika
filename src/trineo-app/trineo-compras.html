@@ -175,6 +175,7 @@
 
             _delComprobante: function(e) {
                 this.$.delcompajax.url = this.apiUrl+"/compras/"+String(e)+"/";
+                this.$.delcompajax.headers = this.getAuthorizationHeader();
                 this.$.delcompajax.generateRequest();
             },
 
